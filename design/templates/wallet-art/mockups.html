@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Your Brand wallet cards: how they will look</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+/* Mock-ups of the real passes. Colours from design/DESIGN-GUIDE.md. The real Apple/Google layouts decide the final positions;
+   this shows what we send them: logo, strip/hero, field labels and values, barcode. */
+:root{--bg:#141210;--gold:#CDA55B;--gold2:#E3C07E;--text:#F3E9D2;--muted:#D9C9A8;--dim:#9A8C74;--line:#3D372F}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1500px;background:#0b0a09;color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:34px 40px 40px}
+h1{font:600 30px Georgia,serif;color:var(--gold2);letter-spacing:.04em}
+.sub{color:var(--dim);margin:6px 0 26px}
+h2{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:0 0 14px}
+.row{display:flex;gap:34px;align-items:flex-start;margin-bottom:34px}
+.col small{display:block;color:var(--dim);margin-top:10px;font-size:13px;max-width:375px}
+/* Apple store card */
+.ap{width:375px;border-radius:16px;background:var(--bg);overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.6),0 0 0 1px #2a2621}
+.ap .top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px}
+.ap .top img{width:160px;height:50px;object-fit:contain;object-position:left}
+.ap .hd{text-align:right}
+.lbl{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.val{font-size:22px;color:var(--text);line-height:1.15}
+.ap .strip{display:block;width:375px;height:144px}
+.ap .fields{display:flex;gap:0;padding:12px 16px 4px}
+.ap .fields>div{flex:1}
+.ap .fields>div.r{text-align:right}
+.ap .fields .val{font-size:17px}
+.ap .fields.f2{padding-top:10px}
+.ap .bc{padding:14px 0 18px;text-align:center}
+.qr{display:inline-block;background:#fff;border-radius:10px;padding:10px;line-height:0}
+.qr svg{width:150px;height:150px}
+.ap .alt{margin-top:7px;color:var(--text);font-size:15px;letter-spacing:.3em}
+.ready{margin:10px 16px 0;padding:9px 12px;border:1px solid var(--gold);border-radius:10px;color:var(--gold2);font-size:13.5px;background:rgba(205,165,91,.10);text-align:center}
+/* Google Wallet loyalty card */
+.gg{width:360px;border-radius:20px;background:var(--bg);overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.6),0 0 0 1px #2a2621}
+.gg .top{display:flex;align-items:center;gap:12px;padding:16px 16px 6px}
+.gg .circ{width:44px;height:44px;border-radius:50%;background:#141210;border:1px solid var(--line);overflow:hidden;flex:none}
+.gg .circ img{width:44px;height:44px}
+.gg .name{font-size:15px;color:var(--text)}.gg .prog{font-size:12px;color:var(--dim)}
+.gg .pts{padding:8px 16px 10px}.gg .pts .big{font:600 44px Georgia,serif;color:var(--text);line-height:1}
+.gg .hero{display:block;width:360px}
+.gg .fields{display:flex;gap:0;padding:12px 16px 4px}.gg .fields>div{flex:1}
+.gg .bc{padding:14px 0 20px;text-align:center}
+.gg .alt{margin-top:7px;color:var(--text);letter-spacing:.3em;font-size:14px}
+.note{max-width:1100px;color:var(--muted);font-size:14px;margin-top:6px}
+.note b{color:var(--gold2)}
+</style></head><body>
+<h1>Your Brand wallet cards: how they will look</h1>
+<p class="sub">Draft 2, 13 Oct 2026: velvet banner made with Higgsfield (ai-backgrounds/bg2.png). Colours from design/DESIGN-GUIDE.md; other banner versions are kept in <code>png/</code>. Real positions are decided by Apple and Google; we supply the colours, images, labels and values.</p>
+
+<h2>Apple Wallet: three moments in the life of one card</h2>
+<div class="row">
+ <div class="col"><div class="ap" id="a1"></div><small>1. Just joined. 0 points, welcome message on the back.</small></div>
+ <div class="col"><div class="ap" id="a2"></div><small>2. Mid-way. Points and "reward at" show side by side.</small></div>
+ <div class="col"><div class="ap" id="a3"></div><small>3. Reward ready. The card updates itself after the visit and a gold line tells staff and guest.</small></div>
+</div>
+
+<h2>Google Wallet</h2>
+<div class="row">
+ <div class="col"><div class="gg" id="g1"></div><small>Same colours and banner. Google shows the points first, then the banner, then the fields and the QR.</small></div>
+ <div class="col" style="max-width:640px">
+  <p class="note"><b>What the guest sees on the card:</b> Your Brand logo, their points, the points left to the reward, their name, their 4-digit code and a QR for the staff to scan.</p>
+  <p class="note"><b>What changes by itself:</b> points, the reward line, and the banner message when Your Brand sends an offer ("Double points this Friday").</p>
+  <p class="note"><b>On the back of the Apple card (not shown):</b> terms, support contact, "Powered by LOYALTY", and how to delete your data.</p>
+  <p class="note"><b>Open points for Saad and Monaim:</b> the changing 4-digit code needs the back end (Google can rotate the QR; Apple needs an update or a "Show my code" page). The Your Brand logo we have is small, so a high-resolution copy from Your Brand will make the card sharper.</p>
+ </div>
+</div>
+<script>
+function qr(t){var q=qrcode(0,'M');q.addData(t);q.make();var n=q.getModuleCount(),p='';for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))p+='M'+c+' '+r+'h1v1h-1z';return '<svg viewBox="0 0 '+n+' '+n+'" shape-rendering="crispEdges"><path d="'+p+'" fill="#141210"/></svg>'}
+function apple(pts,visits,ready){
+ return '<div class="top"><img src="png/apple-logo@3x-480x150.png" alt=""><div class="hd"><div class="lbl">Points</div><div class="val">'+pts+'</div></div></div>'+
+ '<img class="strip" src="png/apple-strip-375x144.png" alt="">'+
+ '<div class="fields"><div><div class="lbl">Member</div><div class="val">Sara Hasan</div></div><div class="r"><div class="lbl">Reward at</div><div class="val">500</div></div></div>'+
+ '<div class="fields f2"><div><div class="lbl">Visits</div><div class="val">'+visits+'</div></div><div class="r"><div class="lbl">Powered by</div><div class="val" style="font-size:15px;color:var(--muted)">LOYALTY</div></div></div>'+
+ (ready?'<div class="ready">Reward ready. Show this card to the staff.</div>':'')+
+ '<div class="bc"><span class="qr">'+qr('LOYALTY:brand:4827')+'</span><div class="alt">4827</div></div>'}
+document.getElementById('a1').innerHTML=apple(0,0,false);
+document.getElementById('a2').innerHTML=apple(320,8,false);
+document.getElementById('a3').innerHTML=apple(500,12,true);
+document.getElementById('g1').innerHTML=
+ '<div class="top"><span class="circ"><img src="png/google-logo-660x660.png" alt=""></span><div><div class="name">Your Brand</div><div class="prog">Your Brand Loyalty Rewards</div></div></div>'+
+ '<div class="pts"><div class="lbl">Points</div><div class="big">320</div></div>'+
+ '<img class="hero" src="png/google-hero-1032x336.png" alt="">'+
+ '<div class="fields"><div><div class="lbl">Member</div><div class="val" style="font-size:16px">Sara Hasan</div></div><div style="text-align:right"><div class="lbl">Reward at</div><div class="val" style="font-size:16px">500</div></div></div>'+
+ '<div class="bc"><span class="qr">'+qr('LOYALTY:brand:4827')+'</span><div class="alt">4827</div></div>';
+</script></body></html>
+

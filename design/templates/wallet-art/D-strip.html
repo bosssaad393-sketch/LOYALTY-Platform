@@ -1,0 +1,16 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Your Brand wallet banner, restrained version (design source)</title>
+<style>
+/* Variant D: typographic and restrained. No glow, no sparkles, no AI texture.
+   One flat warm-black field, a hairline frame, the Your Brand mark, one line of copy. Rendered at 1125x432 (Apple @3x); Google hero uses D-hero.html. */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1125px;height:432px;overflow:hidden;background:#141210}
+.art{position:relative;width:1125px;height:432px;background:#171411;color:#F3E9D2}
+.frame{position:absolute;inset:26px;border:2px solid rgba(205,165,91,.55)}
+.frame:before,.frame:after{content:"";position:absolute;left:50%;width:150px;height:14px;transform:translateX(-50%);background:#171411}
+.frame:before{top:-8px}.frame:after{bottom:-8px}
+.mark{position:absolute;left:50%;top:50%;height:196px;transform:translate(-50%,-62%)}
+.line{position:absolute;left:0;right:0;bottom:62px;text-align:center;font:500 25px Georgia,'Times New Roman',serif;letter-spacing:.34em;text-transform:uppercase;color:#CDA55B}
+.dot{position:absolute;left:50%;bottom:112px;width:6px;height:6px;transform:translateX(-50%) rotate(45deg);background:#CDA55B}
+</style></head><body><div class="art"><div class="frame"></div>
+<img class="mark" src="src/brand-logo.png" alt="Your Brand"><div class="line">Rewards</div></div></body></html>

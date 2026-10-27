@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Your Brand black card concepts</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+:root{--cream:#F3E9D2;--gold:#CDA55B;--dim:#9A8C74;--serif:Georgia,"Times New Roman",serif;--sans:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,Arial,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#070605;color:var(--cream);font:14px/1.45 var(--sans);padding:34px 40px 40px;width:1560px}
+h1{font:600 26px var(--serif);color:#E3C07E}.sub{color:var(--dim);margin:6px 0 28px;max-width:1000px}
+.row{display:flex;gap:44px;align-items:flex-start}
+.lab{font:700 12px var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}.cap{color:var(--dim);font-size:13px;margin:4px 0 16px;max-width:430px;min-height:54px}
+.foil{background:linear-gradient(100deg,#8A6F3A 0%,#E3C07E 28%,#CDA55B 48%,#F6E4B0 62%,#B58D45 80%,#8A6F3A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(255,236,190,.30))}
+/* the credit-card shaped concept: 85.6 x 54 mm = 1.586 : 1 */
+.cc{position:relative;width:428px;height:270px;border-radius:20px;overflow:hidden;box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 .6px rgba(205,165,91,.55),inset 0 0 0 1px rgba(255,255,255,.04)}
+.cc.a{background:repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 1px,rgba(0,0,0,0) 1px 3px),linear-gradient(118deg,#060606 0%,#131110 38%,#090808 58%,#1a1714 78%,#080707 100%)}
+.cc.b{background:linear-gradient(0deg,rgba(8,7,6,.40),rgba(8,7,6,.05) 60%),linear-gradient(90deg,rgba(8,7,6,.62),rgba(8,7,6,0) 62%),url(src/marble.png) 100% 42%/600px auto no-repeat,#0a0908}
+.cc .glow{position:absolute;inset:0;background:radial-gradient(ellipse 240px 140px at 340px 40px,rgba(231,194,125,.16),rgba(231,194,125,0) 100%)}
+.plate{position:absolute;left:28px;top:30px;width:58px;height:44px;border-radius:9px;background:linear-gradient(135deg,#F6E4B0 0%,#CDA55B 45%,#8A6F3A 100%);box-shadow:inset 0 0 0 .8px rgba(60,40,10,.5),0 1px 0 rgba(255,240,200,.25);display:grid;place-items:center}
+.plate img{width:30px;height:auto;filter:brightness(0) opacity(.78)}
+.brand{position:absolute;right:28px;top:30px;font:600 30px/1 var(--serif);letter-spacing:.42em;padding-left:.42em}
+.tag{position:absolute;right:30px;top:68px;font:700 9px var(--sans);letter-spacing:.5em;color:var(--gold);padding-left:.5em}
+.num{position:absolute;left:28px;top:112px;font:600 46px/1 Cambria,"Times New Roman",serif;letter-spacing:.22em}
+.numl{position:absolute;left:30px;top:98px;font:700 9px var(--sans);letter-spacing:.32em;color:var(--gold)}
+.name{position:absolute;left:28px;bottom:50px;font:600 17px/1 var(--serif);letter-spacing:.22em;text-transform:uppercase;color:var(--cream)}
+.since{position:absolute;left:30px;bottom:30px;font:500 10px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.pts{position:absolute;left:190px;bottom:28px;text-align:right;width:100px}
+.pts b{display:block;font:600 32px/1 Cambria,"Times New Roman",serif;letter-spacing:.04em}.pts span{display:block;margin-top:5px;font:700 8px var(--sans);letter-spacing:.3em;color:var(--gold)}
+.qrb{position:absolute;right:26px;bottom:26px;background:#F3E9D2;border-radius:10px;padding:7px;width:96px;height:96px}.qrb svg{width:100%;height:100%;display:block}
+.pw{position:absolute;left:236px;top:30px}
+/* wallet adaptation */
+.card{position:relative;width:358px;border-radius:16px;overflow:hidden;background:rgb(14,12,10);box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 0 .5px rgba(255,255,255,.12)}
+.lbl{font:600 10px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}.val{font:400 17px var(--sans);color:var(--cream)}
+.sc .top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}.sc .logo{width:42px;height:auto}
+.sc .strip{position:relative;height:123px;background:url(storecard-metal/strip@3x.png) center/100% 100%}
+.sc .strip .f{position:absolute;left:16px;top:20px}.sc .strip .f .val{font-size:50px;line-height:1.05;font-weight:300;margin-top:2px}
+.sc .rows{display:flex;justify-content:space-between;padding:14px 16px 0}.sc .aux{padding:12px 16px 0}
+.qr{background:#fff;border-radius:8px;padding:10px;width:154px;margin:20px auto 22px;text-align:center;font:12px var(--sans);color:#000;letter-spacing:.06em}.qr svg{width:134px;height:134px;display:block;margin:0 auto 4px}
+.note{margin-top:30px;color:var(--dim);font-size:12.5px;max-width:1200px}
+</style></head><body>
+<h1>Your Brand as a black credit card</h1>
+<p class="sub">Concept with sample data. The landscape cards are for the app page and the saved picture (Wallet always shows a portrait card and draws the QR on its own white panel). The Wallet card on the right carries the same black, brushed-metal feel.</p>
+<div class="row">
+ <div><div class="lab">A &middot; Matte black, gold emboss</div><p class="cap">Brushed black card, gold edge, the crest on a gold plate where a chip would be, the code in raised gold digits, the points and the QR at the right.</p>
+  <div class="cc a"><div class="glow"></div><div class="plate"><img src="src/crest.png" alt=""></div><div class="brand foil">Your Brand</div><div class="tag">MEMBER</div>
+   <div class="numl">YOUR CODE</div><div class="num foil" id="n1">4827</div>
+   <div class="name">Sara Hasan</div><div class="since">Member since 10/26</div>
+   <div class="pts"><b class="foil">320</b><span>POINTS</span></div><div class="qrb" id="qa"></div></div></div>
+ <div><div class="lab">B &middot; Black marble</div><p class="cap">Same card on the black marble with gold-leaf veins, the look of the app card in landscape.</p>
+  <div class="cc b"><div class="glow"></div><div class="plate"><img src="src/crest.png" alt=""></div><div class="brand foil">Your Brand</div><div class="tag">MEMBER</div>
+   <div class="numl">YOUR CODE</div><div class="num foil">4827</div>
+   <div class="name">Sara Hasan</div><div class="since">Member since 10/26</div>
+   <div class="pts"><b class="foil">320</b><span>POINTS</span></div><div class="qrb" id="qb"></div></div></div>
+ <div><div class="lab">Wallet &middot; black brushed metal</div><p class="cap">For Apple Wallet: the same black card, brushed metal strip with gold Your Brand, points on the left.</p>
+  <div class="card sc"><div class="top"><img class="logo" src="src/crest.png" alt="Your Brand"><div style="text-align:right"><div class="lbl">Powered by</div><div class="val" style="font-size:15px">LOYALTY</div></div></div>
+   <div class="strip"><div class="f"><div class="lbl">Points</div><div class="val">320</div></div></div>
+   <div class="rows"><div><div class="lbl">Member</div><div class="val">Sara Hasan</div></div><div style="text-align:right"><div class="lbl">To your reward</div><div class="val">180</div></div></div>
+   <div class="aux"><div class="lbl">Your code</div><div class="val">4827</div></div>
+   <div class="qr"><div id="qw"></div>4827</div></div></div>
+</div>
+<p class="note">No Visa, Mastercard or contactless marks, no chip pattern and no card-number format are used: this is a loyalty card in the style of a premium black card, not a payment card.</p>
+<script>
+function qr(id){var q=qrcode(0,'M');q.addData('LOYALTY:brand:4827');q.make();var n=q.getModuleCount(),p='';for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))p+='M'+c+' '+r+'h1v1h-1z';document.getElementById(id).innerHTML='<svg viewBox="0 0 '+n+' '+n+'" shape-rendering="crispEdges"><path d="'+p+'" fill="#141210"/></svg>'}
+qr('qa');qr('qb');qr('qw');
+</script></body></html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Your Brand Apple Wallet card: card artwork on top, fields underneath</title>
+<style>
+/* Illustration of the iPhone "Add to Wallet" sheet for the Your Brand pass (sample guest: Sara Hasan, 320 points).
+   Apple draws the real card. What is REAL here: the strip artwork (web/passes/brand/strip@3x.png), the logo, the colours, the
+   field order, and the widths of labels / values, which were measured on the real render from Saad's phone
+   (screenshot 99.webp): MEMBER 47 pt, POINTS 45, YOUR CODE 64, TO YOUR REWARD 99, card padding 14.5 pt.
+   What is estimated: the width of the name (about 115 pt for "Sara Hasan"), the exact spacing, the SF font (a stand-in is used). */
+:root{--bg:rgb(8,7,6);--cream:#F3E9D2;--gold:#CDA55B;--dim:#9A8C74;--sans:-apple-system,"SF Pro Text","Segoe UI Variable Text","Segoe UI",system-ui,Roboto,Arial,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#161517;color:var(--cream);font:14px/1.5 var(--sans);padding:40px 48px 44px;width:1040px}
+h1{font:600 26px Georgia,serif;color:#E3C07E;letter-spacing:.02em}
+.sub{color:var(--dim);margin:8px 0 30px;max-width:1040px}
+.row{display:flex;gap:86px;align-items:flex-start}
+figure{width:393px}
+.lab{font:700 11.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;white-space:nowrap}
+.cap{color:var(--dim);font-size:13px;height:62px;margin-bottom:14px}
+.phone{position:relative;width:393px;height:700px;background:#000;border-radius:56px;overflow:hidden;box-shadow:0 0 0 9px #2a2a2d,0 0 0 10px #4a4a4e,0 30px 60px rgba(0,0,0,.6)}
+/* status bar */
+.sb{position:absolute;left:0;right:0;top:0;height:54px}
+.sb .t{position:absolute;left:52px;top:18px;font:600 17px var(--sans);color:#fff}
+.sb .r{position:absolute;right:30px;top:21px;display:flex;gap:6px;align-items:center}
+.bars{display:flex;gap:2px;align-items:flex-end;height:12px}.bars i{display:block;width:3px;background:#fff;border-radius:1px}
+.batt{width:25px;height:12px;border:1px solid rgba(255,255,255,.5);border-radius:3.5px;padding:1px;position:relative}.batt i{display:block;height:100%;width:80%;background:#fff;border-radius:2px}
+.island{position:absolute;left:50%;top:11px;width:122px;height:36px;margin-left:-61px;background:#000;border-radius:20px;box-shadow:0 0 0 .5px #222}
+/* sheet bar: close, title, Add */
+.x{position:absolute;left:16px;top:60px;width:42px;height:42px;border-radius:50%;background:#1f1f21;display:grid;place-items:center;box-shadow:0 0 0 .5px rgba(255,255,255,.12)}
+.x svg{width:16px;height:16px}
+.ttl{position:absolute;left:62px;right:100px;top:70px;text-align:center;font:600 17px var(--sans);color:#fff;white-space:nowrap}
+.add{position:absolute;right:14px;top:60px;height:42px;padding:0 17px;border-radius:21px;background:#2f95ff;color:#fff;font:600 17px/42px var(--sans);box-shadow:0 0 0 .5px rgba(255,255,255,.2) inset}
+/* the card (Wallet draws this) */
+.card{position:absolute;left:20px;top:140px;width:353px;border-radius:16px;overflow:hidden;background:var(--bg);box-shadow:0 0 0 1px rgba(255,255,255,.16),0 18px 40px rgba(0,0,0,.65)}
+.hdr{height:63px;display:flex;align-items:center;justify-content:space-between;padding:0 14.5px}
+.hdr img{width:34px;height:auto;display:block}
+.hdr .r{text-align:right}
+.lbl{font:600 10.5px/1.2 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+.val{font:300 22px/1.15 var(--sans);color:var(--cream);white-space:nowrap;margin-top:1px}
+.hdr .val{font-size:20px;font-weight:400}
+.strip{width:353px;height:135.6px;background:url(../../../web/passes/brand/strip@3x.png) center/100% 100% no-repeat}
+.fields{display:flex;justify-content:space-between;padding:9px 14.5px 0}
+.c{min-width:0}.c.right{text-align:right}
+.qrw{padding:30px 0 14px}
+.qr{width:162px;margin:0 auto;background:#fff;border-radius:7px;padding:10px 10px 6px;text-align:center;color:#000;font:15px/1 var(--sans)}
+.qr svg{display:block;width:142px;height:142px;margin:0 auto 7px}
+/* notes under the phones */
+.fit{margin-top:16px;font-size:12.5px;color:var(--dim);max-width:393px}
+.fit b{color:var(--cream);font-weight:600}
+.warn{color:#E3A86A}
+.note{margin-top:34px;color:var(--dim);font-size:12.5px;max-width:1040px;border-top:1px solid rgba(205,165,91,.25);padding-top:16px}
+</style></head><body>
+<h1>Your Brand Apple Wallet card: card artwork on top, fields underneath</h1>
+<p class="sub">Illustration with sample data (Sara Hasan, 320 points). Apple draws the real card. The strip artwork and logo are the real files at Apple's exact sizes; the colours are the ones in the pass; widths of labels were measured on the real render from Saad's phone. Nothing about the guest is in the picture: name, points and code are Wallet's own text fields.</p>
+<div class="row">
+
+<figure>
+ <div class="lab">As built &middot; four fields</div>
+ <p class="cap">Fields in the order of the pass: MEMBER, POINTS, YOUR CODE, TO YOUR REWARD. Apple puts secondary and auxiliary fields on ONE row (up to four), so they are not two rows.</p>
+ <div class="phone">
+  <div class="island"></div>
+  <div class="sb"><div class="t">9:41</div><div class="r"><div class="bars"><i style="height:4px"></i><i style="height:6px"></i><i style="height:9px"></i><i style="height:12px"></i></div><div class="batt"><i></i></div></div></div>
+  <div class="x"><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M2 2l12 12M14 2L2 14"/></svg></div>
+  <div class="ttl">Your Brand Loyalty Rewards</div><div class="add">Add</div>
+  <div class="card">
+   <div class="hdr"><img src="../../../web/passes/brand/logo@3x.png" alt=""><div class="r"><div class="lbl">Powered by</div><div class="val">LOYALTY</div></div></div>
+   <div class="strip"></div>
+   <div class="fields" id="rowA">
+    <div class="c" style="width:115px"><div class="lbl">Member</div><div class="val">Sara Hasan</div></div>
+    <div class="c right" style="width:45px"><div class="lbl">Points</div><div class="val">320</div></div>
+    <div class="c" style="width:64px"><div class="lbl">Your code</div><div class="val">7523</div></div>
+    <div class="c right" style="width:99px"><div class="lbl">To your reward</div><div class="val">180</div></div>
+   </div>
+   <div class="qrw"><div class="qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h25v25H0z"/><path stroke="#000000" d="M0 0.5h7m2 0h1m1 0h2m1 0h1m3 0h7M0 1.5h1m5 0h1m1 0h2m1 0h3m4 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m2 0h1m5 0h1m2 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m2 0h1m3 0h1m4 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m3 0h3m1 0h2m2 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M15 7.5h1M0 8.5h1m1 0h1m1 0h1m1 0h1m2 0h2m4 0h1m4 0h1m2 0h1M0 9.5h1m1 0h3m7 0h2m1 0h1m2 0h6M1 10.5h1m2 0h3m2 0h1m2 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h1M0 11.5h2m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m1 0h1m2 0h2M0 12.5h1m1 0h1m2 0h2m1 0h1m1 0h2m2 0h2m3 0h1m1 0h1m1 0h1M1 13.5h1m1 0h3m1 0h1m2 0h2m2 0h1m1 0h1m1 0h4M0 14.5h1m2 0h8m2 0h1m4 0h4M1 15.5h3m3 0h1m1 0h1m1 0h1m3 0h1m1 0h1m3 0h3M0 16.5h1m1 0h6m1 0h1m2 0h1m2 0h7m1 0h1M8 17.5h1m1 0h4m1 0h2m3 0h2m2 0h1M0 18.5h7m4 0h2m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 19.5h1m5 0h1m5 0h5m3 0h2m1 0h1M0 20.5h1m1 0h3m1 0h1m1 0h4m2 0h1m1 0h6m1 0h2M0 21.5h1m1 0h3m1 0h1m2 0h3m2 0h2m1 0h2m1 0h2m1 0h1M0 22.5h1m1 0h3m1 0h1m1 0h2m3 0h1m3 0h2m5 0h1M0 23.5h1m5 0h1m4 0h1m3 0h1m2 0h4m1 0h2M0 24.5h7m1 0h2m2 0h1m3 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+7523</div></div>
+  </div>
+ </div>
+ <p class="fit"><b>Row check.</b> The four cells need about <b>323 pt</b> (name about 115, POINTS 45, YOUR CODE 64, TO YOUR REWARD 99) and the card has <b>324 pt</b> inside its padding. <span class="warn">No room for gaps: a longer name, or "Reward ready" (wider than the label), will not fit. Apple says only that the number of visible fields depends on the text length.</span> Not tested on a device.</p>
+</figure>
+
+<figure>
+ <div class="lab">Fallback &middot; not built</div>
+ <p class="cap">Three fields on the row: MEMBER, POINTS, YOUR CODE. "To your reward" would move to the back of the card.</p>
+ <div class="phone">
+  <div class="island"></div>
+  <div class="sb"><div class="t">9:41</div><div class="r"><div class="bars"><i style="height:4px"></i><i style="height:6px"></i><i style="height:9px"></i><i style="height:12px"></i></div><div class="batt"><i></i></div></div></div>
+  <div class="x"><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M2 2l12 12M14 2L2 14"/></svg></div>
+  <div class="ttl">Your Brand Loyalty Rewards</div><div class="add">Add</div>
+  <div class="card">
+   <div class="hdr"><img src="../../../web/passes/brand/logo@3x.png" alt=""><div class="r"><div class="lbl">Powered by</div><div class="val">LOYALTY</div></div></div>
+   <div class="strip"></div>
+   <div class="fields">
+    <div class="c" style="width:115px"><div class="lbl">Member</div><div class="val">Sara Hasan</div></div>
+    <div class="c" style="width:45px"><div class="lbl">Points</div><div class="val">320</div></div>
+    <div class="c right" style="width:64px"><div class="lbl">Your code</div><div class="val">7523</div></div>
+   </div>
+   <div class="qrw"><div class="qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h25v25H0z"/><path stroke="#000000" d="M0 0.5h7m2 0h1m1 0h2m1 0h1m3 0h7M0 1.5h1m5 0h1m1 0h2m1 0h3m4 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m2 0h1m5 0h1m2 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m2 0h1m3 0h1m4 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m3 0h3m1 0h2m2 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M15 7.5h1M0 8.5h1m1 0h1m1 0h1m1 0h1m2 0h2m4 0h1m4 0h1m2 0h1M0 9.5h1m1 0h3m7 0h2m1 0h1m2 0h6M1 10.5h1m2 0h3m2 0h1m2 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h1M0 11.5h2m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m1 0h1m2 0h2M0 12.5h1m1 0h1m2 0h2m1 0h1m1 0h2m2 0h2m3 0h1m1 0h1m1 0h1M1 13.5h1m1 0h3m1 0h1m2 0h2m2 0h1m1 0h1m1 0h4M0 14.5h1m2 0h8m2 0h1m4 0h4M1 15.5h3m3 0h1m1 0h1m1 0h1m3 0h1m1 0h1m3 0h3M0 16.5h1m1 0h6m1 0h1m2 0h1m2 0h7m1 0h1M8 17.5h1m1 0h4m1 0h2m3 0h2m2 0h1M0 18.5h7m4 0h2m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M0 19.5h1m5 0h1m5 0h5m3 0h2m1 0h1M0 20.5h1m1 0h3m1 0h1m1 0h4m2 0h1m1 0h6m1 0h2M0 21.5h1m1 0h3m1 0h1m2 0h3m2 0h2m1 0h2m1 0h2m1 0h1M0 22.5h1m1 0h3m1 0h1m1 0h2m3 0h1m3 0h2m5 0h1M0 23.5h1m5 0h1m4 0h1m3 0h1m2 0h4m1 0h2M0 24.5h7m1 0h2m2 0h1m3 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+7523</div></div>
+  </div>
+ </div>
+ <p class="fit"><b>Row check.</b> About <b>224 pt</b> of <b>324 pt</b>: about 50 pt of air between the cells, room for names up to about 16 letters.</p>
+</figure>
+
+</div>
+<p class="note">How to read this: the dark card with the transparent margins is the real strip artwork sitting on the pass background (rgb 8, 7, 6). Apple draws everything else: the header row (our crest and POWERED BY LOYALTY), the field row, the white QR panel with the code under it (its colour and position cannot be changed). The SF font and the exact vertical spacing are stand-ins. Check the real result on an iPhone before it goes live.</p>
+</body></html>

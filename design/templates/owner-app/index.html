@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#141210">
+<title>Your Brand Owner (design prototype)</title>
+<style>
+/* Owner dashboard. Fake data, clickable. Phone: tabs along the top. Laptop/tablet (900px and up): side navigation.
+   Same rules as the guest pages: flat surfaces, hairlines, one gold accent, no glow, no sparkle. Calls follow docs/API.md. */
+:root{--bg:#141210;--surface:#1B1815;--surface2:#221E1A;--line:#3D372F;--text:#F3E9D2;--muted:#D9C9A8;--dim:#9A8C74;--gold:#CDA55B;--gold2:#E3C07E;--golddim:#8A6F3A;--bad:#E58B79;--ok:#8DBF8E;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font:16px/1.5 var(--sans)}
+.shell{max-width:1120px;margin:0 auto}
+.side{padding:max(18px,env(safe-area-inset-top)) 20px 8px}
+.brand{font:600 22px var(--serif);letter-spacing:.4em;color:var(--gold)}.brand small{display:block;font:700 10px var(--sans);letter-spacing:.3em;color:var(--dim);margin-top:4px}
+.nav{display:flex;gap:6px;overflow-x:auto;padding:14px 20px 4px;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
+.nav button{flex:none;border:0;background:none;color:var(--dim);font:600 14px var(--sans);padding:10px 14px;border-radius:10px;cursor:pointer;letter-spacing:.03em}
+.nav button[aria-current=true]{color:var(--gold2);background:var(--surface2);box-shadow:inset 0 0 0 1px var(--line)}
+.main{padding:8px 20px 56px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+h1{font:600 30px/1.15 var(--serif);margin:6px 0 4px}.sub{color:var(--muted);margin-bottom:22px}
+.grid{display:grid;gap:12px}.k4{grid-template-columns:1fr 1fr}.c2{grid-template-columns:1fr}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.panel h2{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.kpi b{display:block;font:600 40px/1.05 var(--serif)}.kpi span{display:block;color:var(--dim);font-size:13px;margin-top:6px}.kpi i{font-style:normal;color:var(--ok);font-size:13px}
+.chart{width:100%;height:auto;aspect-ratio:640/190;display:block}
+.list>div{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.list>div:first-child{border-top:0}
+.list .n{font-size:16px}.list small{display:block;color:var(--dim);font-size:13px}.list .r{text-align:right;color:var(--muted);white-space:nowrap}
+.in{width:100%;height:50px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;padding:0 14px}.in:focus{outline:none;border-color:var(--gold)}
+textarea.in{height:110px;padding:12px 14px;resize:none;line-height:1.45}
+select.in{appearance:none}
+.lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.field{margin-bottom:18px}
+.btn{min-height:50px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font:600 15px var(--sans);padding:0 20px;cursor:pointer;letter-spacing:.03em}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#1A1410}.btn.danger{border-color:var(--bad);color:var(--bad)}.btn.small{min-height:38px;padding:0 14px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.step{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;width:fit-content}
+.step button{width:50px;height:50px;border:0;background:var(--surface2);color:var(--gold2);font:600 22px var(--sans);cursor:pointer}.step output{min-width:84px;text-align:center;font:600 22px var(--serif)}
+.note{color:var(--dim);font-size:13.5px;margin-top:8px}.msg{border:1px solid var(--gold);color:var(--gold2);border-radius:12px;padding:10px 14px;margin-top:14px;font-size:14.5px}.msg.ok{border-color:var(--ok);color:var(--ok)}
+.tag{display:inline-block;border:1px solid var(--golddim);color:var(--gold);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px}
+.phone{background:#0d0b0a;border:1px solid var(--line);border-radius:22px;padding:16px;max-width:340px}
+.notif{background:#26221d;border-radius:16px;padding:12px 14px;display:flex;gap:12px}.notif i{flex:none;width:36px;height:36px;border-radius:9px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font:600 13px var(--serif);color:var(--gold);font-style:normal}.notif b{display:block;font-size:14px}.notif span{display:block;font-size:13.5px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(10,8,7,.72);display:grid;place-items:center;padding:20px;z-index:20}.modal>div{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:380px;width:100%}
+@media(min-width:900px){
+ .shell{display:grid;grid-template-columns:230px 1fr}
+ .side{grid-row:1/3;padding:32px 24px;border-right:1px solid var(--line);min-height:100vh}
+ .nav{flex-direction:column;overflow:visible;padding:28px 0 0}.nav button{text-align:left;padding:12px 14px}
+ .main{padding:32px 40px 64px}.k4{grid-template-columns:repeat(4,1fr)}.c2{grid-template-columns:1.5fr 1fr}
+}
+</style></head><body>
+<div class="shell"><aside class="side"><div class="brand">Your Brand<small>OWNER</small></div><nav class="nav" id="nav"></nav></aside><main class="main" id="m"></main></div>
+<script>
+if(/[?&]still\b/.test(location.search))document.documentElement.classList.add('still');
+/* ---------- fake data ---------- */
+var D={rules:{per:2,goal:500,text:'A dessert of your choice'},
+ visits:[31,38,29,44,62,71,58,36,41,33,47,66,79,52],
+ guests:[['Sara Hasan',8,320,'Today'],['Omar Khaled',1,40,'3 days ago'],['Noor Ali',12,500,'Yesterday'],['Khalid Mansoor',9,410,'Yesterday'],['Fatima Al Zayani',6,260,'4 days ago'],['Yusuf Ebrahim',4,160,'6 days ago'],['Lina Farooq',15,640,'Today'],['Hamad Salman',3,120,'Last week'],['Maryam Jaber',7,300,'2 days ago'],['Ali Rashid',2,70,'Last week']],
+ team:[['Ahmed','ahmed@brand.example','Staff',true],['Reem','reem@brand.example','Manager',true],['Faisal','faisal@brand.example','Staff',false]],
+ del:[['Guest from 12 Oct','requested 2 days ago'],['Guest from 3 Oct','requested today']],
+ q:'',msg:null,offer:{text:'Double points this Friday, from 7 pm.',aud:'all'},confirm:null};
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var TABS=[['overview','Overview'],['guests','Guests'],['rules','Rules'],['offers','Offers'],['team','Team'],['data','Data and privacy']];
+var cur='overview';
+function nav(){$('nav').innerHTML=TABS.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(cur===t[0])+'">'+t[1]+'</button>'}).join('')}
+/* hand-drawn bar chart: gold-dim bars, today in full gold, hairline grid */
+function chart(){var v=D.visits,max=80,W=window.innerWidth>=900?560:Math.max(260,Math.min(window.innerWidth-90,420)),H=190,pl=30,pb=26,bw=(W-pl)/v.length,s='<svg class="chart" style="aspect-ratio:'+W+'/'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Visits per day, last 14 days">';
+ [0,40,80].forEach(function(g){var y=H-pb-(H-pb-8)*g/max;s+='<line x1="'+pl+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="#2c2620"/><text x="0" y="'+(y+4)+'" fill="#9A8C74" font-size="11">'+g+'</text>'});
+ v.forEach(function(n,i){var h=(H-pb-8)*n/max,x=pl+i*bw+bw*.2,y=H-pb-h;s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw*.6).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2" fill="'+(i===v.length-1?'#CDA55B':'#8A6F3A')+'"><title>'+n+' visits</title></rect><text x="'+(x+bw*.3).toFixed(1)+'" y="'+(H-8)+'" fill="#9A8C74" font-size="11" text-anchor="middle">'+new Date(Date.now()-(v.length-1-i)*864e5).toLocaleDateString('en-GB',{weekday:'narrow'})+'</text>'});
+ return s+'</svg>'}
+var V={
+overview:function(){var tot=D.visits.reduce(function(a,b){return a+b},0),wk=D.visits.slice(7).reduce(function(a,b){return a+b},0);
+ return '<div class="eyebrow">Good evening</div><h1>Overview</h1><p class="sub">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'. Live from the guests and staff at the till.</p>'+
+ '<div class="grid k4"><div class="panel kpi"><b>248</b><span>Members</span><i>+9 this week</i></div><div class="panel kpi"><b>'+wk+'</b><span>Visits in 7 days</span><i>+12% on last week</i></div><div class="panel kpi"><b>41,220</b><span>Points held by guests</span></div><div class="panel kpi"><b>17</b><span>Rewards given, 30 days</span></div></div>'+
+ '<div class="grid c2" style="margin-top:12px"><div class="panel"><h2>Visits per day, last 14 days</h2>'+chart()+'<p class="note">Today is in full gold.</p></div>'+
+ '<div class="panel"><h2>Top guests</h2><div class="list">'+D.guests.slice().sort(function(a,b){return b[1]-a[1]}).slice(0,5).map(function(g){return '<div><span class="n">'+esc(g[0])+'<small>'+g[1]+' visits</small></span><span class="r">'+g[2]+' pts</span></div>'}).join('')+'</div></div></div>'},
+guests:function(){var q=D.q.toLowerCase(),rows=D.guests.filter(function(g){return g[0].toLowerCase().indexOf(q)>-1});
+ return '<div class="eyebrow">Members</div><h1>Guests</h1><p class="sub">248 members. Phone numbers and emails stay hidden here; export them only when you need to.</p>'+
+ '<div class="row" style="margin-bottom:14px"><input class="in" id="q" placeholder="Search by name" value="'+esc(D.q)+'" style="flex:1;min-width:200px"><button class="btn" data-a="csv">Export CSV</button></div>'+
+ '<div class="panel list">'+(rows.map(function(g){return '<div><span class="n">'+esc(g[0])+'<small>'+g[1]+' visits · last visit '+g[3]+'</small></span><span class="r">'+g[2]+' pts <button class="btn small" data-a="del" data-n="'+esc(g[0])+'" style="margin-left:10px">Delete</button></span></div>'}).join('')||'<p class="note">No guest matches.</p>')+'</div>'+msg()},
+rules:function(){var r=D.rules;return '<div class="eyebrow">Programme</div><h1>Rules</h1><p class="sub">Changes apply from the next visit. Guests keep the points they have.</p>'+
+ '<div class="grid c2"><div class="panel"><div class="field"><span class="lbl">Points for every BHD 1</span><div class="step"><button data-a="per-" aria-label="Fewer">−</button><output>'+r.per+'</output><button data-a="per+" aria-label="More">+</button></div></div>'+
+ '<div class="field"><span class="lbl">Points needed for a reward</span><div class="step"><button data-a="goal-" aria-label="Fewer">−</button><output>'+r.goal+'</output><button data-a="goal+" aria-label="More">+</button></div></div>'+
+ '<div class="field"><label class="lbl" for="rt">The reward</label><input class="in" id="rt" maxlength="60" value="'+esc(r.text)+'"></div><button class="btn primary" data-a="save">Save the rules</button>'+msg()+'</div>'+
+ '<div class="panel"><h2>What this means</h2><div class="list"><div><span class="n">A bill of BHD 10</span><span class="r">'+(10*r.per)+' points</span></div><div><span class="n">A reward is reached after about</span><span class="r">BHD '+Math.round(r.goal/r.per)+'</span></div><div><span class="n">Reward</span><span class="r">'+esc(r.text)+'</span></div></div></div></div>'},
+offers:function(){var o=D.offer,n=o.text.length;return '<div class="eyebrow">Wallet cards</div><h1>Offers</h1><p class="sub">Send a short message to the Wallet cards. Only guests who agreed to notifications receive it (212 of 248).</p>'+
+ '<div class="grid c2"><div class="panel"><div class="field"><label class="lbl" for="ot">Message</label><textarea class="in" id="ot" maxlength="200">'+esc(o.text)+'</textarea><p class="note"><span id="cnt">'+n+'</span> of 200 characters. Keep it short and warm.</p></div>'+
+ '<div class="field"><label class="lbl" for="oa">Send to</label><select class="in" id="oa"><option value="all"'+(o.aud==='all'?' selected':'')+'>All guests who agreed (212)</option><option value="apple"'+(o.aud==='apple'?' selected':'')+'>Apple Wallet only (131)</option><option value="google"'+(o.aud==='google'?' selected':'')+'>Google Wallet only (81)</option></select></div><button class="btn primary" data-a="send">Review and send</button>'+msg()+'</div>'+
+ '<div class="panel"><h2>How it will appear</h2><div class="phone"><div class="notif"><i>K</i><div><b>Your Brand</b><span id="pv">'+esc(o.text)+'</span></div></div></div><p class="note">On the lock screen. Offers also show on the card itself.</p></div></div>'},
+team:function(){return '<div class="eyebrow">Access</div><h1>Team</h1><p class="sub">Everyone signs in with their own login. Remove access the day someone leaves.</p>'+
+ '<div class="panel list">'+D.team.map(function(t,i){return '<div><span class="n">'+esc(t[0])+'<small>'+esc(t[1])+'</small></span><span class="r"><span class="tag">'+t[2]+'</span> <button class="btn small" data-a="toggle" data-i="'+i+'" style="margin-left:10px">'+(t[3]?'Deactivate':'Activate')+'</button></span></div>'}).join('')+'</div>'+
+ '<div class="panel" style="margin-top:12px"><h2>Invite someone</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"><div class="field"><label class="lbl" for="tn">Name</label><input class="in" id="tn"></div><div class="field"><label class="lbl" for="te">Email</label><input class="in" id="te" type="email"></div><div class="field"><label class="lbl" for="tr">Role</label><select class="in" id="tr"><option>Staff</option><option>Manager</option></select></div></div><button class="btn primary" data-a="invite">Send invitation</button>'+msg()+'</div>'},
+data:function(){return '<div class="eyebrow">Your guests\' data</div><h1>Data and privacy</h1><p class="sub">Your Brand owns its guests\' data. LOYALTY only processes it for you.</p>'+
+ '<div class="grid c2"><div class="panel"><h2>Deletion requests</h2><div class="list">'+(D.del.map(function(d,i){return '<div><span class="n">'+d[0]+'<small>'+d[1]+'</small></span><span class="r"><button class="btn small danger" data-a="erase" data-i="'+i+'">Erase details</button></span></div>'}).join('')||'<p class="note">No open requests.</p>')+'</div><p class="note">Erasing removes the name, phone and email for good. Points history is kept without any personal details.</p>'+msg()+'</div>'+
+ '<div class="panel"><h2>Export</h2><p class="note" style="margin:0 0 14px">A spreadsheet of members and their points.</p><button class="btn" data-a="csv">Download all guests (CSV)</button><h2 style="margin-top:26px">Terms and privacy</h2><p class="note" style="margin:0 0 14px">The text guests accept when they join.</p><button class="btn">Edit terms</button></div></div>'}
+};
+function msg(){return D.msg?'<div class="msg '+(D.msg.ok?'ok':'')+'" role="status">'+esc(D.msg.t)+'</div>':''}
+function render(){nav();$('m').innerHTML=V[cur]();}
+function go(t){cur=t;D.msg=null;render();window.scrollTo(0,0)}
+function modal(h){var d=document.createElement('div');d.className='modal';d.innerHTML='<div>'+h+'</div>';d.addEventListener('click',function(e){if(e.target===d||e.target.closest('[data-x]'))d.remove()});document.body.appendChild(d);return d}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-t],[data-a]');if(!b)return;if(b.dataset.t)return go(b.dataset.t);var a=b.dataset.a,r=D.rules;
+ if(a==='per-')r.per=Math.max(1,r.per-1),render();else if(a==='per+')r.per=Math.min(20,r.per+1),render();else if(a==='goal-')r.goal=Math.max(50,r.goal-50),render();else if(a==='goal+')r.goal=Math.min(5000,r.goal+50),render();
+ else if(a==='save'){r.text=$('rt').value.trim()||r.text;D.msg={t:'Saved. The new rules apply from the next visit.',ok:true};render()}
+ else if(a==='csv')D.msg={t:'Prototype: the real app downloads a spreadsheet here.'},render();
+ else if(a==='del'){var n=b.dataset.n,m=modal('<h2 style="font:600 22px var(--serif);margin-bottom:8px">Delete '+esc(n)+'?</h2><p class="note" style="margin:0 0 16px">Their name, phone and email are erased for good. This cannot be undone.</p><div class="row"><button class="btn danger" data-ok>Delete for good</button><button class="btn" data-x>Keep</button></div>');m.querySelector('[data-ok]').onclick=function(){D.guests=D.guests.filter(function(g){return g[0]!==n});D.msg={t:n+' was erased.',ok:true};m.remove();render()}}
+ else if(a==='send'){var o=D.offer;if(!o.text.trim()){D.msg={t:'Write a message first.'};render();return}var cnt=o.aud==='all'?212:o.aud==='apple'?131:81,m2=modal('<h2 style="font:600 22px var(--serif);margin-bottom:8px">Send to '+cnt+' guests?</h2><div class="notif" style="margin:6px 0 14px"><i>K</i><div><b>Your Brand</b><span>'+esc(o.text)+'</span></div></div><p class="note" style="margin:0 0 16px">It appears on their lock screen. It cannot be recalled.</p><div class="row"><button class="btn primary" data-ok>Send now</button><button class="btn" data-x>Not yet</button></div>');m2.querySelector('[data-ok]').onclick=function(){D.msg={t:'Sent to '+cnt+' Wallet cards.',ok:true};m2.remove();render()}}
+ else if(a==='toggle'){var t=D.team[b.dataset.i];t[3]=!t[3];render()}
+ else if(a==='invite'){var nm=$('tn').value.trim(),em=$('te').value.trim();if(!nm||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){D.msg={t:'Add a name and a valid email.'};render();return}D.team.push([nm,em,$('tr').value,true]);D.msg={t:'Invitation sent to '+em+'.',ok:true};render()}
+ else if(a==='erase'){var x=D.del.splice(b.dataset.i,1)[0];D.msg={t:'Erased: '+x[0]+'.',ok:true};render()}});
+document.addEventListener('input',function(e){if(e.target.id==='q'){D.q=e.target.value;var p=e.target.selectionStart;render();var q=$('q');q.focus();q.setSelectionRange(p,p)}
+ if(e.target.id==='ot'){D.offer.text=e.target.value;$('cnt').textContent=e.target.value.length;$('pv').textContent=e.target.value}if(e.target.id==='oa')D.offer.aud=e.target.value});
+(function(){var h=location.hash.replace('#','');if(V[h])cur=h;render()})();
+</script></body></html>

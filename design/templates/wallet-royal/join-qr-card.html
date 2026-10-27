@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Brand Rewards QR card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500&display=swap">
+<style>
+/* Same family as the Your Brand contact QR card (sites/brand-qr/qr.html): black ground with gold light, cream card, black header with the Your Brand logo, gold-framed QR. This one opens the Your Brand Rewards join page. */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#CA9A4E;--gold2:#E7C27D;--ink:#14110d;--soft:#6d6558}
+body{width:900px;height:1100px;background:#050505;color:var(--ink);position:relative;overflow:hidden;font-family:Jost,"Segoe UI",system-ui,Arial,sans-serif;display:flex;align-items:center;justify-content:center}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(800px 560px at 85% -8%,rgba(202,154,78,.30),transparent 62%),radial-gradient(700px 520px at -10% 108%,rgba(202,154,78,.20),transparent 62%),#050505}
+.bg::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(202,154,78,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(202,154,78,.05) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%);mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%)}
+.bg img{position:absolute;width:520px;right:-140px;top:60px;opacity:.07;transform:rotate(8deg)}
+.bg img.b{width:340px;left:-90px;right:auto;top:auto;bottom:40px;opacity:.06;transform:rotate(-10deg)}
+.card{position:relative;z-index:1;width:740px;background:#fffdf8;border-radius:28px;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 2px rgba(202,154,78,.35),0 0 90px rgba(202,154,78,.25);overflow:hidden}
+.top{background:linear-gradient(160deg,#000 0%,#0c0a07 55%,#2a1f10 100%);padding:34px 56px 28px;text-align:center;border-bottom:3px solid var(--gold)}
+.top img{width:250px;display:block;margin:0 auto}
+.sub{margin-top:14px;font-size:20px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:500;padding-left:.42em}
+.mid{padding:34px 56px 8px;text-align:center}
+.qr{display:inline-block;padding:18px;border:2px solid var(--gold);border-radius:20px;background:#fff;box-shadow:0 0 0 9px #fffdf8,0 0 0 10px rgba(202,154,78,.5)}
+.qr img{display:block;width:420px;height:420px;image-rendering:pixelated}
+.scan{margin-top:30px;font:600 38px "Cormorant Garamond",Georgia,serif;color:var(--ink);letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:22px}
+.scan span{color:#a87a35}
+.scan::before,.scan::after{content:"";width:70px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.scan::after{background:linear-gradient(90deg,var(--gold),transparent)}
+.bot{padding:10px 56px 30px;text-align:center;color:var(--soft);font-size:22px;line-height:1.7}
+.bot b{color:var(--ink);font-weight:500}
+.pw{margin-top:18px;font-size:14px;letter-spacing:.3em;text-transform:uppercase;color:#a39880}
+.pw b{font-weight:500;color:#a87a35}
+</style></head><body>
+<div class="bg" aria-hidden="true"><img src="src/brand-logo.png" alt=""><img class="b" src="src/brand-logo.png" alt=""></div>
+<div class="card">
+ <div class="top"><img src="src/brand-logo.png" alt="Your Brand"><div class="sub">Rewards</div></div>
+ <div class="mid"><div class="qr"><img src="join-qr.png" alt="QR code to join Your Brand Rewards"></div><div class="scan">Scan to <span>get your card</span></div></div>
+ <div class="bot">Add your Your Brand Rewards card to your phone's Wallet.<br><b>It takes under a minute. Nothing to download.</b>
+  <div class="pw">Powered by <b>LOYALTY</b></div></div>
+</div>
+</body></html>

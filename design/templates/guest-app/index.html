@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" dir="ltr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#141210">
+<title>Your Brand Rewards (guest page, design prototype)</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+/* Guest pages: join, terms, card, added. Fake data. Follows design/DESIGN-GUIDE.md, with the "not AI-looking" rule:
+   no sparkles, no sheen, no glows. Hairlines, flat surfaces, strict spacing (4/8/12/16/24/32), one gold accent.
+   English + Arabic (RTL). Arabic text is machine-written and needs a native review before launch. */
+:root{--bg:#141210;--surface:#1B1815;--line:#3D372F;--text:#F3E9D2;--muted:#D9C9A8;--dim:#9A8C74;--gold:#CDA55B;--gold2:#E3C07E;--golddim:#8A6F3A;--bad:#E58B79;--ok:#8DBF8E;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Tahoma,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:var(--bg);color:var(--text);font:16px/1.55 var(--sans)}
+.page{max-width:440px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 24px 40px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.lang{background:none;border:0;color:var(--dim);font:600 13px var(--sans);letter-spacing:.08em;padding:8px 0;cursor:pointer}
+.lang b{color:var(--gold2)}
+.mark{display:block;height:68px;margin:0 auto 4px}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--golddim),transparent);margin:16px 0 20px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);text-align:center}
+h1{font:600 30px/1.15 var(--serif);text-align:center;margin:8px 0 10px}
+.lead{color:var(--muted);text-align:center;font-size:16px;margin-bottom:24px}
+.field{margin-bottom:12px}
+.lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.in{width:100%;height:56px;background:transparent;color:var(--text);border:0;border-bottom:1px solid var(--line);font:inherit;font-size:18px;padding:0 2px;border-radius:0}
+.in:focus{outline:none;border-bottom-color:var(--gold)}
+.in.bad{border-bottom-color:var(--bad)}
+.err{color:var(--bad);font-size:14px;margin-top:6px;min-height:20px}
+.check{display:flex;gap:14px;align-items:flex-start;margin:16px 0;color:var(--muted);font-size:15px}
+.check input{appearance:none;flex:none;width:22px;height:22px;border:1px solid var(--golddim);border-radius:6px;margin-top:2px;background:transparent;display:grid;place-items:center}
+.check input:checked{background:var(--gold);border-color:var(--gold)}
+.check input:checked:after{content:"";width:5px;height:10px;border:solid #1A1410;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+a{color:var(--gold2)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--text);font:600 16px var(--sans);letter-spacing:.03em;cursor:pointer;margin-top:12px;text-decoration:none}
+.btn.primary{background:#CDA55B;border-color:#CDA55B;color:#1A1410}
+.btn.apple{background:#000;border-color:#000;color:#fff;box-shadow:0 0 0 1px #3a3a3a}
+.btn.google{background:#fff;border-color:#fff;color:#1f1f1f}
+.btn svg{width:20px;height:20px}
+.note{color:var(--dim);font-size:13.5px;text-align:center;margin-top:20px}
+.foot{color:var(--dim);font-size:12px;letter-spacing:.2em;text-transform:uppercase;text-align:center;margin-top:40px}
+.foot b{color:var(--gold);font-weight:500}
+/* the rewards card */
+/* the membership card: a dial on the front (fifty ticks, one per ten points), the till card on the back. Tap to turn it over. */
+.foil{background:linear-gradient(100deg,#8A6F3A 0%,#E3C07E 28%,#CDA55B 48%,#F6E4B0 62%,#B58D45 80%,#8A6F3A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dwrap{perspective:1200px;margin:24px 0 8px;cursor:pointer;direction:ltr}
+.dwrap .in{position:relative;height:440px;transition:transform .9s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
+.dwrap.flip .in{transform:rotateY(180deg)}
+.dface{position:absolute;inset:0;border-radius:26px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(205,165,91,.35),0 24px 48px rgba(0,0,0,.5)}
+.dfront{background:radial-gradient(320px 280px at 50% 36%,#211d19,#12100e 70%);padding:22px 20px}
+.dback{transform:rotateY(180deg);background:linear-gradient(160deg,#F3E9D2,#E6D8B8);color:#141210;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px}
+.dtop{display:flex;justify-content:space-between;align-items:baseline;padding:0 6px}
+.dtop .brand{font:600 20px var(--serif);letter-spacing:.42em;color:var(--gold)}.dtop .by{font-size:10px;letter-spacing:.3em;color:var(--dim)}
+.dial{display:block;width:272px;height:272px;margin:8px auto 0}
+.dmid{position:absolute;left:0;right:0;top:106px;text-align:center}
+.dmid b{display:block;font:600 84px/1 var(--serif)}.dmid span{display:block;font-size:11px;letter-spacing:.34em;color:var(--gold);margin-top:6px;text-transform:uppercase}
+.dmid em{display:block;font-style:normal;color:var(--dim);font-size:12.5px;line-height:1.35;margin:10px auto 0;max-width:132px}
+.dbot{position:absolute;left:20px;right:20px;bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #2c2620;padding-top:14px}
+.dbot .who{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}.dbot .no{font:600 24px var(--serif);letter-spacing:.24em;color:var(--text)}
+.dback .qrb{background:#fff;border-radius:14px;padding:12px;line-height:0;box-shadow:0 0 0 1px rgba(20,18,16,.12)}.dback .qrb svg{width:170px;height:170px}
+.dback small{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#8A6F3A;font-weight:700;margin-top:22px}.dback b{font:600 46px var(--serif);letter-spacing:.22em;margin-top:6px}
+.dback p{font-size:13px;color:#5b5143;margin-top:8px}
+[dir=rtl] .dmid span,[dir=rtl] .dback small,[dir=rtl] .dbot .who{letter-spacing:0;text-transform:none;font-size:14px}
+.tick{display:grid;place-items:center;width:64px;height:64px;border:1px solid var(--gold);border-radius:50%;margin:8px auto 20px;color:var(--gold)}
+.tick svg{width:28px;height:28px}
+.steps{margin:24px 0 8px;display:grid;gap:14px}
+.steps div{display:flex;gap:14px;color:var(--muted);font-size:15px}.steps b{font:600 15px var(--serif);color:var(--gold);width:22px;flex:none}
+/* Arabic: letter-spacing and capitals break the joined script, so switch them off and give the small labels a little more size */
+[dir=rtl] .lbl,[dir=rtl] .eyebrow,[dir=rtl] .code small,[dir=rtl] .card .pts span,[dir=rtl] .foot,[dir=rtl] .card .by,[dir=rtl] .btn,[dir=rtl] .lang{letter-spacing:0;text-transform:none}
+[dir=rtl] .lbl,[dir=rtl] .code small,[dir=rtl] .card .pts span{font-size:14px}[dir=rtl] .eyebrow{font-size:14px}[dir=rtl] .foot{font-size:13px}
+[dir=rtl] .card .brand{letter-spacing:.36em}
+.terms{padding-left:20px;display:grid;gap:14px;color:var(--muted);font-size:15px}[dir=rtl] .terms{padding-left:0;padding-right:20px}
+.num{direction:ltr;unicode-bidi:isolate;display:inline-block}
+</style></head><body><div class="page" id="p"></div>
+<script>
+window.onerror=function(m,s,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#E58B79;padding:12px;font:12px monospace">'+m+' (line '+l+')</pre>')};
+if(/[?&]still\b/.test(location.search))document.documentElement.classList.add('still');
+var T={
+en:{join_e:'Rewards',join_h:'Your Brand Rewards',join_l:'A membership card for our guests, kept in your phone’s Wallet. Nothing to download.',name:'Your name',name_ph:'e.g. Sara',contact:'Phone number or email',contact_ph:'+973 … or name@email.com',news:'Send me Your Brand news and offers as notifications on my Wallet card. (optional)',terms_a:'I agree to the ',terms_b:'Terms & Conditions',go:'Receive my card',busy:'Preparing your card…',priv:'Your details are used only to run your Your Brand rewards. You can ask for them to be deleted at any time.',phone:'Mobile number',email:'Email',one_of:'Please add at least one, so we can reach you about your card.',e_one:'Please add a mobile number or an email.',e_phone:'That mobile number does not look right.',e_email:'That email address does not look right.',e_name:'Please tell us your name.',e_contact:'That phone number or email does not look right.',e_terms:'Please accept the terms to continue.',
+  foot:'Your Brand Loyalty Rewards · Powered by',tt:'Terms & Conditions',back:'Back',draft:'Draft text, to be replaced by Your Brand’s final terms.',
+  t1:['Your card.','Your Brand Loyalty Rewards gives you a personal digital card with a 4-digit code. Show the code when you visit so your points can be added.'],t2:['Your details.','We keep your name and your phone number or email only to run your rewards and to contact you about them. We do not sell them.'],t3:['Notifications.','Offers are sent to your Wallet card only if you agreed. You can turn them off at any time.'],t4:['Rewards.','Points, rewards and their value are set by Your Brand and can change. Points have no cash value.'],t5:['Deleting your data.','You can ask Your Brand or LOYALTY to delete your details at any time.'],t6:['Powered by LOYALTY.','The card system is provided to Your Brand by LOYALTY. Your Brand owns its members’ data.'],
+  card_e:'Your membership',card_h:'Welcome, ',card_l:'Keep your card in your Wallet and present it with each visit.',points:'Points',to:' points to your reward.',code:'Your code',codep:'Show the QR or this code at the till.',apple:'Add to Apple Wallet',google:'Add to Google Wallet',pic:'Save a copy as an image',tip:'Bookmark this page to see your latest points at any time.',turn:'Tap the card to turn it over for the till.',
+  ok_e:'Added to your Wallet',ok_h:'Welcome to Your Brand',ok_l:'Your card is in your Wallet and updates by itself after every visit.',s1:'Present the card when you settle your bill.',s2:'Our team scans it and adds your points.',s3:'Your first reward awaits at 500 points.',view:'View my card'},
+ar:{join_e:'المكافآت',join_h:'مكافآت كايا',join_l:'بطاقة عضوية لضيوفنا، تبقى في محفظة هاتفك. بدون تحميل أي تطبيق.',name:'اسمك',name_ph:'مثال: سارة',contact:'رقم الهاتف أو البريد الإلكتروني',contact_ph:'‎+973 … أو name@email.com',news:'أرسلوا لي أخبار وعروض كايا كإشعارات على بطاقتي في المحفظة. (اختياري)',terms_a:'أوافق على ',terms_b:'الشروط والأحكام',go:'استلم بطاقتي',busy:'جارٍ تجهيز بطاقتك…',priv:'نستخدم بياناتك فقط لتشغيل مكافآت كايا. يمكنك طلب حذفها في أي وقت.',phone:'رقم الجوال',email:'البريد الإلكتروني',one_of:'من فضلك أضف واحداً منهما على الأقل لنتمكن من التواصل معك بشأن بطاقتك.',e_one:'من فضلك أضف رقم جوال أو بريداً إلكترونياً.',e_phone:'رقم الجوال غير صحيح.',e_email:'البريد الإلكتروني غير صحيح.',e_name:'من فضلك أخبرنا باسمك.',e_contact:'رقم الهاتف أو البريد الإلكتروني غير صحيح.',e_terms:'يرجى الموافقة على الشروط للمتابعة.',
+  foot:'مكافآت ولاء كايا · بدعم من',tt:'الشروط والأحكام',back:'رجوع',draft:'نص مبدئي، سيُستبدل بشروط كايا النهائية.',
+  t1:['بطاقتك.','تمنحك مكافآت ولاء كايا بطاقة رقمية شخصية برمز من 4 أرقام. أظهر الرمز عند زيارتك ليتم إضافة نقاطك.'],t2:['بياناتك.','نحتفظ باسمك ورقم هاتفك أو بريدك فقط لتشغيل مكافآتك وللتواصل معك بشأنها. لا نبيعها.'],t3:['الإشعارات.','تصلك العروض على بطاقتك فقط إذا وافقت. يمكنك إيقافها في أي وقت.'],t4:['المكافآت.','تحدد كايا النقاط والمكافآت وقيمتها وقد تتغير. النقاط ليس لها قيمة نقدية.'],t5:['حذف بياناتك.','يمكنك أن تطلب من كايا أو لويالتي حذف بياناتك في أي وقت.'],t6:['بدعم من لويالتي.','يقدّم نظام البطاقة إلى كايا شركة لويالتي. وتملك كايا بيانات أعضائها.'],
+  card_e:'عضويتك',card_h:'أهلاً، ',card_l:'احتفظ ببطاقتك في المحفظة وأظهرها مع كل زيارة.',points:'نقطة',to:' نقطة تفصلك عن مكافأتك.',code:'رمزك',codep:'اعرض الرمز أو الأرقام عند الكاشير.',apple:'أضف إلى Apple Wallet',google:'أضف إلى Google Wallet',pic:'احفظ بطاقتي كصورة',tip:'نصيحة: احفظ هذه الصفحة. تعرض دائماً أحدث نقاطك.',turn:'اضغط على البطاقة لتقلبها عند الكاشير.',
+  ok_e:'تمت الإضافة إلى محفظتك',ok_h:'كل شيء جاهز',ok_l:'بطاقة كايا في محفظتك. تتحدث تلقائياً بعد كل زيارة.',s1:'اعرض البطاقة عند الكاشير.',s2:'يمسحها الموظف ويضيف نقاطك.',s3:'شاهد نقاطك ترتفع. مكافأتك بانتظارك عند 500.',view:'عرض بطاقتي'}};
+var S={lang:'en',screen:'join',err:{},device:'ios'};
+function t(k){return T[S.lang][k]}
+function qr(x){var q=qrcode(0,'M');q.addData(x);q.make();var n=q.getModuleCount(),p='';for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))p+='M'+c+' '+r+'h1v1h-1z';return '<svg viewBox="0 0 '+n+' '+n+'" shape-rendering="crispEdges"><path d="'+p+'" fill="#141210"/></svg>'}
+/* fifty ticks, one per ten points; the lit ones are the points so far, the bright dot marks where the guest is, the diamond at twelve is the reward */
+function dial(pts){var lit=Math.max(0,Math.min(50,Math.round(pts/10))),s='<svg class="dial" viewBox="0 0 300 300" aria-hidden="true"><defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8A6F3A"/><stop offset=".5" stop-color="#F0D28C"/><stop offset="1" stop-color="#B58D45"/></linearGradient></defs><circle cx="150" cy="150" r="104" fill="none" stroke="#2a251f"/>';
+ for(var i=0;i<50;i++){var a=(i*7.2-90)*Math.PI/180,mj=i%5===0,r1=mj?118:126,r2=138;s+='<line x1="'+(150+r1*Math.cos(a)).toFixed(2)+'" y1="'+(150+r1*Math.sin(a)).toFixed(2)+'" x2="'+(150+r2*Math.cos(a)).toFixed(2)+'" y2="'+(150+r2*Math.sin(a)).toFixed(2)+'" stroke="'+(i<lit?'url(#dg)':'#3a332b')+'" stroke-width="'+(mj?2.6:1.6)+'" stroke-linecap="round"/>'}
+ var am=(lit*7.2-90)*Math.PI/180,cx=(150+110*Math.cos(am)).toFixed(2),cy=(150+110*Math.sin(am)).toFixed(2);
+ return s+'<circle cx="'+cx+'" cy="'+cy+'" r="4.5" fill="#F6E4B0"/><circle cx="'+cx+'" cy="'+cy+'" r="9" fill="none" stroke="#CDA55B" stroke-opacity=".5"/><path d="M150 4 l6 8 -6 8 -6 -8z" fill="#CDA55B"/></svg>'}
+var LOGO='<img class="mark" src="src/brand-logo.png" alt="Your Brand">';
+function topbar(){return '<div class="top"><span></span><button class="lang" data-a="lang">'+(S.lang==='en'?'<b>EN</b> / العربية':'English / <b>عربي</b>')+'</button></div>'}
+function foot(){return '<p class="foot">'+t('foot')+' <b>LOYALTY</b></p>'}
+var APPLE='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.9-3.500.9s-1.800-.8-3-.8c-1.500 0-3 .9-3.800 2.300-1.600 2.800-.4 7 1.200 9.300.8 1.100 1.700 2.400 2.900 2.300 1.200 0 1.600-.7 3-.7s1.800.7 3 .7 2-1.100 2.800-2.200c.9-1.300 1.200-2.500 1.200-2.600-.1 0-2.400-.9-2.400-3.900zM14.200 6c.6-.8 1.100-1.800.9-2.900-.9 0-2 .6-2.700 1.400-.6.700-1.100 1.800-1 2.800 1 .1 2.100-.5 2.800-1.300z"/></svg>';
+var GOOGLE='<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.300-.2-1.900H12v3.600h5.400c-.2 1.200-.9 2.300-2 3v2.500h3.200c1.900-1.700 3-4.300 3-7.200z"/><path fill="#34A853" d="M12 22c2.700 0 5-.9 6.600-2.500l-3.200-2.500c-.9.600-2 1-3.400 1-2.600 0-4.800-1.800-5.600-4.100H3.100v2.600C4.700 19.700 8.100 22 12 22z"/><path fill="#FBBC05" d="M6.400 14c-.2-.6-.3-1.300-.3-2s.1-1.400.3-2V7.400H3.100C2.400 8.800 2 10.400 2 12s.4 3.200 1.100 4.600L6.400 14z"/><path fill="#EA4335" d="M12 5.900c1.500 0 2.800.5 3.800 1.500l2.800-2.800C17 3.100 14.700 2 12 2 8.100 2 4.700 4.300 3.100 7.400L6.400 10c.8-2.300 3-4.100 5.600-4.100z"/></svg>';
+var V={
+join:function(){return topbar()+LOGO+'<div class="rule"></div><h1>'+t('join_h')+'</h1><p class="lead">'+t('join_l')+'</p><form id="f" novalidate>'+
+ '<div class="field"><label class="lbl" for="n">'+t('name')+'</label><input class="in'+(S.err.n?' bad':'')+'" id="n" autocomplete="name" placeholder="'+t('name_ph')+'" maxlength="80" value="'+(S.v&&S.v.n||'')+'"><div class="err">'+(S.err.n||'')+'</div></div>'+
+ '<div class="field"><label class="lbl" for="ph">'+t('phone')+'</label><input class="in'+(S.err.p?' bad':'')+'" id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="+973 …" maxlength="24" value="'+(S.v&&S.v.p||'')+'"><div class="err">'+(S.err.p||'')+'</div></div>'+
+ '<div class="field"><label class="lbl" for="em">'+t('email')+'</label><input class="in'+(S.err.e?' bad':'')+'" id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="name@email.com" maxlength="120" value="'+(S.v&&S.v.e||'')+'"><div class="err">'+(S.err.e||S.err.c||'')+'</div></div>'+
+ '<p class="note" style="text-align:start;margin:-4px 0 12px">'+t('one_of')+'</p>'+
+ '<label class="check"><input type="checkbox" id="nw"><span>'+t('news')+'</span></label>'+
+ '<label class="check"><input type="checkbox" id="tm"><span>'+t('terms_a')+'<a href="#" data-a="terms">'+t('terms_b')+'</a></span></label><div class="err">'+(S.err.t||'')+'</div>'+
+ '<button class="btn primary" type="submit">'+t('go')+'</button><p class="note">'+t('priv')+'</p></form>'+foot()},
+terms:function(){var rows=[1,2,3,4,5,6].map(function(i){var x=t('t'+i);return '<li><b>'+x[0]+'</b> '+x[1]+'</li>'}).join('');return topbar()+'<div class="eyebrow">Your Brand</div><h1>'+t('tt')+'</h1><div class="rule"></div><p class="note" style="text-align:start;margin:0 0 16px">'+t('draft')+'</p><ol class="terms">'+rows+'</ol><button class="btn" data-a="join">'+t('back')+'</button>'+foot()},
+card:function(){var pts=S.pts==null?0:S.pts;return topbar()+'<div class="eyebrow">'+t('card_e')+'</div><h1>'+t('card_h')+(S.lang==='en'?'Sara':'سارة')+'</h1><p class="lead" style="margin-bottom:0">'+t('card_l')+'</p>'+
+ '<div class="dwrap'+(S.flip?' flip':'')+'" data-a="flip"><div class="in">'+
+ '<div class="dface dfront"><div class="dtop"><span class="brand">Your Brand</span><span class="by">LOYALTY</span></div>'+dial(pts)+'<div class="dmid"><b class="foil">'+pts+'</b><span>'+t('points')+'</span><em><span class="num" style="display:inline;letter-spacing:0;font-size:inherit;color:inherit;margin:0">'+(500-pts)+'</span>'+t('to')+'</em></div><div class="dbot"><span class="who">'+(S.lang==='en'?'Sara Hasan':'سارة حسن')+'</span><span class="no">4827</span></div></div>'+
+ '<div class="dface dback"><div class="qrb">'+qr('LOYALTY:brand:4827')+'</div><small>'+t('code')+'</small><b class="num">4827</b><p>'+t('codep')+'</p></div></div></div><p class="note" style="margin:6px 0 4px">'+t('turn')+'</p>'+
+ (S.device==='ios'?'<button class="btn apple" data-a="added">'+APPLE+t('apple')+'</button><button class="btn google" data-a="added">'+GOOGLE+t('google')+'</button>':'<button class="btn google" data-a="added">'+GOOGLE+t('google')+'</button><button class="btn apple" data-a="added">'+APPLE+t('apple')+'</button>')+
+ '<button class="btn">'+t('pic')+'</button><p class="note">'+t('tip')+'</p>'+foot()},
+added:function(){return topbar()+'<div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.500 4.500L19 7.500"/></svg></div><div class="eyebrow">'+t('ok_e')+'</div><h1>'+t('ok_h')+'</h1><p class="lead">'+t('ok_l')+'</p><div class="rule"></div><div class="steps"><div><b>1</b><span>'+t('s1')+'</span></div><div><b>2</b><span>'+t('s2')+'</span></div><div><b>3</b><span>'+t('s3')+'</span></div></div><button class="btn" data-a="card">'+t('view')+'</button>'+foot()}
+};
+function render(){document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';document.getElementById('p').innerHTML=V[S.screen]()}
+function set(o){for(var k in o)S[k]=o[k];render();window.scrollTo(0,0)}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;e.preventDefault();var a=b.dataset.a;
+ if(a==='flip'){var w=b.closest('.dwrap')||b;w.classList.toggle('flip');S.flip=w.classList.contains('flip');return}
+ if(a==='lang')set({lang:S.lang==='en'?'ar':'en'});else if(a==='terms')set({screen:'terms'});else if(a==='join')set({screen:'join'});else if(a==='added')set({screen:'added'});else if(a==='card')set({screen:'card'})});
+document.addEventListener('submit',function(e){e.preventDefault();var n=document.getElementById('n').value.trim(),p=document.getElementById('ph').value.trim(),m=document.getElementById('em').value.trim(),ok=document.getElementById('tm').checked,er={};
+ if(!n)er.n=t('e_name');
+ if(!p&&!m)er.c=t('e_one');
+ if(p&&!/^\+?[0-9 ()-]{7,20}$/.test(p))er.p=t('e_phone');
+ if(m&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))er.e=t('e_email');
+ if(!ok)er.t=t('e_terms');
+ if(Object.keys(er).length)set({err:er,v:{n:n,p:p,e:m}});else set({err:{},screen:'card',pts:0})});
+/* review shortcuts: #join #terms #card #added #ar #error #android */
+(function(){var h=location.hash.replace('#','');if(h==='terms')S.screen='terms';else if(h==='card'){S.screen='card';S.pts=320}else if(h==='card-back'){S.screen='card';S.pts=320;S.flip=true}else if(h==='added'){S.screen='added'}else if(h==='ar'){S.lang='ar'}else if(h==='ar-card'){S.lang='ar';S.screen='card';S.pts=320}else if(h==='error'){S.err={n:T.en.e_name,p:T.en.e_phone,e:T.en.e_email,t:T.en.e_terms};S.v={n:'',p:'12',e:'sara@'}}else if(h==='android'){S.screen='card';S.pts=320;S.device='android'}render()})();
+</script></body></html>

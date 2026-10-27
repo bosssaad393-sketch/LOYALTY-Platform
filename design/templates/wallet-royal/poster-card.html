@@ -1,0 +1,18 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Your Brand poster artwork with the black marble card (358x448 pt)</title>
+<style>
+/* Poster artwork (iOS 27+) = the landscape black marble card from the app, shown at the top of the pass.
+   Only static things are drawn on it (crest plate, Your Brand, MEMBER, a line from brandrestaurants.com): the name, points, code and QR are printed by Wallet underneath. */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#141210}
+.p{position:relative;width:358px;height:448px;overflow:hidden;background:radial-gradient(ellipse 320px 220px at 50% 22%,#161412,#080706 80%)}
+.c{position:absolute;left:19px;top:70px;width:320px;height:202px;border-radius:15px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.7),0 0 0 .5px rgba(205,165,91,.6);
+ background:linear-gradient(0deg,rgba(8,7,6,.40),rgba(8,7,6,.05) 60%),linear-gradient(90deg,rgba(8,7,6,.62),rgba(8,7,6,0) 62%),url(src/marble.png) 100% 42%/450px auto no-repeat,#0a0908}
+.glow{position:absolute;inset:0;background:radial-gradient(ellipse 180px 105px at 255px 30px,rgba(231,194,125,.16),rgba(231,194,125,0) 100%)}
+.plate{position:absolute;left:21px;top:23px;width:44px;height:33px;border-radius:7px;background:linear-gradient(135deg,#F6E4B0 0%,#CDA55B 45%,#8A6F3A 100%);box-shadow:inset 0 0 0 .6px rgba(60,40,10,.5),0 1px 0 rgba(255,240,200,.25);display:grid;place-items:center}
+.plate img{width:23px;height:auto;filter:brightness(0) opacity(.78)}
+.k{position:absolute;right:21px;top:23px;font:600 23px/1 Georgia,"Times New Roman",serif;letter-spacing:.42em;padding-left:.42em;
+ background:linear-gradient(100deg,#8A6F3A 0%,#E3C07E 28%,#CDA55B 48%,#F6E4B0 62%,#B58D45 80%,#8A6F3A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(255,236,190,.30))}
+.t{position:absolute;right:23px;top:52px;font:700 7px/1 -apple-system,"Segoe UI",system-ui,sans-serif;letter-spacing:.5em;padding-left:.5em;color:#CDA55B}
+.q{position:absolute;left:21px;bottom:21px;font:italic 500 12px/1.3 Georgia,"Times New Roman",serif;color:#E8D8B0;opacity:.85;max-width:150px}
+</style></head><body><div class="p"><div class="c"><div class="glow"></div><div class="plate"><img src="src/crest.png" alt=""></div><div class="k">Your Brand</div><div class="t">MEMBER</div><div class="q">Dine, disconnect and flow with the rhythm.</div></div></div></body></html>

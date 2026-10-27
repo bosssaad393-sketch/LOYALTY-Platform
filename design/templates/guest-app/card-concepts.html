@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Brand card concepts</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+/* Three directions for the guest's card on the web page. Each is built from craft details rather than effects:
+   foil lettering, an engraved monogram ground, a gilded edge, a watch-bezel dial, a card that turns over.
+   The wallet passes themselves stay simple (Apple and Google cannot animate); this is for the guest page and the staff app. */
+:root{--bg:#141210;--ink:#0f0d0b;--line:#3D372F;--text:#F3E9D2;--muted:#D9C9A8;--dim:#9A8C74;--gold:#CDA55B;--gold2:#E3C07E;--golddim:#8A6F3A;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--mx:30%;--my:18%;--hl:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0b0a09;color:var(--text);font:15px/1.5 var(--sans);padding:32px 36px 40px}
+h1{font:600 28px var(--serif);color:var(--gold2)}.sub{color:var(--dim);margin:6px 0 28px;max-width:760px}
+.row{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.col{width:360px}.col h2{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}.col p.cap{color:var(--dim);font-size:13.5px;margin-top:14px}
+.foil{background:linear-gradient(100deg,#8A6F3A 0%,#E3C07E 28%,#CDA55B 48%,#F6E4B0 62%,#B58D45 80%,#8A6F3A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* ---------- A: obsidian card, foil and engraved ground ---------- */
+.A{position:relative;width:360px;height:440px;border-radius:26px;padding:28px 26px;overflow:hidden;background:linear-gradient(165deg,#1d1a17,#12100e 60%,#0d0b0a);box-shadow:0 30px 60px rgba(0,0,0,.55),inset 0 0 0 1px rgba(205,165,91,.35),inset 0 1px 0 rgba(255,240,200,.10)}
+.A .ground{position:absolute;inset:0;background-image:url(src/brand-icon.png);background-size:78px auto;background-position:0 0;opacity:.038;filter:sepia(1) saturate(2) brightness(1.3);mix-blend-mode:screen}
+.A .ground.b{background-position:39px 39px}
+.A .hl{position:absolute;inset:0;background:radial-gradient(220px 220px at var(--mx) var(--my),rgba(255,236,190,calc(.16*var(--hl))),transparent 70%);pointer-events:none}
+.A .top{position:relative;display:flex;justify-content:space-between;align-items:baseline}
+.A .brand{font:600 24px var(--serif);letter-spacing:.42em}.A .by{font-size:10.5px;letter-spacing:.3em;color:var(--dim)}
+.A .big{position:relative;font:600 112px/1 var(--serif);margin-top:56px;letter-spacing:-.01em}
+.A .lab{position:relative;font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-top:6px}
+.A .notches{position:relative;display:flex;gap:6px;margin-top:36px}.A .notches i{flex:1;height:22px;border-radius:2px;background:#26211b}.A .notches i.on{background:linear-gradient(180deg,#E3C07E,#B58D45)}
+.A .notes{position:relative;display:flex;justify-content:space-between;color:var(--dim);font-size:11px;letter-spacing:.12em;margin-top:8px}
+.A .foot{position:absolute;left:26px;right:26px;bottom:26px;display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #2c2620;padding-top:14px}
+.A .who{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}.A .no{font:600 22px var(--serif);letter-spacing:.24em;color:var(--text)}
+/* ---------- B: the card that turns over ---------- */
+.B{width:360px;height:440px;perspective:1200px;cursor:pointer}
+.B .in{position:relative;width:100%;height:100%;transition:transform .9s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
+.B.flip .in{transform:rotateY(180deg)}
+.B .f,.B .k{position:absolute;inset:0;border-radius:26px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.55),inset 0 0 0 1px rgba(205,165,91,.35)}
+.B .f{background:linear-gradient(160deg,#211d19,#12100e);padding:30px 28px;display:flex;flex-direction:column}
+.B .k{transform:rotateY(180deg);background:linear-gradient(160deg,#F3E9D2,#E6D8B8);color:#141210;padding:30px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.B .logo{height:58px;align-self:center;margin-bottom:6px}
+.B .rule{height:1px;background:linear-gradient(90deg,transparent,#8A6F3A,transparent);margin:16px 0}
+.B .pts{font:600 96px/1 var(--serif);text-align:center;margin-top:34px}.B .ptl{text-align:center;font-size:12px;letter-spacing:.34em;color:var(--gold);margin-top:8px}
+.B .line{height:2px;background:#2b2621;margin:34px 0 10px;position:relative}.B .line i{position:absolute;left:0;top:0;height:2px;width:64%;background:var(--gold)}.B .line b{position:absolute;left:64%;top:-5px;width:12px;height:12px;border-radius:50%;background:var(--gold);transform:translateX(-50%);box-shadow:0 0 0 4px #1b1815}
+.B .to{text-align:center;color:var(--dim);font-size:13px}
+.B .hint{margin-top:auto;text-align:center;color:var(--dim);font-size:11px;letter-spacing:.28em;text-transform:uppercase}
+.B .k .qrb{background:#fff;border-radius:14px;padding:12px;line-height:0;box-shadow:0 0 0 1px rgba(20,18,16,.12)}.B .k .qrb svg{width:170px;height:170px}
+.B .k small{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#8A6F3A;font-weight:700;margin-top:22px}.B .k b{font:600 46px var(--serif);letter-spacing:.22em;margin-top:6px}
+.B .k p{font-size:13px;color:#5b5143;margin-top:8px}
+/* ---------- C: the dial ---------- */
+.C{position:relative;width:360px;height:440px;border-radius:26px;background:radial-gradient(320px 280px at 50% 36%,#211d19,#12100e 70%);box-shadow:0 30px 60px rgba(0,0,0,.55),inset 0 0 0 1px rgba(205,165,91,.35);padding:22px 20px;overflow:hidden}
+.C .top{display:flex;justify-content:space-between;align-items:baseline;padding:0 6px}.C .brand{font:600 20px var(--serif);letter-spacing:.42em;color:var(--gold)}.C .by{font-size:10px;letter-spacing:.3em;color:var(--dim)}
+.C svg.dial{display:block;width:272px;height:272px;margin:8px auto 0}
+.C .mid{position:absolute;left:0;right:0;top:106px;text-align:center}
+.C .mid b{display:block;font:600 84px/1 var(--serif)}.C .mid span{display:block;font-size:11px;letter-spacing:.34em;color:var(--gold);margin-top:6px}
+.C .mid em{display:block;font-style:normal;color:var(--dim);font-size:12.5px;margin-top:10px}
+.C .bot{position:absolute;left:20px;right:20px;bottom:20px;display:flex;gap:16px;align-items:center;border-top:1px solid #2c2620;padding-top:14px}
+.C .bot .q{background:#F3E9D2;border-radius:10px;padding:7px;line-height:0}.C .bot .q svg{width:66px;height:66px}
+.C .bot small{display:block;font-size:10.5px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase}.C .bot b{font:600 30px var(--serif);letter-spacing:.2em}
+.C .bot .who{margin-left:auto;text-align:right;font-size:11px;letter-spacing:.24em;color:var(--muted);text-transform:uppercase}
+</style></head><body>
+<h1>Your Brand card: three directions</h1>
+<p class="sub">Open on your phone and touch or tilt: concept A catches the light where your finger is, concept B turns over when you tap it. Same details on all three: Sara Hasan, 320 points, reward at 500, code 4827. Colours from the design guide.</p>
+<div class="row">
+ <div class="col"><h2>A &middot; Obsidian and foil</h2>
+  <div class="A tilt" id="A"><div class="ground"></div><div class="ground b"></div><div class="hl"></div>
+   <div class="top"><span class="brand foil">Your Brand</span><span class="by">LOYALTY</span></div>
+   <div class="big foil">320</div><div class="lab">Points</div>
+   <div class="notches" id="nA"></div><div class="notes"><span>0</span><span>180 to your reward</span><span>500</span></div>
+   <div class="foot"><span class="who">Sara Hasan</span><span class="no">4827</span></div></div>
+  <p class="cap">Matte black with a gilded edge, the Your Brand mark engraved into the ground, foil lettering. Twenty notches, each 25 points: sixteen are lit.</p></div>
+ <div class="col"><h2>B &middot; The card that turns over</h2>
+  <div class="B" id="B"><div class="in">
+   <div class="f"><img class="logo" src="src/brand-logo.png" alt="Your Brand"><div class="rule"></div><div class="pts foil">320</div><div class="ptl">POINTS</div><div class="line"><i></i><b></b></div><div class="to">180 points to your reward</div><div class="hint">Tap to turn over</div></div>
+   <div class="k"><div class="qrb" id="qB"></div><small>Your code</small><b>4827</b><p>Present this at the till.</p></div></div></div>
+  <p class="cap">The front is calm. Turn it over and the back is the till card: QR and code on cream, like the reverse of a printed membership.</p></div>
+ <div class="col"><h2>C &middot; The dial</h2>
+  <div class="C"><div class="top"><span class="brand">Your Brand</span><span class="by">LOYALTY</span></div>
+   <svg class="dial" id="dial" viewBox="0 0 300 300"></svg>
+   <div class="mid"><b class="foil">320</b><span>POINTS</span><em>180 to your reward</em></div>
+   <div class="bot"><div class="q" id="qC"></div><div><small>Your code</small><b>4827</b></div><div class="who">Sara<br>Hasan</div></div></div>
+  <p class="cap">A watch bezel: fifty ticks, one for every ten points. Thirty-two are lit, the bright point marks where you are, the reward sits at twelve o'clock.</p></div>
+</div>
+<script>
+function qr(x,fill){var q=qrcode(0,'M');q.addData(x);q.make();var n=q.getModuleCount(),p='';for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))p+='M'+c+' '+r+'h1v1h-1z';return '<svg viewBox="0 0 '+n+' '+n+'" shape-rendering="crispEdges"><path d="'+p+'" fill="'+fill+'"/></svg>'}
+var code='LOYALTY:brand:4827';
+document.getElementById('qB').innerHTML=qr(code,'#141210');document.getElementById('qC').innerHTML=qr(code,'#141210');
+var nA='';for(var i=0;i<20;i++)nA+='<i class="'+(i<16?'on':'')+'"></i>';document.getElementById('nA').innerHTML=nA;
+/* dial: 50 ticks, 32 lit (320 of 500 points) */
+(function(){var s='<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8A6F3A"/><stop offset=".5" stop-color="#F0D28C"/><stop offset="1" stop-color="#B58D45"/></linearGradient></defs>';
+ s+='<circle cx="150" cy="150" r="104" fill="none" stroke="#2a251f" stroke-width="1"/>';
+ for(var i=0;i<50;i++){var a=(i*7.2-90)*Math.PI/180,major=i%5===0,r1=major?118:126,r2=138,x1=150+r1*Math.cos(a),y1=150+r1*Math.sin(a),x2=150+r2*Math.cos(a),y2=150+r2*Math.sin(a);
+  s+='<line x1="'+x1.toFixed(2)+'" y1="'+y1.toFixed(2)+'" x2="'+x2.toFixed(2)+'" y2="'+y2.toFixed(2)+'" stroke="'+(i<32?'url(#g)':'#3a332b')+'" stroke-width="'+(major?2.6:1.6)+'" stroke-linecap="round"/>'}
+ var am=(32*7.2-90)*Math.PI/180;s+='<circle cx="'+(150+110*Math.cos(am)).toFixed(2)+'" cy="'+(150+110*Math.sin(am)).toFixed(2)+'" r="4.5" fill="#F6E4B0"/><circle cx="'+(150+110*Math.cos(am)).toFixed(2)+'" cy="'+(150+110*Math.sin(am)).toFixed(2)+'" r="9" fill="none" stroke="#CDA55B" stroke-opacity=".5"/>';
+ s+='<path d="M150 4 l6 8 -6 8 -6 -8z" fill="#CDA55B"/>';document.getElementById('dial').innerHTML=s})();
+/* the light follows a finger or pointer (only while touching, never idle) */
+var A=document.getElementById('A');
+function mv(e){var r=A.getBoundingClientRect(),p=e.touches?e.touches[0]:e;A.style.setProperty('--mx',(p.clientX-r.left)+'px');A.style.setProperty('--my',(p.clientY-r.top)+'px');A.style.setProperty('--hl',1)}
+A.addEventListener('pointermove',mv);A.addEventListener('touchmove',mv,{passive:true});A.addEventListener('pointerleave',function(){A.style.setProperty('--hl',0)});
+document.getElementById('B').addEventListener('click',function(){this.classList.toggle('flip')});
+if(/[?&]light\b/.test(location.search)){A.style.setProperty('--mx','70%');A.style.setProperty('--my','26%');A.style.setProperty('--hl',1)}
+if(/[?&]flip\b/.test(location.search))document.getElementById('B').classList.add('flip');
+</script></body></html>

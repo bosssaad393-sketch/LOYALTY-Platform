@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Your Brand Wallet card: now vs royal</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+:root{--bg:#0e0c0a;--cream:#F3E9D2;--gold:#CDA55B;--dim:#9A8C74;--sans:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,Arial,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080706;color:var(--cream);font:14px/1.45 var(--sans);padding:34px 40px 40px;width:1500px}
+h1{font:600 26px Georgia,serif;color:#E3C07E}.sub{color:var(--dim);margin:6px 0 26px;max-width:980px}
+.row{display:flex;gap:44px;align-items:flex-start}
+.col{width:358px}.lab{font:700 12px var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}.cap{color:var(--dim);font-size:13px;margin:4px 0 14px;min-height:54px}
+/* an approximation of how Wallet lays a card out; Apple draws the real one */
+.card{position:relative;width:358px;border-radius:16px;overflow:hidden;background:rgb(14,12,10);box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 0 .5px rgba(255,255,255,.12)}
+.lbl{font:600 10px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.val{font:400 17px var(--sans);color:var(--cream)}
+.logo{display:block}
+/* store card */
+.sc .top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+.sc .logo{width:42px;height:auto}
+.sc .strip{position:relative;height:123px;background:url(storecard/strip@3x.png) center/100% 100%}
+.sc .strip .f{position:absolute;left:16px;top:20px}.sc .strip .f .val{font-size:50px;line-height:1.05;font-weight:300;margin-top:2px}
+.sc .rows{display:flex;justify-content:space-between;padding:14px 16px 0}
+.sc .aux{padding:12px 16px 0}
+.qr{background:#fff;border-radius:8px;padding:10px;width:154px;margin:20px auto 0;text-align:center;font:12px var(--sans);color:#000;letter-spacing:.06em}
+.qr svg{width:134px;height:134px;display:block;margin:0 auto 4px}
+.sc .qrwrap{padding-bottom:22px}
+/* poster */
+.po{height:618px}
+.po .art{position:absolute;left:0;top:0;width:358px;height:448px;background:url(poster/artwork@3x.png) center/100% 100%}
+.po .logo{position:absolute;left:16px;top:16px;width:96px;height:auto}
+.po .hdr{position:absolute;right:16px;top:14px;text-align:right}
+.po .f1{position:absolute;left:18px;top:272px}.po .f1 .val{font-size:24px}
+.po .f2{position:absolute;left:18px;top:322px}.po .f2 .val{font-size:40px;font-weight:300;line-height:1.05}
+.po .f3{position:absolute;right:18px;top:338px;text-align:right}
+.po .ft{position:absolute;left:18px;top:392px}
+.po .mat{position:absolute;left:0;right:0;bottom:0;height:170px;background:rgba(24,21,18,.92);border-top:.5px solid rgba(205,165,91,.35)}
+.po .qr{position:absolute;left:50%;transform:translateX(-50%);bottom:22px;margin:0;width:112px;padding:7px}.po .qr svg{width:98px;height:98px}
+.now{background:#111;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)}.now img{display:block;width:358px;height:auto}
+.note{margin-top:30px;color:var(--dim);font-size:12.5px;max-width:1100px}
+</style></head><body>
+<h1>Your Brand Wallet card: the main design</h1>
+<p class="sub">Illustration with sample data (Sara Hasan, 320 points). Apple draws the real card, so the exact spacing will differ a little; colours, artwork and fields are what we control. The strip and poster artwork shown are the real files, at Apple's exact sizes.</p>
+<div class="row">
+ <div class="col"><div class="lab">Now &middot; from your phone</div><p class="cap">Repeating mark pattern on the strip. Works, but busy rather than regal.</p>
+  <div class="now"><img src="src/now.png" alt="current card"></div></div>
+ <div class="col"><div class="lab">Main &middot; Royal card &middot; all iPhones</div><p class="cap">Black card, Your Brand in gold on black marble with real gold-leaf veins. Works on every iPhone. Points sit on the left of the strip.</p>
+  <div class="card sc"><div class="top"><img class="logo" src="src/crest.png" alt="Your Brand"><div style="text-align:right"><div class="lbl">Powered by</div><div class="val" style="font-size:15px">LOYALTY</div></div></div>
+   <div class="strip"><div class="f"><div class="lbl">Points</div><div class="val">320</div></div></div>
+   <div class="rows"><div><div class="lbl">Member</div><div class="val">Sara Hasan</div></div><div style="text-align:right"><div class="lbl">To your reward</div><div class="val">180</div></div></div>
+   <div class="aux"><div class="lbl">Your code</div><div class="val">4827</div></div>
+   <div class="qrwrap"><div class="qr"><div id="q1"></div>4827</div></div></div></div>
+ <div class="col"><div class="lab">Later &middot; Poster style &middot; iOS 27+ (switched off)</div><p class="cap">Apple's new full-bleed membership style, closest to your app card: gold Your Brand up top, then MEMBER, the name and the points under it, code in the footer. Optional, off for now; if ever switched on, older iPhones keep the main card.</p>
+  <div class="card po"><div class="art"></div><img class="logo" src="poster/primaryLogo@3x.png" alt="Your Brand" style="width:30px">
+   <div class="hdr"><div class="lbl">Powered by</div><div class="val" style="font-size:15px">LOYALTY</div></div><div class="f1"><div class="lbl">Member</div><div class="val">Sara Hasan</div></div><div class="f2"><div class="lbl">Points</div><div class="val">320</div></div><div class="f3"><div class="lbl">To your reward</div><div class="val">180</div></div><div class="ft"><div class="lbl">Your code</div><div class="val">4827</div></div><div class="mat"></div><div class="qr"><div id="q2"></div>4827</div></div></div>
+</div>
+<p class="note">Approximate layout of the poster style: Apple has not published a pixel-exact template, so the field positions here are an estimate. Check the real result in Apple's Pass Designer (Mac) or on an iPhone with iOS 27 before it goes live.</p>
+<script>
+function qr(id){var q=qrcode(0,'M');q.addData('LOYALTY:brand:4827');q.make();var n=q.getModuleCount(),p='';for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))p+='M'+c+' '+r+'h1v1h-1z';document.getElementById(id).innerHTML='<svg viewBox="0 0 '+n+' '+n+'" shape-rendering="crispEdges"><path d="'+p+'" fill="#000"/></svg>'}
+qr('q1');qr('q2');
+</script></body></html>

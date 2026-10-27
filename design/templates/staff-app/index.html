@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#141210">
+<title>Your Brand Staff (design prototype)</title>
+<style>
+/* Clickable design prototype of the staff screens. Fake data, no back end. Follows design/DESIGN-GUIDE.md and docs/API.md (draft).
+   When Monaim's endpoints exist, replace the `api` object at the bottom with fetch() calls of the same shape. */
+:root{--bg:#141210;--surface:#1F1C18;--surface2:#2A2621;--line:#3D372F;--text:#F3E9D2;--muted:#D9C9A8;--dim:#9A8C74;--gold:#CDA55B;--gold2:#E3C07E;--golddim:#8A6F3A;--ok:#8DBF8E;--bad:#E58B79;--serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:radial-gradient(520px 380px at 90% -6%,rgba(205,165,91,.15),transparent 62%),radial-gradient(520px 420px at -12% 106%,rgba(90,70,40,.35),transparent 62%),var(--bg);color:var(--text);font:16px/1.5 var(--sans)}
+.app{max-width:460px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 18px 40px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.brand{font:600 24px var(--serif);letter-spacing:6px;color:var(--gold)}.brand small{font:700 11px var(--sans);letter-spacing:.3em;color:var(--muted);margin-left:8px}
+.pill{border:1px solid var(--golddim);color:var(--gold);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:6px 12px;background:none}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+h1{font:600 28px/1.15 var(--serif);margin:6px 0 4px}
+.sub{color:var(--muted);font-size:15px;margin-bottom:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;margin-bottom:14px}
+.lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.in{width:100%;height:52px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:18px;padding:0 14px}
+.in:focus{outline:none;border-color:var(--gold)}
+.field{margin-bottom:14px}.two{display:grid;grid-template-columns:96px 1fr;gap:12px}
+.btn{width:100%;min-height:54px;border-radius:14px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font:600 16px var(--sans);letter-spacing:.03em;cursor:pointer;margin-top:10px}
+.btn.primary{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1A1410;border-color:transparent;box-shadow:0 10px 28px rgba(205,165,91,.22)}
+.btn.ghost{background:none}.btn.danger{background:none;border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{color:var(--dim);font-size:13.5px;margin-top:10px}
+.msg{border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:14.5px;margin-top:12px}
+.msg.ok{border-color:var(--ok);color:var(--ok)}.msg.warn{border-color:var(--gold);color:var(--gold2)}.msg.err{border-color:var(--bad);color:var(--bad)}
+.who{font:600 30px var(--serif)}.meta{color:var(--dim);font-size:14px}
+.pts{display:flex;align-items:baseline;gap:10px;margin:10px 0 8px}.pts b{font:600 64px/1 var(--serif)}.pts span{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.bar{height:12px;border-radius:99px;background:#332C24;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--golddim),var(--gold2));border-radius:99px}
+.ready{border:1px solid var(--gold);background:rgba(205,165,91,.10);color:var(--gold2);border-radius:12px;padding:10px 14px;margin-top:12px;font-size:14.5px}
+.feed div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.feed div:first-child{border-top:0}
+.feed span:last-child{color:var(--dim);white-space:nowrap}
+.scan{position:relative;border-radius:18px;overflow:hidden;background:#000;aspect-ratio:1/1;border:1px solid var(--golddim);display:grid;place-items:center;color:var(--dim);margin-bottom:10px}
+.scan:before,.scan:after{content:"";position:absolute;width:46px;height:46px;border:3px solid var(--gold)}
+.scan:before{top:18px;left:18px;border-right:0;border-bottom:0;border-radius:10px 0 0 0}.scan:after{bottom:18px;right:18px;border-left:0;border-top:0;border-radius:0 0 10px 0}
+.demo{border:1px dashed var(--golddim);border-radius:14px;padding:12px 14px;color:var(--muted);font-size:13.5px;margin-top:14px}.demo b{color:var(--gold2);font:600 20px var(--serif);letter-spacing:.2em}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:18px}.tabs button{min-height:46px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);font:600 12px var(--sans);letter-spacing:.04em;padding:0 2px}.tabs button[aria-current=true]{border-color:var(--gold);color:var(--gold2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 6px}
+.chip{min-width:52px;min-height:46px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);font:600 16px var(--sans);cursor:pointer}
+.chip[aria-pressed=true]{border-color:transparent;color:#1A1410;background:linear-gradient(135deg,var(--gold2),var(--gold))}
+.tag{display:inline-block;border:1px solid var(--gold);color:var(--gold2);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;white-space:nowrap}
+.tag.dim{border-color:var(--line);color:var(--dim)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin-bottom:10px;color:var(--text);font:inherit;cursor:pointer}
+.row.ready{border-color:var(--gold)}
+.row b{display:block;font:600 21px var(--serif)}.row small{display:block;color:var(--dim);font-size:13.5px;margin-top:2px}
+.pick{display:grid;gap:10px;margin:6px 0 4px}
+.pick button{display:flex;gap:12px;align-items:center;text-align:left;min-height:56px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:600 16px var(--sans);padding:0 14px;cursor:pointer}
+.pick button i{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--golddim);flex:none}
+.pick button[aria-pressed=true]{border-color:var(--gold);background:rgba(205,165,91,.10)}
+.pick button[aria-pressed=true] i{border-color:var(--gold);background:radial-gradient(circle,var(--gold) 0 45%,transparent 50%)}
+.script{border-left:2px solid var(--gold);padding:4px 0 4px 14px;color:var(--text);font:italic 400 18px/1.5 var(--serif);margin:10px 0 16px}
+@media (prefers-reduced-motion:no-preference){html:not(.still) .panel{animation:rise .4s ease both}@keyframes rise{from{opacity:0;transform:translateY(10px)}}}
+</style></head><body>
+<div class="app" id="app"></div>
+<script>
+if(/[?&]still\b/.test(location.search))document.documentElement.classList.add('still'); /* used only for screenshots */
+/* ---------- fake back end (shape = docs/API.md draft) ---------- */
+var RULES={perBhd:2,goal:500};
+var db={guests:{'4827':{id:'c1',first:'Sara',name:'Sara Hasan',points:320,visits:8,fails:0},'6315':{id:'c2',first:'Omar',name:'Omar Khaled',points:40,visits:1,fails:0},'7741':{id:'c3',first:'Noor',name:'Noor Ali',points:500,visits:12,fails:0},'8820':{id:'c4',first:'Layla',name:'Layla Hamad',points:640,visits:15,fails:0}},seated:[],rewards:['A dessert of your choice','A complimentary starter','A pot of tea with petit fours'],ledger:[],staff:null};
+function liveCode(card){return String(((parseInt(card,10)*37+Math.floor(Date.now()/120000)*913)%9000)+1000)}   /* demo only: the real code is made on the server */
+var api={
+  login:function(email,pw){return pw==='demo'?{name:'Ahmed',role:'staff',venue:'Your Brand'}:null},
+  card:function(ref){var c=db.guests[ref];return c?{cardId:c.id,ref:ref}:null},
+  verify:function(ref,letter,code){var g=db.guests[ref];if(!g)return {error:'No card found.'};if(g.fails>=5)return {locked:true};
+    if(g.first[0].toLowerCase()===String(letter).toLowerCase()&&code===liveCode(ref)){g.fails=0;return {ok:true,guest:g}}g.fails++;return g.fails>=5?{locked:true}:{error:'That letter or code does not match. '+(5-g.fails)+' tries left.'}},
+  earn:function(g,bhd){var pts=Math.floor(bhd*RULES.perBhd);g.points+=pts;g.visits++;var e={id:Date.now(),kind:'earn',who:g.name,pts:pts,bhd:bhd,t:Date.now(),g:g};db.ledger.unshift(e);return e},
+  redeem:function(g,choice){if(g.points<RULES.goal)return null;g.points-=RULES.goal;var e={id:Date.now(),kind:'redeem',who:g.name,pts:-RULES.goal,note:choice||'',t:Date.now(),g:g};db.ledger.unshift(e);return e},
+  undo:function(e){if(Date.now()-e.t>600000)return false;e.g.points-=e.pts;if(e.kind==='earn')e.g.visits--;db.ledger=db.ledger.filter(function(x){return x!==e});return true}
+};
+/* ---------- screens ---------- */
+var S={screen:'signin',ref:null,guest:null,last:null,msg:null,mtype:'ok',table:null,choice:null};
+var $=function(h){var d=document.createElement('div');d.innerHTML=h;return d};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function head(){return '<header><div class="brand">Your Brand<small>STAFF</small></div>'+(db.staff?'<button class="pill" data-a="out">Lock</button>':'<span class="pill">Powered by LOYALTY</span>')+'</header>'}
+function tabs(){return '<nav class="tabs"><button data-a="go" data-s="desk" aria-current="'+(['desk','arrival'].indexOf(S.screen)>-1)+'">Desk</button><button data-a="go" data-s="tonight" aria-current="'+(['tonight','offer','redeemed'].indexOf(S.screen)>-1)+'">Tonight</button><button data-a="go" data-s="find" aria-current="'+(['find','verify','guest'].indexOf(S.screen)>-1)+'">Guest</button><button data-a="go" data-s="recent" aria-current="'+(S.screen==='recent')+'">Recent</button><button data-a="go" data-s="help" aria-current="'+(S.screen==='help')+'">Help</button></nav>'}
+function msg(){return S.msg?'<div class="msg '+S.mtype+'" role="status">'+esc(S.msg)+'</div>':''}
+var V={
+desk:function(){return head()+'<div class="eyebrow">At the door</div><h1>Welcome desk</h1><p class="sub">Scan the card as the guest arrives, before they are seated.</p><div class="panel"><div class="scan" aria-label="Camera view">Camera opens here</div><button class="btn primary" data-a="scan">Scan the QR</button><form id="f" style="margin-top:16px"><div class="field"><label class="lbl" for="c">Card code (4 digits)</label><input class="in" id="c" inputmode="numeric" maxlength="4" placeholder="e.g. 8820"></div><button class="btn" type="submit">Find card</button></form>'+msg()+'</div>'+tabs()},
+arrival:function(){var g=db.guests[S.ref],rdy=g.points>=RULES.goal,ch='';for(var i=1;i<=12;i++)ch+='<button type="button" class="chip" data-a="table" data-n="'+i+'" aria-pressed="'+(S.table===i)+'">'+i+'</button>';
+ return head()+'<div class="eyebrow">Arrived</div><h1>'+esc(g.first)+'</h1><p class="sub">'+g.visits+' visits &middot; '+g.points+' points</p>'+(rdy?'<div class="ready" style="margin:0 0 14px"><b>Reward ready.</b> Offer it at the table, with our compliments.</div>':'<p class="note" style="margin:0 0 14px">'+(RULES.goal-g.points)+' points to the reward.</p>')+'<div class="panel"><span class="lbl">Table</span><div class="chips">'+ch+'</div><button class="btn primary" data-a="seat"'+(S.table?'':' disabled')+'>'+(S.table?'Seat at table '+S.table:'Choose a table')+'</button><button class="btn ghost" data-a="go" data-s="desk">Back</button>'+msg()+'</div>'+tabs()},
+tonight:function(){var open=db.seated.filter(function(s){return s.state==='waiting'}),ready=open.filter(function(s){return db.guests[s.ref].points>=RULES.goal}),rest=open.filter(function(s){return db.guests[s.ref].points<RULES.goal});
+ var row=function(s,isReady){var g=db.guests[s.ref];return '<button class="row'+(isReady?' ready':'')+'" data-a="open" data-ref="'+s.ref+'"><span><b>Table '+s.table+' &middot; '+esc(g.first)+'</b><small>'+(isReady?'Reward ready':g.points+' points')+' &middot; seated '+new Date(s.t).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'</small></span>'+(isReady?'<span class="tag">Offer</span>':'<span class="tag dim">'+g.points+' pts</span>')+'</button>'};
+ return head()+'<div class="eyebrow">Tonight</div><h1>Seated guests</h1><p class="sub">Rewards waiting to be offered come first.</p>'+msg()+(ready.length?ready.map(function(s){return row(s,true)}).join(''):'')+(rest.length?'<span class="lbl" style="margin:16px 0 8px">Other guests</span>'+rest.map(function(s){return row(s,false)}).join(''):'')+(open.length?'':'<div class="panel"><p class="note" style="margin:0">No one is seated yet. Guests appear here after the desk scan.</p></div>')+tabs()},
+offer:function(){var g=db.guests[S.ref],s=db.seated.filter(function(x){return x.ref===S.ref&&x.state==='waiting'})[0]||{table:'?'};var pk=db.rewards.map(function(r,i){return '<button type="button" data-a="choice" data-i="'+i+'" aria-pressed="'+(S.choice===r)+'"><i></i><span>'+esc(r)+'</span></button>'}).join('');
+ return head()+'<div class="eyebrow">Table '+s.table+' &middot; '+esc(g.first)+'</div><h1>Offer the reward</h1><div class="script">Good evening, '+esc(g.first)+'. We are delighted to tell you that you have earned a reward. Tonight, with our compliments, you may enjoy one of these.</div><div class="panel"><span class="lbl">The guest chooses</span><div class="pick">'+pk+'</div><button class="btn primary" data-a="accept"'+(S.choice?'':' disabled')+'>'+(S.choice?'Guest said yes: take '+RULES.goal+' points':'Choose what the guest picks')+'</button><button class="btn ghost" data-a="later">Not tonight, keep collecting</button>'+msg()+'<p class="note">Points come off the moment you tap. Undo works for 10 minutes. The guest can always say no. Sample rewards: Your Brand sets the real list.</p></div>'+tabs()},
+redeemed:function(){var g=db.guests[S.ref],s=db.seated.filter(function(x){return x.ref===S.ref})[0]||{table:'?'};
+ return head()+'<div class="eyebrow">Done</div><h1>Reward given</h1><div class="panel"><div class="who">'+esc(g.first)+'</div><div class="meta">Table '+s.table+'</div><div class="ready" style="margin-top:14px">'+esc(S.choice||'')+'</div><div class="pts"><b>'+g.points+'</b><span>points left</span></div><p class="note" style="margin:0">'+RULES.goal+' points taken. Let the kitchen know.</p>'+msg()+(S.last?'<button class="btn danger" data-a="undo2">Undo (10 minutes)</button>':'')+'<button class="btn primary" data-a="go" data-s="tonight">Back to Tonight</button></div>'+tabs()},
+signin:function(){return head()+'<div class="eyebrow">Staff sign-in</div><h1>Welcome back</h1><p class="sub">Use your own login. No shared PINs.</p><form class="panel" id="f"><div class="field"><label class="lbl" for="e">Email</label><input class="in" id="e" type="email" autocomplete="username" value="ahmed@brand.example"></div><div class="field"><label class="lbl" for="p">Password</label><input class="in" id="p" type="password" autocomplete="current-password" placeholder="demo"></div><button class="btn primary" type="submit">Sign in</button>'+msg()+'<p class="note">Prototype: the password is "demo".</p></form>'},
+find:function(){return head()+'<div class="eyebrow">Step 1 of 2</div><h1>Find the guest</h1><p class="sub">Scan the QR on their card, or type the card code printed under it.</p><div class="panel"><div class="scan" aria-label="Camera view">Camera opens here</div><button class="btn primary" data-a="scan">Scan the QR</button><form id="f" style="margin-top:16px"><div class="field"><label class="lbl" for="c">Card code (4 digits)</label><input class="in" id="c" inputmode="numeric" maxlength="4" placeholder="e.g. 4827"></div><button class="btn" type="submit">Find card</button></form>'+msg()+'</div>'+tabs()},
+verify:function(){var g=db.guests[S.ref];return head()+'<div class="eyebrow">Step 2 of 2</div><h1>Check it is them</h1><p class="sub">Ask the guest to open their wallet card. Type the first letter of their name and the code they see.</p><form class="panel" id="f"><div class="two"><div class="field"><label class="lbl" for="l">Letter</label><input class="in" id="l" maxlength="1" autocapitalize="characters" style="text-align:center"></div><div class="field"><label class="lbl" for="k">Code on their phone</label><input class="in" id="k" inputmode="numeric" maxlength="4" placeholder="4 digits"></div></div><button class="btn primary" type="submit">Check</button><button class="btn ghost" type="button" data-a="go" data-s="find">Back</button>'+msg()+'<p class="note">The code changes every couple of minutes and works once. Five wrong tries lock the card.</p></form><div class="demo">Prototype helper: the guest phone would show <b>'+liveCode(S.ref)+'</b> for card '+esc(S.ref)+' (first letter '+esc(g.first[0])+').</div>'+tabs()},
+locked:function(){return head()+'<div class="eyebrow">Card locked</div><h1>Too many tries</h1><p class="sub">This card is locked for safety. Ask a manager to unlock it.</p><div class="panel"><div class="msg err">Locked after 5 wrong tries. No points were added.</div><button class="btn primary" data-a="go" data-s="find">Back to start</button></div>'+tabs()},
+guest:function(){var g=S.guest,pct=Math.max(4,Math.min(100,g.points/RULES.goal*100)),rdy=g.points>=RULES.goal,bhd=parseFloat((document.getElementById('b')||{}).value)||0;
+ return head()+'<div class="panel"><div class="who">'+esc(g.name)+'</div><div class="meta">'+g.visits+' visits</div><div class="pts"><b>'+g.points+'</b><span>Points</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><p class="note">'+(rdy?'':(RULES.goal-g.points)+' points to the reward.')+'</p>'+(rdy?'<div class="ready">Reward ready. Give it and take '+RULES.goal+' points.</div>':'')+'</div>'+
+ '<form class="panel" id="f"><div class="field"><label class="lbl" for="b">Bill total (BHD)</label><input class="in" id="b" inputmode="decimal" placeholder="e.g. 12.500" value="'+(S.bill||'')+'"></div><p class="note" id="pv" style="margin:0 0 6px">'+(S.bill?'Adds '+Math.floor((parseFloat(S.bill)||0)*RULES.perBhd)+' points':'Enter the bill to see the points.')+'</p><button class="btn primary" type="submit">Add points</button>'+(rdy?'<button class="btn" type="button" data-a="redeem">Give reward and take '+RULES.goal+' points</button>':'')+(S.last?'<button class="btn danger" type="button" data-a="undo">Undo my last entry (10 minutes)</button>':'')+msg()+'</form><button class="btn ghost" data-a="done">Done, next guest</button>'+tabs()},
+recent:function(){var rows=db.ledger.slice(0,12).map(function(e){return '<div><span>'+(e.kind==='earn'?'+':'')+e.pts+' points for '+esc(e.who)+(e.bhd?' (BHD '+e.bhd.toFixed(3)+')':'')+' by '+esc(db.staff.name)+'</span><span>'+new Date(e.t).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'</span></div>'}).join('')||'<p class="note">Nothing yet today.</p>';return head()+'<div class="eyebrow">Today</div><h1>Recent actions</h1><div class="panel feed" style="margin-top:14px">'+rows+'</div>'+tabs()},
+help:function(){return head()+'<div class="eyebrow">Help</div><h1>How it works</h1><div class="panel"><ol style="padding-left:18px;display:grid;gap:10px;color:var(--muted)"><li>Scan the QR on the guest\'s card, or type the card code.</li><li>Ask for the first letter of their name and the code on their phone.</li><li>Type the bill. Tap <b>Add points</b>.</li><li>If a reward is ready, tap <b>Give reward</b>.</li><li>Made a mistake? <b>Undo</b> works for 10 minutes.</li></ol><p class="note">Need a manager? Locked cards and corrections go through them.</p></div>'+tabs()}
+};
+function render(){var a=document.getElementById('app');a.innerHTML='';a.appendChild($(V[S.screen]()))}
+function set(o){for(var k in o)S[k]=o[k];render()}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a;
+ if(a==='go')set({screen:b.dataset.s,msg:null});
+ else if(a==='out'){db.staff=null;set({screen:'signin',msg:null,guest:null,last:null})}
+ else if(a==='done')set({screen:'find',guest:null,last:null,bill:'',msg:null});
+ else if(a==='scan'){set({msg:'Camera scanning needs the real app on a phone. Type the card code for now.',mtype:'warn'})}
+ else if(a==='table')set({table:parseInt(b.dataset.n,10),msg:null});
+ else if(a==='seat'){db.seated=db.seated.filter(function(x){return x.ref!==S.ref});db.seated.push({ref:S.ref,table:S.table,t:Date.now(),state:'waiting'});var rd=db.guests[S.ref].points>=RULES.goal;set({screen:'tonight',msg:'Seated at table '+S.table+'.'+(rd?' Their reward is waiting on this list.':''),mtype:'ok',table:null})}
+ else if(a==='open')set({screen:'offer',ref:b.dataset.ref,choice:null,msg:null});
+ else if(a==='choice')set({choice:db.rewards[parseInt(b.dataset.i,10)],msg:null});
+ else if(a==='accept'){var r2=api.redeem(db.guests[S.ref],S.choice);if(r2){db.seated.forEach(function(x){if(x.ref===S.ref)x.state='redeemed'});set({screen:'redeemed',last:r2,msg:null})}else set({msg:'Not enough points yet.',mtype:'err'})}
+ else if(a==='later'){db.seated.forEach(function(x){if(x.ref===S.ref)x.state='declined'});set({screen:'tonight',choice:null,msg:'Noted. They keep their points.',mtype:'ok'})}
+ else if(a==='undo2'){var ok2=S.last&&api.undo(S.last);if(ok2){db.seated.forEach(function(x){if(x.ref===S.ref)x.state='waiting'})}set({screen:ok2?'tonight':'redeemed',last:ok2?null:S.last,msg:ok2?'Undone. The reward is back on the list.':'Too late to undo this one. Ask a manager.',mtype:ok2?'ok':'err'})}
+ else if(a==='redeem'){var r=api.redeem(S.guest);set(r?{last:r,msg:'Reward given. '+S.guest.name+' now has '+S.guest.points+' points.',mtype:'ok',bill:''}:{msg:'Not enough points yet.',mtype:'err'})}
+ else if(a==='undo'){var ok=S.last&&api.undo(S.last);set({last:null,msg:ok?'Undone. '+S.guest.name+' has '+S.guest.points+' points.':'Too late to undo this one. Ask a manager.',mtype:ok?'ok':'err'})}});
+document.addEventListener('input',function(e){if(e.target.id==='b'){S.bill=e.target.value;var p=document.getElementById('pv');if(p){var v=parseFloat(S.bill)||0;p.textContent=v>0?'Adds '+Math.floor(v*RULES.perBhd)+' points':'Enter the bill to see the points.'}}});
+document.addEventListener('submit',function(e){e.preventDefault();var id=e.target.id;
+ if(S.screen==='signin'){var u=api.login(document.getElementById('e').value,document.getElementById('p').value);if(u){db.staff=u;set({screen:'desk',msg:null})}else set({msg:'Email or password is wrong.',mtype:'err'})}
+ else if(S.screen==='desk'){var c2=api.card(document.getElementById('c').value.trim());c2?set({screen:'arrival',ref:c2.ref,table:null,msg:null}):set({msg:'No guest with that code. Check the 4 digits on the card.',mtype:'err'})}
+ else if(S.screen==='find'){var c=api.card(document.getElementById('c').value.trim());c?set({screen:'verify',ref:c.ref,msg:null}):set({msg:'No guest with that code. Check the 4 digits on the card.',mtype:'err'})}
+ else if(S.screen==='verify'){var r=api.verify(S.ref,document.getElementById('l').value,document.getElementById('k').value.trim());
+  if(r.locked)set({screen:'locked',msg:null});else if(r.ok)set({screen:'guest',guest:r.guest,bill:'',last:null,msg:'Verified: '+r.guest.name+'.',mtype:'ok'});else set({msg:r.error,mtype:'err'})}
+ else if(S.screen==='guest'){var v=parseFloat(S.bill);if(!(v>0)){set({msg:'Type the bill total first.',mtype:'err'});return}var en=api.earn(S.guest,v);set({last:en,bill:'',msg:'Added '+en.pts+' points. '+S.guest.name+' now has '+S.guest.points+'.',mtype:'ok'})}});
+/* design review shortcuts: index.html#guest, #verify, #ready, #locked, #recent, #help */
+(function(){var h=location.hash.replace('#','');if(!h){render();return}db.staff={name:'Ahmed',role:'staff',venue:'Your Brand'};
+ if(h==='find'){S.screen='find'}
+ else if(h==='verify'){S.screen='verify';S.ref='4827'}
+ else if(h==='guest'){S.screen='guest';S.guest=db.guests['4827'];S.bill='12.500';S.last={id:1,kind:'earn',who:'Sara Hasan',pts:25,bhd:12.5,t:Date.now(),g:S.guest};S.msg='Added 25 points. Sara Hasan now has 320.'}
+ else if(h==='ready'){S.screen='guest';S.guest=db.guests['7741'];S.msg='Verified: Noor Ali.'}
+ else if(h==='locked'){S.screen='locked'}
+ else if(h==='recent'){S.screen='recent';db.ledger=[{kind:'earn',pts:25,who:'Sara Hasan',bhd:12.5,t:Date.now()-120000},{kind:'earn',pts:62,who:'Omar Khaled',bhd:31,t:Date.now()-900000},{kind:'redeem',pts:-500,who:'Noor Ali',t:Date.now()-3600000}]}
+ else if(h==='desk'){S.screen='desk'}
+ else if(h==='arrival'){S.screen='arrival';S.ref='8820';S.table=12}
+ else if(h==='tonight'||h==='offer'||h==='redeemed'){var T=Date.now();db.seated=[{ref:'8820',table:12,t:T-1200000,state:'waiting'},{ref:'7741',table:7,t:T-600000,state:'waiting'},{ref:'4827',table:9,t:T-1500000,state:'waiting'},{ref:'6315',table:4,t:T-300000,state:'waiting'}];
+  if(h==='tonight')S.screen='tonight';
+  else if(h==='offer'){S.screen='offer';S.ref='8820';S.choice='A complimentary starter'}
+  else{S.screen='redeemed';S.ref='8820';S.choice='A complimentary starter';S.last=api.redeem(db.guests['8820'],S.choice);db.seated[0].state='redeemed'}}
+ else if(h==='help'){S.screen='help'}
+ else if(h==='signin'){db.staff=null}
+ render()})();
+</script></body></html>

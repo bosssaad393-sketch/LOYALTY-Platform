@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Your Brand Wallet strip: the card artwork (375 x 144 pt, transparent around the card)</title>
+<style>
+/* Apple store card strip, 375 x 144 pt (rendered at 1x, 2x, 3x with a TRANSPARENT background by render-strip.mjs).
+   Only the card face lives here: marble, crest plate, gold Your Brand and MEMBER. Nothing about the guest.
+   The pass background (tinted black) shows around the card. Name, points and code are Wallet's own fields below the strip. */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:transparent}
+.s{position:relative;width:375px;height:144px}
+.card{position:absolute;left:16px;right:16px;top:4px;bottom:4px;border-radius:14px;overflow:hidden;background:#0d0b0a url(src/marble.png) no-repeat;background-size:900px auto;background-position:-420px -300px}
+.card::before{content:"";position:absolute;inset:0;background:
+ linear-gradient(90deg,rgba(10,9,7,.78) 0%,rgba(10,9,7,.30) 46%,rgba(10,9,7,.10) 100%),
+ linear-gradient(180deg,rgba(10,9,7,.30),rgba(10,9,7,0) 36%,rgba(10,9,7,0) 64%,rgba(10,9,7,.42))}
+.card::after{content:"";position:absolute;inset:0;border-radius:14px;box-shadow:inset 0 0 0 .6px rgba(205,165,91,.55)}
+.plate{position:absolute;left:18px;top:18px;width:54px;height:41px;border-radius:9px;background:linear-gradient(135deg,#F6E4B0,#CDA55B 45%,#8A6F3A);display:grid;place-items:center;box-shadow:0 1px 0 rgba(255,236,190,.35) inset}
+.plate img{width:27px;height:auto;filter:brightness(0) opacity(.78)}
+.k{position:absolute;right:20px;top:15px;font:600 36px/1 Georgia,"Times New Roman",serif;letter-spacing:.42em;padding-left:.42em;
+ background:linear-gradient(100deg,#8A6F3A 0%,#E3C07E 28%,#CDA55B 48%,#F6E4B0 62%,#B58D45 80%,#8A6F3A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.m{position:absolute;right:20px;top:57px;font:700 8px/1 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;letter-spacing:.5em;padding-left:.5em;color:#CDA55B}
+.line{position:absolute;left:18px;right:20px;bottom:17px;height:.6px;background:linear-gradient(90deg,rgba(205,165,91,.0),rgba(205,165,91,.55) 30%,rgba(205,165,91,.55) 70%,rgba(205,165,91,0))}
+</style></head><body><div class="s"><div class="card"><div class="plate"><img src="src/crest.png" alt=""></div><div class="k">Your Brand</div><div class="m">MEMBER</div><div class="line"></div></div></div></body></html>

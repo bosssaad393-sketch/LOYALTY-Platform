@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Your Brand royal strip with QR slot (375x123 pt)</title>
+<style>
+/* Strip for the Apple pass that carries the guest QR on the strip (preview=qr). 375 x 123 pt, rendered at 3x.
+   Wallet scales the strip to the card height and crops the sides (about 27 pt each side on a 393 pt iPhone, up to about 35 pt on a 375 pt one),
+   so everything that must stay visible sits inside the safe zone x = 40 .. 335 pt.
+   The cream QR tile is drawn per guest by web/src/lib/qrStrip.ts at x = 40 pt, 92 pt square, vertically centred.
+   Your Brand is centred in the free space to the right of the tile (x = 144 .. 335 pt, centre 239.5 pt). */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#141210}
+.s{position:relative;width:375px;height:123px;overflow:hidden;background:#0d0b0a url(src/marble.png) no-repeat;background-size:760px auto;background-position:-330px -250px}
+.s::before{content:"";position:absolute;inset:0;background:
+ radial-gradient(ellipse 130px 66px at 239.5px 60px,rgba(13,11,10,.80),rgba(13,11,10,0) 100%),
+ linear-gradient(90deg,rgba(13,11,10,.70) 0%,rgba(13,11,10,.35) 34%,rgba(13,11,10,.08) 70%),
+ linear-gradient(180deg,rgba(13,11,10,.35),rgba(13,11,10,0) 30%,rgba(13,11,10,0) 70%,rgba(13,11,10,.45))}
+.s::after{content:"";position:absolute;inset:0;border-top:.5px solid rgba(205,165,91,.85);border-bottom:.5px solid rgba(205,165,91,.85)}
+.lock{position:absolute;left:144px;width:191px;top:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2}
+.k{font:600 36px/1 Georgia,"Times New Roman",serif;letter-spacing:.42em;padding-left:.42em;
+ background:linear-gradient(100deg,#8A6F3A 0%,#E3C07E 28%,#CDA55B 48%,#F6E4B0 62%,#B58D45 80%,#8A6F3A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.r{width:72px;height:1px;margin-top:10px;background:linear-gradient(90deg,transparent,#CDA55B,transparent)}
+</style></head><body><div class="s"><div class="lock"><div class="k">Your Brand</div><div class="r"></div></div></div></body></html>
