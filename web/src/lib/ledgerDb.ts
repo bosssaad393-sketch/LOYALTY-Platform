@@ -24,6 +24,16 @@ export const redeemReward = (cardId: string, staffId: string) =>
 export const undoEntry = (ledgerId: number, staffId: string) =>
   call<SpendResult>("ledger_undo", { p_entry: ledgerId, p_staff: staffId });
 
+export type PosSaleResult = { ledger_id: number; points_added: number; new_balance: number; duplicate: boolean };
+export type PosRefundResult = { ledger_id: number; points_removed: number; new_balance: number; duplicate: boolean };
+
+/** A sale from the POS: points for that receipt, once (a repeated receipt answers `duplicate`). The card is found by its code inside the venue. */
+export const posSale = (venueId: string, code: string, billBhd: number, receipt: string) =>
+  call<PosSaleResult>("ledger_pos_sale", { p_venue: venueId, p_code: code, p_bill: billBhd, p_receipt: receipt });
+
+/** A refund from the POS: takes back that receipt's points, once. */
+export const posRefund = (venueId: string, receipt: string) => call<PosRefundResult>("ledger_pos_refund", { p_venue: venueId, p_receipt: receipt });
+
 /** Owner adds (delta > 0) or removes (delta < 0) points on one card, with a reason. The database checks the owner, the venue, the limits and the balance. */
 export const adjustPoints = (cardId: string, staffId: string, delta: number, reason: string) =>
   call<SpendResult>("ledger_adjust", { p_card: cardId, p_staff: staffId, p_delta: delta, p_reason: reason });

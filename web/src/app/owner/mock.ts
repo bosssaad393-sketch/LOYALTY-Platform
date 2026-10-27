@@ -257,5 +257,21 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
     return ok({ ok: true });
   }
 
+  if (p === "/api/owner/assistant") {
+    const g = globalThis as unknown as { __asst?: { pending: string | null; requests: { id: string; message: string; status: string; result: string | null; createdAt: string }[] } };
+    const s = (g.__asst ??= { pending: null, requests: [] });
+    if (m === "GET") return ok({ requests: s.requests });
+    const t = String(b.message ?? "").trim().toLowerCase();
+    if (/^(yes|y|ok|confirm)\b/.test(t)) {
+      const done = s.pending;
+      s.pending = null;
+      return ok({ reply: done ? "Done. (Mock data: nothing was really changed.)" : "There is nothing waiting for your confirmation." });
+    }
+    if (/^(no|cancel)\b/.test(t)) { s.pending = null; return ok({ reply: "Cancelled. Nothing was changed." }); }
+    const rate = /points per bhd to (\d+)/.exec(t);
+    if (rate) { s.pending = "x"; return ok({ reply: `Change points per BHD from 2 to ${rate[1]}. It applies from the next visit; guests keep the points they have. Reply yes to confirm, or no to cancel.`, pending: { id: "x", summary: "rate" } }); }
+    s.requests.unshift({ id: `r${s.requests.length + 1}`, message: String(b.message ?? "").slice(0, 200), status: "open", result: null, createdAt: new Date().toISOString() });
+    return ok({ reply: "Thanks, I've passed your request to our development team. They will take care of it and get back to you here.", forwarded: true });
+  }
   return bad("Mock data: this endpoint is not mocked.", 404);
 }

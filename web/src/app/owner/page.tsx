@@ -13,7 +13,7 @@ export function generateMetadata(): Metadata {
 // Reads the session cookie on every request.
 export const instant = false;
 
-const TABS: Tab[] = ["overview", "guests", "rules", "offers", "team", "privacy"];
+const TABS: Tab[] = ["overview", "guests", "rules", "offers", "assistant", "team", "privacy"];
 
 export default async function OwnerPage(props: PageProps<"/owner">) {
   const q = await props.searchParams;

@@ -553,3 +553,11 @@ textarea.ow-terms { min-height: 240px; font-size: 15px; line-height: 1.6; resize
 .bc-bar { left: 0; right: 0; bottom: 0; height: 0.7cqw; background: rgba(255, 255, 255, 0.05); }
 .bc-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold2)); }
 .bc-note { margin-top: 12px; text-align: center; font-size: 14px; color: var(--muted); }
+
+/* owner assistant (chat) */
+.as-log { display: flex; flex-direction: column; gap: 10px; max-height: min(52vh, 520px); min-height: 220px; overflow: auto; padding-right: 4px; }
+.as-msg { max-width: min(48ch, 92%); padding: 12px 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.as-msg.bot { align-self: flex-start; background: var(--surface2); }
+.as-msg.you { align-self: flex-end; background: color-mix(in srgb, var(--gold) 16%, var(--bg)); }
+.as-wait { opacity: 0.6; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

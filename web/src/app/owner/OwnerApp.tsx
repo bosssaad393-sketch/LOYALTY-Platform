@@ -5,6 +5,7 @@ import SignIn, { type SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
 import { api } from "./api";
 import Guests from "./Guests";
+import Assistant from "./Assistant";
 import Offers from "./Offers";
 import Overview from "./Overview";
 import Privacy from "./Privacy";
@@ -17,6 +18,7 @@ const TABS: { id: Tab; label: string; ownerOnly?: boolean }[] = [
   { id: "guests", label: "Guests" },
   { id: "rules", label: "Rules" },
   { id: "offers", label: "Offers" },
+  { id: "assistant", label: "Assistant", ownerOnly: true },
   { id: "team", label: "Team", ownerOnly: true },
   { id: "privacy", label: "Data and privacy", ownerOnly: true },
 ];
@@ -129,6 +131,7 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
               {current === "guests" && <Guests call={call} isOwner={isOwner} mock={mock} />}
               {current === "rules" && <Rules call={call} isOwner={isOwner} />}
               {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} />}
+              {current === "assistant" && isOwner && <Assistant call={call} />}
               {current === "team" && isOwner && <Team call={call} />}
               {current === "privacy" && isOwner && <Privacy call={call} venue={venue} mock={mock} />}
             </>
