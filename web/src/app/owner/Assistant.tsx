@@ -15,7 +15,7 @@ const IDEAS = [
   "Change the reward to a free dessert at 300 points",
   "Send a notification saying Double points this Friday",
   "Add 50 points to card 1234",
-  "Change the card design and update it for all customers",
+  "Change the card design following the season we're in and update it for all customers",
 ];
 
 const statusLabel = (s: string) => (s === "done" ? "Done" : s === "in_progress" ? "Being worked on" : "With our team");
