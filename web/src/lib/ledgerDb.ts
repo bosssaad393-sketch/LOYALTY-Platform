@@ -23,3 +23,7 @@ export const redeemReward = (cardId: string, staffId: string) =>
 
 export const undoEntry = (ledgerId: number, staffId: string) =>
   call<SpendResult>("ledger_undo", { p_entry: ledgerId, p_staff: staffId });
+
+/** Owner adds (delta > 0) or removes (delta < 0) points on one card, with a reason. The database checks the owner, the venue, the limits and the balance. */
+export const adjustPoints = (cardId: string, staffId: string, delta: number, reason: string) =>
+  call<SpendResult>("ledger_adjust", { p_card: cardId, p_staff: staffId, p_delta: delta, p_reason: reason });
