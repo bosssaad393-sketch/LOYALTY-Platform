@@ -1,0 +1,70 @@
+/* developer area: side menu on desktop, a strip on phones; status pills; set-up checklist; tiles */
+.dv-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 0; max-width: 1040px; margin: 0 auto; min-height: 100dvh; }
+.dv-side { display: flex; flex-direction: column; gap: 18px; padding: 28px 18px; border-right: 1px solid var(--ow-rule); position: sticky; top: 0; align-self: start; height: 100dvh; }
+.dv-brand span { display: block; font: 600 20px/1.1 var(--serif); letter-spacing: 0.18em; color: var(--gold); }
+.dv-brand small { display: block; margin-top: 6px; font: 700 10px/1 var(--sans); letter-spacing: 0.3em; text-transform: uppercase; color: var(--dim); }
+.dv-nav { display: flex; flex-direction: column; gap: 4px; }
+.dv-navbtn { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-left: 2px solid transparent; background: transparent; color: var(--muted); font: 600 14px/1 var(--sans); text-align: left; cursor: pointer; }
+.dv-navbtn:hover { color: var(--text); }
+.dv-navbtn[aria-current="page"] { color: var(--gold2); border-left-color: var(--gold); background: rgb(var(--gold-rgb) / 0.08); }
+.dv-badge { font-style: normal; min-width: 20px; padding: 2px 6px; border-radius: 10px; background: var(--gold); color: var(--on-gold); font-size: 11px; text-align: center; }
+.dv-lock { margin-top: auto; align-self: flex-start; }
+.dv-main { padding: 28px 22px 80px; display: grid; gap: 18px; align-content: start; min-width: 0; }
+.dv-head h1 { margin: 4px 0 6px; font: 600 34px/1.1 var(--serif); }
+.dv-eyebrow { margin: 0; font: 700 11px/1 var(--sans); letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+.dv-lede { margin: 0; color: var(--muted); max-width: 60ch; }
+
+.dv-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.dv-tile { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); text-align: left; color: var(--text); font: inherit; }
+.dv-tile span { font: 700 10px/1 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.dv-tile b { font: 600 26px/1.1 var(--serif); }
+.dv-tile b small { font: 400 12px/1.3 var(--sans); color: var(--dim); }
+.dv-tilebtn { cursor: pointer; }
+.dv-tilebtn:hover { border-color: var(--gold-dim); }
+
+.dv-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); font: 700 11px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; }
+.dv-ok { color: var(--ok); border-color: var(--ok); }
+.dv-warn { color: var(--gold2); }
+.dv-pill.dv-warn { border-color: var(--gold); }
+.dv-bad { color: var(--bad); border-color: var(--bad); }
+.dv-off { color: var(--dim); }
+
+.dv-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.dv-steps li { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.dv-steps li.next { border-color: var(--gold); background: rgb(var(--gold-rgb) / 0.07); }
+.dv-steps li.done { color: var(--dim); }
+.dv-steps li > span:nth-child(2) { flex: 1; }
+.dv-tick { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--gold-dim); font: 700 12px/1 var(--sans); color: var(--gold); }
+.dv-steps .done .dv-tick { background: var(--ok); border-color: var(--ok); color: var(--on-gold); }
+
+.dv-rowhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.dv-field { display: grid; gap: 6px; margin-top: 14px; }
+.dv-lbl { font: 700 10px/1 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.dv-copyrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.dv-copyrow code { overflow-wrap: anywhere; font-size: 13px; color: var(--text); }
+.dv-code { margin: 0; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--muted); font-size: 12.5px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+.dv-warn { margin: 4px 0 0; font-size: 13px; }
+.dv-more { margin-top: 14px; color: var(--muted); }
+.dv-more summary { cursor: pointer; min-height: 32px; }
+
+.dv-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.dv-seg button { min-height: 34px; padding: 0 14px; border: 0; background: transparent; color: var(--muted); font: 700 12px/1 var(--sans); letter-spacing: 0.06em; cursor: pointer; }
+.dv-seg button[aria-pressed="true"] { background: var(--gold); color: var(--on-gold); }
+.dv-seg i { font-style: normal; opacity: 0.8; margin-left: 4px; }
+.dv-segwide { align-self: start; justify-self: start; }
+.dv-req { gap: 12px; }
+.dv-msg { margin: 0; font-size: 16px; line-height: 1.45; overflow-wrap: anywhere; }
+.dv-req small { color: var(--dim); }
+.dv .ow-panel form .ow-field, .dv .ow-chips { margin-top: 8px; }
+
+@media (max-width: 760px) {
+  .dv-shell { grid-template-columns: 1fr; }
+  .dv-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: max(14px, env(safe-area-inset-top)) 16px 0; border-right: 0; border-bottom: 1px solid var(--ow-rule); gap: 8px 14px; }
+  .dv-brand { flex: 1; }
+  .dv-lock { margin: 0; order: 2; }
+  .dv-nav { order: 3; flex-direction: row; width: 100%; overflow-x: auto; gap: 2px; }
+  .dv-navbtn { width: auto; white-space: nowrap; border-left: 0; border-bottom: 2px solid transparent; gap: 8px; }
+  .dv-navbtn[aria-current="page"] { border-bottom-color: var(--gold); background: transparent; }
+  .dv-main { padding: 20px 16px 80px; }
+  .dv-head h1 { font-size: 28px; }
+}

@@ -30,3 +30,11 @@ A language model reads free wording and proposes the action (`web/src/lib/assist
 - Only the owner's own text is sent to the model (no guest data).
 - Tested live against local Ollama llama3.1:8b (0.2-1 s per message). A client's hosted site cannot reach a model on the PC: for production point `ASSISTANT_LLM_URL` at a hosted endpoint and check where the owner's text goes.
 - `/api/owner/assistant-preview` (development only, 404 in production) feeds the demo screen `/owner?mock=1`.
+
+## PIN sign-in, staff rewards, dashboards (27 Oct 2026)
+
+- **PIN sign-in** for staff, managers and owners (`/api/staff/pin-login`, migration `0008_pin_login.sql`). No email or password. Staff 4+ digits, managers and owners 6+ digits, easy PINs refused. Only a keyed hash (HMAC, server secret) is stored, so a leaked database does not give the PINs. 5 wrong tries lock a caller for 10 minutes and 30 wrong tries overall pause everyone (counted in the database, works across server instances). Developers keep email + password. PINs are unique across one deployment, so choosing a taken PIN says "already in use".
+- **Owner sets PINs:** Team tab, "New PIN" (random, shown once). The developer gives the first PIN (the owner's) in `/dev` > Access.
+- **Staff thank-you rewards** (migration `0007_staff_perks.sql`): owner gives a person or the whole team a reward in their own words (Team tab). Staff see it on End, at the end of the shift, and mark it used once. Owner can take back an unused one.
+- **Developer area** `/dev`: Overview (health tiles, set-up checklist), Till (POS), Requests, Access.
+- **Not verified:** migrations 0007 and 0008 have not run on a real Postgres; PIN lock-out and sessions were tested against the in-memory database only; the demo screens are `?mock=1` (development only).

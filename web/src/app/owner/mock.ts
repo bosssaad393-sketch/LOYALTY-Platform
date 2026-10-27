@@ -337,6 +337,13 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
     return ok({ ok: true });
   }
 
+  if (p === "/api/dev/team" && m === "GET") return ok({ team: state.team.filter((x) => x.role !== "developer").map((x) => ({ id: x.id, name: x.name, role: x.role, active: x.active, hasPin: x.hasPin })) });
+  if (p === "/api/dev/pin" && m === "POST") {
+    const t = state.team.find((x) => x.id === b.staffId);
+    if (!t) return bad("That person is not in this business.", 404);
+    t.hasPin = true;
+    return ok({ pin: t.role === "staff" ? "7314" : "605829" });
+  }
   if (p === "/api/dev/pos") {
     const g = globalThis as unknown as { __pos?: { configured: boolean; status: "active" | "disabled"; keyPrefix: string | null; lastEventAt: string | null } };
     const s = (g.__pos ??= { configured: true, status: "active", keyPrefix: "loy_pos_Xk2a", lastEventAt: new Date(Date.now() - 600_000).toISOString() });
