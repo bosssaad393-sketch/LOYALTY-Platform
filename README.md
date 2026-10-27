@@ -39,7 +39,7 @@ npm run dev                    # http://localhost:3000/join/<slug>
 ```
 No database yet? `LOYALTY_FAKE_DB=1 npm run dev` runs the screens on in-memory data (development only). Owner screens: `/owner?mock=1`.
 
-Checks before every commit (all must pass): `npm run lint`, `npx tsc --noEmit`, `npm test` (265 tests).
+Checks before every commit (all must pass): `npm run lint`, `npm run typecheck`, `npm test` (265 tests). (`typecheck` first generates Next's route types, which a fresh checkout does not have.)
 
 ## Folders
 - `web/` the app (Next.js, TypeScript). `web/scripts/new-client.mjs` the client generator.
