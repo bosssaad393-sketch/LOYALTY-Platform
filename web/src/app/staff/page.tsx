@@ -13,7 +13,11 @@ export function generateMetadata(): Metadata {
 export const instant = false;
 
 export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
+  const { look, mock, signedout } = await searchParams;
+  // DEVELOPMENT-ONLY demo (same two guards as the owner screen): fake data with ?mock=1. Never in production.
+  if (process.env.NODE_ENV !== "production" && mock === "1") {
+    return <StaffApp brand={brandProps()} look={loginLook("staff", look)} mock initialMe={signedout === "1" ? null : { name: "Ahmed", role: "staff", venue: brandName() }} />;
+  }
   const staff = await currentStaff();
-  const { look } = await searchParams;
   return <StaffApp brand={brandProps()} look={loginLook("staff", look)} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} />;
 }

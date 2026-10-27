@@ -45,10 +45,10 @@ const state = {
   // The real list is newest visit first.
   guests: makeGuests().sort((a, b) => (b.lastVisit ?? "").localeCompare(a.lastVisit ?? "")),
   team: [
-    { id: "t1", name: "Demo owner", role: "owner", active: true, email: "owner@demo.example", me: true },
-    { id: "t2", name: "Reem", role: "manager", active: true, email: "reem@demo.example", me: false },
-    { id: "t3", name: "Ahmed", role: "staff", active: true, email: "ahmed@demo.example", me: false },
-    { id: "t4", name: "Faisal", role: "staff", active: false, email: "faisal@demo.example", me: false },
+    { id: "t1", name: "Demo owner", role: "owner", active: true, hasPin: true, me: true },
+    { id: "t2", name: "Reem", role: "manager", active: true, hasPin: true, me: false },
+    { id: "t3", name: "Ahmed", role: "staff", active: true, hasPin: true, me: false },
+    { id: "t4", name: "Faisal", role: "staff", active: false, hasPin: true, me: false },
   ] as Member[],
   // Newest first. Every state of "Sent offers" can be seen here:
   //   o1 recent and live            -> Edit and resend + Withdraw
@@ -150,6 +150,64 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
   const b = (body ?? {}) as Record<string, unknown>;
   const m = method.toUpperCase();
 
+  if (p === "/api/staff/pin-login" && m === "POST") {
+    const pin = String(b.pin ?? "");
+    if (!/^\d{4,8}$/.test(pin)) return bad("Enter your PIN (4 to 8 digits).");
+    if (/^0+$/.test(pin)) return bad("That PIN is not right.", 401);
+    return ok(pin.length >= 6 ? ME : { name: "Ahmed", role: "staff", venue: "Demo Venue" });
+  }
+  if (p.startsWith("/api/staff/") && p !== "/api/staff/logout") {
+    type G = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean };
+    type Ent = { id: number; kind: string; points: number; billBhd: number | null; at: string; by: string; guest: string };
+    type Perk = { id: string; title: string; note: string | null; validUntil: string | null; from: string };
+    const g = globalThis as unknown as { __st?: { guests: G[]; log: Ent[]; perks: Perk[]; n: number } };
+    const mk = (cardId: string, firstName: string, code: string, points: number, visits: number): G => ({ cardId, firstName, code, points, visits, goal: 500, rewardText: "A dessert of your choice", rewardReady: points >= 500 });
+    const s = (g.__st ??= {
+      guests: [mk("c1", "Ann", "4821", 380, 12), mk("c2", "Khalid", "5555", 520, 21), mk("c3", "Maryam", "1357", 40, 2)],
+      log: [
+        { id: 3, kind: "earn", points: 24, billBhd: 12, at: new Date(Date.now() - 1_500_000).toISOString(), by: "Ahmed", guest: "Maryam" },
+        { id: 2, kind: "earn", points: 41, billBhd: 20.5, at: new Date(Date.now() - 3_600_000).toISOString(), by: "Ahmed", guest: "Ann" },
+        { id: 1, kind: "redeem", points: -500, billBhd: null, at: new Date(Date.now() - 7_200_000).toISOString(), by: "Reem", guest: "Omar" },
+      ],
+      perks: [{ id: "sp1", title: "Free meal after your shift", note: "Thank you for a great Friday", validUntil: null, from: "Demo Venue" }],
+      n: 3,
+    });
+    const view = (x: G): G => ({ ...x, rewardReady: x.points >= x.goal });
+    if (p === "/api/staff/card" && m === "GET") {
+      const x = s.guests.find((q) => q.code === url.searchParams.get("code"));
+      return x ? ok(view(x)) : bad("No card with that code at this venue.", 404);
+    }
+    if (p === "/api/staff/earn" && m === "POST") {
+      const x = s.guests.find((q) => q.cardId === b.cardId);
+      const bill = Number(b.billBhd);
+      if (!x || !(bill > 0)) return bad("Enter the bill amount.");
+      const added = Math.floor(bill * 2);
+      x.points += added; x.visits += 1; s.n += 1;
+      s.log.unshift({ id: s.n, kind: "earn", points: added, billBhd: bill, at: new Date().toISOString(), by: "You", guest: x.firstName });
+      return ok({ guest: view(x), ledgerId: s.n, added });
+    }
+    if (p === "/api/staff/redeem" && m === "POST") {
+      const x = s.guests.find((q) => q.cardId === b.cardId);
+      if (!x || x.points < x.goal) return bad("Not enough points.");
+      x.points -= x.goal; s.n += 1;
+      s.log.unshift({ id: s.n, kind: "redeem", points: -x.goal, billBhd: null, at: new Date().toISOString(), by: "You", guest: x.firstName });
+      return ok({ guest: view(x), ledgerId: s.n });
+    }
+    if (p === "/api/staff/undo" && m === "POST") {
+      const e = s.log.find((q) => q.id === b.ledgerId);
+      const x = e && s.guests.find((q) => q.firstName === e.guest);
+      if (!e || !x) return bad("Nothing to undo.");
+      x.points -= e.points; s.log = s.log.filter((q) => q !== e);
+      return ok({ guest: view(x) });
+    }
+    if (p === "/api/staff/recent" && m === "GET") return ok({ items: s.log });
+    if (p === "/api/staff/perks" && m === "GET") return ok({ perks: s.perks });
+    if (p === "/api/staff/perks" && m === "POST") {
+      const had = s.perks.length;
+      s.perks = s.perks.filter((q) => q.id !== b.id);
+      return s.perks.length < had ? ok({ ok: true }) : bad("That reward is not available any more.", 404);
+    }
+  }
   if (p === "/api/staff/login" && m === "POST") return ok(ME);
   if (p === "/api/staff/logout" && m === "POST") return ok({ ok: true });
 
@@ -194,12 +252,10 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
     if (m === "GET") return ok({ team: state.team.map((x) => ({ ...x })) });
     if (m === "POST") {
       const name = String(b.name ?? "").trim();
-      const email = String(b.email ?? "").trim().toLowerCase();
       const role = b.role === "manager" ? "manager" : "staff";
-      if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return bad("Enter a name, a valid email and a role.");
-      if (state.team.some((x) => x.email === email)) return bad("That email already has a login. Use another email.", 409);
-      state.team.push({ id: `t${state.team.length + 1}`, name, role, active: true, email, me: false });
-      return ok({ name, email, role, password: "Mock-3kQ9xTz1" });
+      if (!name) return bad("Enter a name and a role.");
+      state.team.push({ id: `t${state.team.length + 1}`, name, role, active: true, hasPin: true, me: false });
+      return ok({ name, role, pin: role === "manager" ? "493017" : "5826" });
     }
     if (m === "PATCH") {
       const t = state.team.find((x) => x.id === b.id);
@@ -208,6 +264,30 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
       t.active = Boolean(b.active);
       return ok({ ok: true });
     }
+  }
+
+  if (p === "/api/owner/perks") {
+    const g = globalThis as unknown as { __perks?: { id: string; staffId: string; staffName: string; title: string; note: string | null; validUntil: string | null; status: string; createdAt: string; claimedAt: string | null }[] };
+    const s = (g.__perks ??= [{ id: "p1", staffId: "t3", staffName: "Ahmed", title: "Free meal after your shift", note: "Thank you for a great Friday", validUntil: null, status: "ready", createdAt: iso(1), claimedAt: null }]);
+    if (m === "GET") return ok({ perks: s });
+    if (m === "POST") {
+      const title = String(b.title ?? "").trim();
+      const ids = (Array.isArray(b.staffIds) ? b.staffIds : []) as string[];
+      if (title.length < 2 || ids.length === 0) return bad("Choose who it is for and write what they get (at least 2 letters).");
+      for (const id of ids) {
+        const t = state.team.find((x) => x.id === id && x.active);
+        if (t) s.unshift({ id: `p${s.length + 1}`, staffId: id, staffName: t.name, title, note: (b.note as string) ?? null, validUntil: (b.validUntil as string) ?? null, status: "ready", createdAt: new Date().toISOString(), claimedAt: null });
+      }
+      return ok({ given: ids.length });
+    }
+    if (m === "DELETE") { const x = s.find((q) => q.id === b.id); if (!x || x.status !== "ready") return bad("That reward was already used or is not yours to cancel.", 404); x.status = "cancelled"; return ok({ ok: true }); }
+  }
+
+  if (p === "/api/owner/team/pin" && m === "POST") {
+    const t = state.team.find((x) => x.id === b.id);
+    if (!t) return bad("That person is not on your team.", 404);
+    t.hasPin = true;
+    return ok({ pin: t.role === "staff" ? "7314" : "605829" });
   }
 
   if (p === "/api/owner/offers") {

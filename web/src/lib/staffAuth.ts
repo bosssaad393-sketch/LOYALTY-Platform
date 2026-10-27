@@ -54,6 +54,8 @@ async function loadStaff(where: { id?: string; authUser?: string }): Promise<Sta
   return { id: data.id, name: data.name, role: data.role, venueId: data.venue_id, venueSlug: venue.slug, venueName: venue.name };
 }
 
+export const loadStaffById = (id: string) => loadStaff({ id });
+
 /** Checks email + password with Supabase Auth, then finds the active staff record. */
 export async function signIn(email: string, password: string): Promise<Staff | null> {
   // A throwaway client, so the signed-in user's token never replaces the service key elsewhere.

@@ -1,0 +1,22 @@
+.pp { min-height: 100dvh; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); background: radial-gradient(120% 70% at 50% 0%, rgb(var(--gold-rgb) / 0.1), transparent 60%), var(--bg); color: var(--text); }
+.pp-card { width: min(100%, 360px); text-align: center; }
+.pp-crest { display: block; margin: 0 auto 10px; border-radius: 50%; object-fit: cover; }
+.pp-venue { margin: 0; font: 600 13px/1 var(--sans); letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold); }
+.pp-title { margin: 14px 0 4px; font: 600 34px/1.1 var(--serif); }
+.pp-sub { margin: 0; color: var(--muted); font-size: 15px; }
+.pp-dots { display: flex; justify-content: center; gap: 14px; height: 18px; margin: 26px 0 8px; }
+.pp-dots i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--gold-dim); background: transparent; transition: background 0.12s, transform 0.12s; }
+.pp-dots i.on { background: var(--gold); border-color: var(--gold); transform: scale(1.08); }
+.pp-err { min-height: 22px; margin: 0 0 8px; color: var(--bad); font-size: 14px; }
+.pp-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pp-key { height: 64px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: 500 26px/1 var(--serif); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.1s, transform 0.08s; }
+.pp-key:hover { border-color: var(--gold-dim); }
+.pp-key:active { background: var(--surface2); transform: scale(0.97); }
+.pp-key:focus-visible, .pp-go:focus-visible { outline: 2px solid var(--gold2); outline-offset: 2px; }
+.pp-fn { font: 700 12px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); background: transparent; }
+.pp-key[disabled] { opacity: 0.5; cursor: default; }
+.pp-go { width: 100%; height: 58px; margin-top: 16px; border-radius: 16px; border: 1px solid var(--gold); background: linear-gradient(135deg, var(--gold2), var(--gold)); color: var(--on-gold); font: 700 14px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; }
+.pp-go[disabled] { opacity: 0.4; cursor: default; }
+.pp-help { margin: 18px 0 0; color: var(--dim); font-size: 13px; }
+.pp-pw { margin: 10px 0 0; color: var(--dim); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) { .pp-dots i, .pp-key { transition: none; } }

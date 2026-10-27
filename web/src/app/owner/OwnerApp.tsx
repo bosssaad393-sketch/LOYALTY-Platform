@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import SignIn, { type SignInLook } from "@/components/SignIn";
+import PinPad from "@/components/PinPad";
+import type { SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
 import { api } from "./api";
 import Guests from "./Guests";
@@ -83,8 +84,8 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
   }, [label, me, canSee, brand.name]);
 
   /** Used by the sign-in block below. Returns an error text, or null when the login worked. */
-  async function signIn(email: string, password: string): Promise<string | null> {
-    const r = await api<Me>("/api/staff/login", "POST", { email, password }, mock);
+  async function signIn(pin: string): Promise<string | null> {
+    const r = await api<Me>("/api/staff/pin-login", "POST", { pin }, mock);
     if (r.ok) { setMe(r.data); return null; }
     return r.error;
   }
@@ -145,16 +146,16 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
 }
 
 /** The owner sign-in: the shared SignIn component (look A or B). onSignIn resolves to an error text, or null when the login worked. */
-function OwnerSignIn({ onSignIn, look, brand }: { onSignIn: (email: string, password: string) => Promise<string | null>; look: SignInLook; brand: BrandProps }) {
+function OwnerSignIn({ onSignIn, look, brand }: { onSignIn: (pin: string) => Promise<string | null>; look: SignInLook; brand: BrandProps }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function submit(email: string, password: string) {
+  async function submit(pin: string) {
     setBusy(true); setError(null);
-    const err = await onSignIn(email, password);
+    const err = await onSignIn(pin);
     setBusy(false);
     if (err) setError(err);
   }
 
-  return <SignIn role="owner" look={look} busy={busy} error={error} onSubmit={submit} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} />;
+  return <PinPad role="owner" busy={busy} error={error} onSubmit={submit} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} />;
 }

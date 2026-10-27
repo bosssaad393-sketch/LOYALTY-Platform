@@ -12,6 +12,7 @@ export const newState = (tables: Record<string, Row[]> = {}): FakeState => ({ ta
 
 const RELATIONS: Record<string, Record<string, { table: string; fk: string }>> = {
   cards: { members: { table: "members", fk: "member_id" }, venues: { table: "venues", fk: "venue_id" } },
+  staff_users: { venues: { table: "venues", fk: "venue_id" } },
 };
 
 let seq = 0;

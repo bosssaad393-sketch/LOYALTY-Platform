@@ -561,3 +561,22 @@ textarea.ow-terms { min-height: 240px; font-size: 15px; line-height: 1.6; resize
 .as-msg.you { align-self: flex-end; background: color-mix(in srgb, var(--gold) 16%, var(--bg)); }
 .as-wait { opacity: 0.6; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* staff: today strip, bigger touch targets, reward-ready emphasis, end-of-shift thank-you */
+.st-today { display: flex; gap: 8px; margin: 0 0 14px; }
+.st-today span { flex: 1; padding: 10px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); text-align: center; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+.st-today b { display: block; font: 600 22px/1.1 var(--serif); letter-spacing: 0; color: var(--text); }
+.st-big { min-height: 62px; font-size: 16px; }
+.st-code { font: 600 26px/1 var(--serif); letter-spacing: 0.12em; text-align: center; }
+.st-quick { display: flex; flex-wrap: wrap; gap: 8px; }
+.st-quick .chip { min-width: 52px; padding: 11px 14px; font-size: 14px; letter-spacing: 0.04em; }
+.st-ready { border-color: var(--gold); box-shadow: 0 0 0 1px rgb(var(--gold-rgb) / 0.4), 0 18px 40px rgb(var(--gold-rgb) / 0.12); }
+.st-perk { border-color: var(--gold); background: linear-gradient(180deg, var(--card-top), var(--surface)); }
+.st-plus { color: var(--ok); font-weight: 700; }
+.st-minus { color: var(--bad); font-weight: 700; }
+.st-tabs .btn { position: relative; }
+.st-dot { position: absolute; top: 7px; right: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--gold2); }
+.ow-pin { margin: 6px 0; font: 600 40px/1 var(--serif); letter-spacing: 0.3em; }
+.ow-rowbtns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.ow-panel form .ow-field, .ow-panel form .ow-chips { margin-top: 14px; }
+.ow-panel form .ow-actions { margin-top: 16px; }
