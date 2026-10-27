@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama",
+      "options": { "baseURL": "http://localhost:11434/v1" },
+      "models": {
+        "llama3.1:8b": { "name": "llama3.1:8b (local, small: for tiny jobs only)" }
+      }
+    }
+  },
+  "permission": { "edit": "ask", "bash": "ask" }
+}
