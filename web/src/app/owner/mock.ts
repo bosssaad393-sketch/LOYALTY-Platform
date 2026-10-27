@@ -257,6 +257,38 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
     return ok({ ok: true });
   }
 
+  if (p === "/api/dev/pos") {
+    const g = globalThis as unknown as { __pos?: { configured: boolean; status: "active" | "disabled"; keyPrefix: string | null; lastEventAt: string | null } };
+    const s = (g.__pos ??= { configured: true, status: "active", keyPrefix: "loy_pos_Xk2a", lastEventAt: new Date(Date.now() - 600_000).toISOString() });
+    if (m === "POST") { s.configured = true; s.status = "active"; s.keyPrefix = "loy_pos_Demo"; return ok({ key: "loy_pos_DEMO-KEY-NOT-REAL-0000000000000000000000", prefix: s.keyPrefix }); }
+    if (m === "PATCH") { s.status = b.status === "disabled" ? "disabled" : "active"; return ok({ status: s.status }); }
+    const ev = (id: number, kind: string, receipt: string | null, outcome: string, points: number | null, detail: string | null, ago: number) => ({ id, kind, receipt, outcome, points, detail, createdAt: new Date(Date.now() - ago).toISOString() });
+    return ok({
+      ...s,
+      endpoint: "https://client-site.example/api/pos/events",
+      providers: [
+        { id: "generic", name: "Generic webhook (JSON)", status: "available", note: "Any till or POS that can send an HTTPS request after each sale or refund." },
+        { id: "foodics", name: "Foodics", status: "planned", note: "Not connected. Needs a review of their API and a partner account first." },
+        { id: "square", name: "Square", status: "planned", note: "Not connected. Needs a review of their API first." },
+      ],
+      events: [ev(4, "refund", "R-1002", "ok", -25, null, 600_000), ev(3, "sale", "R-1003", "rejected", null, "unknown card code", 1_200_000), ev(2, "sale", "R-1002", "ok", 25, null, 3_000_000), ev(1, "ping", null, "ok", null, null, 7_200_000)],
+    });
+  }
+  if (p === "/api/dev/requests") {
+    const g = globalThis as unknown as { __req?: { id: string; message: string; why: string; status: string; result: string | null; createdAt: string; handledAt: string | null }[] };
+    const s = (g.__req ??= [
+      { id: "r1", message: "Change the card design following the season we're in and update it for all customers", why: "unsupported", status: "open", result: null, createdAt: new Date(Date.now() - 900_000).toISOString(), handledAt: null },
+      { id: "r2", message: "Add 5000 points to card 1234", why: "limit", status: "in_progress", result: null, createdAt: new Date(Date.now() - 86_400_000).toISOString(), handledAt: null },
+      { id: "r3", message: "Connect my website booking page", why: "unsupported", status: "done", result: "Booking link added to the card back.", createdAt: new Date(Date.now() - 172_800_000).toISOString(), handledAt: new Date().toISOString() },
+    ]);
+    if (m === "PATCH") {
+      const r = s.find((x) => x.id === b.id);
+      if (!r) return bad("Not found.", 404);
+      r.status = String(b.status); if (b.result) r.result = String(b.result);
+      return ok({});
+    }
+    return ok({ requests: s });
+  }
   if (p === "/api/owner/assistant") {
     const g = globalThis as unknown as { __asst?: { pending: string | null; requests: { id: string; message: string; status: string; result: string | null; createdAt: string }[] } };
     const s = (g.__asst ??= { pending: null, requests: [] });

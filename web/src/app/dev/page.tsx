@@ -3,6 +3,7 @@ import { currentStaff } from "@/lib/staffAuth";
 import { loginLook } from "@/lib/loginStyle";
 import { brandName, brandProps } from "@/lib/brand";
 import DevApp from "./DevApp";
+import type { Me } from "../owner/types";
 
 export function generateMetadata(): Metadata {
   return { title: `${brandName()} Developer`, robots: { index: false, follow: false } };
@@ -13,6 +14,13 @@ export const instant = false;
 
 export default async function DevPage(props: PageProps<"/dev">) {
   const q = await props.searchParams;
+  const look = loginLook("owner", q.look);
+  const brand = brandProps();
+  // DEVELOPMENT-ONLY mock (same two guards as the owner screen): fake data when the address has ?mock=1. Never in production.
+  if (process.env.NODE_ENV !== "production" && q.mock === "1") {
+    const me: Me = { name: "Demo developer", role: "developer", venue: brandName() };
+    return <DevApp initialMe={me} mock look={look} brand={brand} />;
+  }
   const staff = await currentStaff();
-  return <DevApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={loginLook("owner", q.look)} brand={brandProps()} />;
+  return <DevApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} />;
 }

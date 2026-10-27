@@ -21,14 +21,14 @@ type Req = { id: string; message: string; why: string; status: string; result: s
 const when = (s: string | null) => (s ? new Date(s).toLocaleString("en-GB", { timeZone: "Asia/Bahrain" }) : "never");
 
 /** Developer area: connect the client's till (POS) and work through what the owner chat passed on. Developer logins only. */
-export default function DevApp({ initialMe, look, brand }: { initialMe: Me | null; look: SignInLook; brand: BrandProps }) {
+export default function DevApp({ initialMe, mock = false, look, brand }: { initialMe: Me | null; mock?: boolean; look: SignInLook; brand: BrandProps }) {
   const [me, setMe] = useState<Me | null>(initialMe);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function signIn(email: string, password: string) {
     setBusy(true); setError(null);
-    const r = await api<Me>("/api/staff/login", "POST", { email, password }, false);
+    const r = await api<Me>("/api/staff/login", "POST", { email, password }, mock);
     setBusy(false);
     if (r.ok) setMe(r.data); else setError(r.error);
   }
@@ -40,7 +40,7 @@ export default function DevApp({ initialMe, look, brand }: { initialMe: Me | nul
       <div className="ow-shell">
         <aside className="ow-side">
           <div className="ow-brand"><span className="ow-name">{me.venue}<small>Developer</small></span></div>
-          <button className="ow-chip ow-lock" type="button" onClick={async () => { await api("/api/staff/logout", "POST", {}, false); setMe(null); }}>Lock</button>
+          <button className="ow-chip ow-lock" type="button" onClick={async () => { await api("/api/staff/logout", "POST", {}, mock); setMe(null); }}>Lock</button>
           <p className="ow-who">Signed in as {me.name}</p>
         </aside>
         <main className="ow-main" id="ow-main" tabIndex={-1}>
@@ -48,8 +48,8 @@ export default function DevApp({ initialMe, look, brand }: { initialMe: Me | nul
             <section className="ow-panel"><p className="ow-msg bad">This area is for developer logins.</p></section>
           ) : (
             <>
-              <PosPanel />
-              <Inbox />
+              <PosPanel mock={mock} />
+              <Inbox mock={mock} />
             </>
           )}
         </main>
@@ -58,30 +58,30 @@ export default function DevApp({ initialMe, look, brand }: { initialMe: Me | nul
   );
 }
 
-function PosPanel() {
+function PosPanel({ mock }: { mock: boolean }) {
   const [pos, setPos] = useState<Pos | null>(null);
   const [key, setKey] = useState<string | null>(null);
   const [note, setNote] = useState<Note | null>(null);
 
   const load = useCallback(async () => {
-    const r = await api<Pos>("/api/dev/pos", "GET", undefined, false);
+    const r = await api<Pos>("/api/dev/pos", "GET", undefined, mock);
     if (r.ok) setPos(r.data); else setNote({ kind: "bad", text: r.error });
-  }, []);
+  }, [mock]);
   useEffect(() => {
     let live = true;
-    api<Pos>("/api/dev/pos", "GET", undefined, false).then((r) => { if (live && r.ok) setPos(r.data); });
+    api<Pos>("/api/dev/pos", "GET", undefined, mock).then((r) => { if (live && r.ok) setPos(r.data); });
     return () => { live = false; };
-  }, []);
+  }, [mock]);
 
   async function makeKey() {
     if (pos?.configured && !window.confirm("A new key replaces the old one. The till stops working until it uses the new key. Continue?")) return;
-    const r = await api<{ key: string }>("/api/dev/pos", "POST", {}, false);
+    const r = await api<{ key: string }>("/api/dev/pos", "POST", {}, mock);
     if (!r.ok) { setNote({ kind: "bad", text: r.error }); return; }
     setKey(r.data.key); setNote(null); void load();
   }
   async function toggle() {
     if (!pos) return;
-    const r = await api("/api/dev/pos", "PATCH", { status: pos.status === "active" ? "disabled" : "active" }, false);
+    const r = await api("/api/dev/pos", "PATCH", { status: pos.status === "active" ? "disabled" : "active" }, mock);
     if (!r.ok) setNote({ kind: "bad", text: r.error }); else void load();
   }
 
@@ -124,23 +124,23 @@ function PosPanel() {
   );
 }
 
-function Inbox() {
+function Inbox({ mock }: { mock: boolean }) {
   const [reqs, setReqs] = useState<Req[] | null>(null);
   const [note, setNote] = useState<Note | null>(null);
   const [text, setText] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    const r = await api<{ requests: Req[] }>("/api/dev/requests", "GET", undefined, false);
+    const r = await api<{ requests: Req[] }>("/api/dev/requests", "GET", undefined, mock);
     if (r.ok) setReqs(r.data.requests); else setNote({ kind: "bad", text: r.error });
-  }, []);
+  }, [mock]);
   useEffect(() => {
     let live = true;
-    api<{ requests: Req[] }>("/api/dev/requests", "GET", undefined, false).then((r) => { if (live && r.ok) setReqs(r.data.requests); });
+    api<{ requests: Req[] }>("/api/dev/requests", "GET", undefined, mock).then((r) => { if (live && r.ok) setReqs(r.data.requests); });
     return () => { live = false; };
-  }, []);
+  }, [mock]);
 
   async function set(id: string, status: "in_progress" | "done") {
-    const r = await api("/api/dev/requests", "PATCH", { id, status, result: text[id]?.trim() || undefined }, false);
+    const r = await api("/api/dev/requests", "PATCH", { id, status, result: text[id]?.trim() || undefined }, mock);
     if (!r.ok) setNote({ kind: "bad", text: r.error }); else { setNote(null); void load(); }
   }
 
