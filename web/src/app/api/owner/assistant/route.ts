@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail } from "@/lib/staffApi";
 import { withOwner } from "@/lib/ownerApi";
 import { createRateLimiter } from "@/lib/rateLimit";
+import { aiPlanner } from "@/lib/assistant/llmPlanner";
 import { handleMessage, recentRequests } from "@/lib/assistant/service";
 
 const limiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
     if (!limiter.allow(staff.id)) return fail("You are sending messages very quickly. Please wait a moment.", 429);
     const parsed = Input.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return fail("Write a message first.");
-    return Response.json(await handleMessage(staff, parsed.data.message));
+    return Response.json(await handleMessage(staff, parsed.data.message, { planner: aiPlanner }));
   });
 }
 

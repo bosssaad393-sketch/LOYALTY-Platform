@@ -268,8 +268,22 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
       return ok({ reply: done ? "Done. (Mock data: nothing was really changed.)" : "There is nothing waiting for your confirmation." });
     }
     if (/^(no|cancel)\b/.test(t)) { s.pending = null; return ok({ reply: "Cancelled. Nothing was changed." }); }
-    const rate = /points per bhd to (\d+)/.exec(t);
-    if (rate) { s.pending = "x"; return ok({ reply: `Change points per BHD from 2 to ${rate[1]}. It applies from the next visit; guests keep the points they have. Reply yes to confirm, or no to cancel.`, pending: { id: "x", summary: "rate" } }); }
+    // Development only: ask the AI planner what the message means (the route answers 404 in production). Nothing is executed.
+    type Plan = { kind: string; question?: string; action?: { type: string; pointsPerBhd?: number; rewardGoal?: number; rewardText?: string; message?: string; guest?: { code?: string; name?: string }; delta?: number } };
+    const plan: Plan | null = await fetch("/api/owner/assistant-preview", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: b.message }) })
+      .then((r) => (r.ok ? (r.json() as Promise<Plan>) : null))
+      .catch(() => null);
+    if (plan?.kind === "clarify" && plan.question) return ok({ reply: plan.question });
+    if (plan?.kind === "action" && plan.action) {
+      const a = plan.action;
+      const what =
+        a.type === "set_points_rate" ? `Change points per BHD from 2 to ${a.pointsPerBhd}.` :
+        a.type === "set_reward" ? `Change the reward${a.rewardText ? ` to "${a.rewardText}"` : ""}${a.rewardGoal ? ` at ${a.rewardGoal} points` : ""}.` :
+        a.type === "send_offer" ? `Send this notification to all guests: "${a.message}".` :
+        `${(a.delta ?? 0) > 0 ? "Add" : "Remove"} ${Math.abs(a.delta ?? 0)} points ${(a.delta ?? 0) > 0 ? "to" : "from"} ${a.guest?.code ? `card ${a.guest.code}` : a.guest?.name}.`;
+      s.pending = "x";
+      return ok({ reply: `${what} Reply yes to confirm, or no to cancel.`, pending: { id: "x", summary: a.type } });
+    }
     s.requests.unshift({ id: `r${s.requests.length + 1}`, message: String(b.message ?? "").slice(0, 200), status: "open", result: null, createdAt: new Date().toISOString() });
     return ok({ reply: "Thanks, I've passed your request to our development team. They will take care of it and get back to you here.", forwarded: true });
   }

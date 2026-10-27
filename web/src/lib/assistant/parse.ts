@@ -24,7 +24,7 @@ export type Parsed =
   | { kind: "clarify"; question: string }
   | { kind: "unsupported"; why: "unsupported" | "limit" };
 
-export type Planner = (text: string) => Parsed;
+export type Planner = (text: string) => Parsed | Promise<Parsed>;
 
 const WORD = String.raw`[\p{L}\p{N}'’.\- ]`;
 const tidy = (s: string) => s.replace(/\s+/g, " ").trim();
@@ -124,7 +124,7 @@ function adjust(t: string): Parsed | null {
 }
 
 /** The built-in planner. */
-export const parseRequest: Planner = (raw) => {
+export const parseRequest = (raw: string): Parsed => {
   const t = tidy(raw || "");
   if (!t) return { kind: "greeting" };
   if (t.length <= 40) {

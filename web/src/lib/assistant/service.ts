@@ -170,7 +170,7 @@ async function prepare(staff: Staff, p: Proposal, now: number): Promise<Reply> {
 export async function handleMessage(staff: Staff, raw: string, deps: Deps = {}): Promise<Reply> {
   const now = (deps.now ?? Date.now)();
   const text = clean(raw);
-  const parsed = (deps.planner ?? parseRequest)(text.slice(0, MAX_TEXT));
+  const parsed = await (deps.planner ?? parseRequest)(text.slice(0, MAX_TEXT));
   try {
     switch (parsed.kind) {
       case "greeting":
