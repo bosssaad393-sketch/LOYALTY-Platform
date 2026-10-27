@@ -11,13 +11,20 @@ export type FakeState = { tables: Record<string, Row[]>; calls: Call[]; failing:
 export const newState = (tables: Record<string, Row[]> = {}): FakeState => ({ tables, calls: [], failing: new Set() });
 
 const RELATIONS: Record<string, Record<string, { table: string; fk: string }>> = {
-  cards: { members: { table: "members", fk: "member_id" } },
+  cards: { members: { table: "members", fk: "member_id" }, venues: { table: "venues", fk: "venue_id" } },
 };
 
 let seq = 0;
 
 export function makeDb(state: FakeState) {
   return {
+    // Just enough of the auth admin API for code that only lists logins (no real accounts are made).
+    auth: {
+      admin: {
+        listUsers: async () => ({ data: { users: [] as { id: string; email: string }[] }, error: null }),
+        getUserById: async (id: string) => ({ data: { user: { id, email: `${id}@login.example.test` } }, error: null }),
+      },
+    },
     from(table: string) {
       const filters: ((r: Row) => boolean)[] = [];
       const described: string[] = [];
@@ -96,6 +103,11 @@ export function makeDb(state: FakeState) {
         eq(c: string, v: unknown) {
           filters.push((r) => r[c] === v);
           described.push(`eq ${c}`);
+          return b;
+        },
+        neq(c: string, v: unknown) {
+          filters.push((r) => r[c] !== v);
+          described.push(`neq ${c}`);
           return b;
         },
         is(c: string, v: null) {
