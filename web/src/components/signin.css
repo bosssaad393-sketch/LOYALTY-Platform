@@ -26,8 +26,9 @@
 .si-owner-a .si-frame::after { content: ""; position: absolute; inset: 6px; border: 1px solid rgb(var(--gold-rgb) / .16); border-radius: 22px; }
 .si-owner-a .si-col { padding-top: max(60px, env(safe-area-inset-top)); }
 .si-owner-a .si-brand { text-align: center; }
-.si-owner-a .si-brand img { width: 44px; height: auto; display: block; margin: 0 auto; }
-.si-owner-a .si-name { font: 600 40px/1 var(--serif); letter-spacing: .5em; padding-left: .5em; margin-top: 16px; }
+.si-owner-a .si-brand img { width: 150px; height: auto; display: block; margin: 0 auto; }
+/* the venue name is carried by the logo; kept in the page for screen readers */
+.si-owner-a .si-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .si-owner-a .si-rule { display: block; width: 70px; height: 1px; margin: 18px auto 14px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
 .si-owner-a .si-tag { font-size: 11px; font-weight: 700; letter-spacing: .5em; padding-left: .5em; color: var(--gold); text-transform: uppercase; }
 .si-owner-a .si-body { margin-top: clamp(28px, 9dvh, 70px); padding: 0 6px; }

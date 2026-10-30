@@ -1,0 +1,210 @@
+{
+  "joinUrl": "https://loyalty-platform-steel.vercel.app/join/n10",
+  "style": "e-crest",
+  "errorCorrection": "H",
+  "dpi": 300,
+  "files": [
+    {
+      "file": "poster-A5.png",
+      "trimMm": [
+        148,
+        210
+      ],
+      "bleedMm": 0,
+      "pagePx": [
+        1748,
+        2480
+      ],
+      "pdf": {
+        "file": "poster-A5.pdf",
+        "pages": 1,
+        "widthMm": 148.2,
+        "heightMm": 209.9,
+        "expectedMm": [
+          148,
+          210
+        ],
+        "bytes": 181394
+      },
+      "decode": {
+        "full": true,
+        "width400": true,
+        "camera": true,
+        "camera400": true
+      },
+      "qr": {
+        "symbolMm": 63.1,
+        "plateMm": 75.4,
+        "modules": 41,
+        "moduleMm": 1.5,
+        "layoutPlateMm": 75.5,
+        "safeMarginOk": true
+      },
+      "bytes": 1606041,
+      "safe": {
+        "sideMm": 16.3,
+        "topMm": 14.8,
+        "bottomMm": 14.8
+      }
+    },
+    {
+      "file": "poster-A5-bleed3mm.png",
+      "trimMm": [
+        148,
+        210
+      ],
+      "bleedMm": 3,
+      "pagePx": [
+        1819,
+        2551
+      ],
+      "pdf": {
+        "file": "poster-A5-bleed3mm.pdf",
+        "pages": 1,
+        "widthMm": 154.2,
+        "heightMm": 215.9,
+        "expectedMm": [
+          154,
+          216
+        ],
+        "bytes": 178791
+      },
+      "decode": {
+        "full": true,
+        "width400": true,
+        "camera": true,
+        "camera400": true
+      },
+      "qr": {
+        "symbolMm": 63.1,
+        "plateMm": 75.4,
+        "modules": 41,
+        "moduleMm": 1.5,
+        "layoutPlateMm": 75.5,
+        "safeMarginOk": true
+      },
+      "bytes": 1710385,
+      "safe": {
+        "sideMm": 16.3,
+        "topMm": 14.8,
+        "bottomMm": 14.8
+      }
+    },
+    {
+      "file": "poster-A4.png",
+      "trimMm": [
+        210,
+        297
+      ],
+      "bleedMm": 0,
+      "pagePx": [
+        2480,
+        3508
+      ],
+      "pdf": {
+        "file": "poster-A4.pdf",
+        "pages": 1,
+        "widthMm": 209.9,
+        "heightMm": 297,
+        "expectedMm": [
+          210,
+          297
+        ],
+        "bytes": 176062
+      },
+      "decode": {
+        "full": true,
+        "width400": true,
+        "camera": true,
+        "camera400": true
+      },
+      "qr": {
+        "symbolMm": 89.6,
+        "plateMm": 107,
+        "modules": 41,
+        "moduleMm": 2.2,
+        "layoutPlateMm": 107.1,
+        "safeMarginOk": true
+      },
+      "bytes": 2834112,
+      "safe": {
+        "sideMm": 23.1,
+        "topMm": 21,
+        "bottomMm": 21
+      }
+    },
+    {
+      "file": "poster-A4-bleed3mm.png",
+      "trimMm": [
+        210,
+        297
+      ],
+      "bleedMm": 3,
+      "pagePx": [
+        2551,
+        3579
+      ],
+      "pdf": {
+        "file": "poster-A4-bleed3mm.pdf",
+        "pages": 1,
+        "widthMm": 215.9,
+        "heightMm": 303,
+        "expectedMm": [
+          216,
+          303
+        ],
+        "bytes": 183556
+      },
+      "decode": {
+        "full": true,
+        "width400": true,
+        "camera": true,
+        "camera400": true
+      },
+      "qr": {
+        "symbolMm": 89.6,
+        "plateMm": 107.1,
+        "modules": 41,
+        "moduleMm": 2.2,
+        "layoutPlateMm": 107.1,
+        "safeMarginOk": true
+      },
+      "bytes": 2958731,
+      "safe": {
+        "sideMm": 23.1,
+        "topMm": 21,
+        "bottomMm": 21
+      }
+    },
+    {
+      "file": "sticker-100mm.png",
+      "trimMm": [
+        100,
+        100
+      ],
+      "bleedMm": 0,
+      "pagePx": [
+        1181,
+        1181
+      ],
+      "decode": {
+        "full": true,
+        "width400": true,
+        "camera": true,
+        "camera400": true
+      },
+      "qr": {
+        "symbolMm": 51.9,
+        "plateMm": 62,
+        "modules": 41,
+        "moduleMm": 1.3,
+        "layoutPlateMm": 62,
+        "safeMarginOk": true
+      },
+      "bytes": 555146,
+      "safe": {
+        "sideMm": 19
+      }
+    }
+  ]
+}

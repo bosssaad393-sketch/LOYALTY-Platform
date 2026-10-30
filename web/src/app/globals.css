@@ -35,6 +35,8 @@ body {
     radial-gradient(460px 360px at -10% 105%, rgb(var(--glow2-rgb) / 0.35), transparent 70%);
   min-height: 100vh;
 }
+/* venue backdrop, when the venue has one: fixed, behind the page */
+body.has-ambient:not(:has(.ow)) { background: var(--brand-ambient) center / cover fixed no-repeat, var(--bg); }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--gold2); }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }

@@ -84,8 +84,8 @@ export default function SignIn({ role, look, busy, error, onSubmit, venueName = 
         <div className="si-col">
           <div className="si-frame" aria-hidden="true" />
           <header className="si-brand">
-            <Crest src={crest} size={44} />
-            <h1 className="si-name foil">{venueName}</h1>
+            <Crest src={crest} size={150} />
+            <h1 className="si-name">{venueName}</h1>
             <i className="si-rule" aria-hidden="true" />
             <span className="si-tag">Owner</span>
           </header>

@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
@@ -21,10 +23,14 @@ export function generateViewport(): Viewport {
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  const style = { ...brandStyle(), "--brand-marble": `url("/venues/${brandVenue()}/marble.jpg")` } as CSSProperties;
+  const venue = brandVenue();
+  const style = { ...brandStyle(), "--brand-marble": `url("/venues/${venue}/marble.jpg")` } as CSSProperties;
+  // An optional venue backdrop (public/venues/<slug>/ambient.svg) sits behind every screen.
+  const ambient = existsSync(join(process.cwd(), "public", "venues", venue, "ambient.svg"));
+  if (ambient) (style as Record<string, string>)["--brand-ambient"] = `url("/venues/${venue}/ambient.svg")`;
   return (
     <html lang="en" style={style}>
-      <body>{children}</body>
+      <body className={ambient ? "has-ambient" : undefined}>{children}</body>
     </html>
   );
 }
