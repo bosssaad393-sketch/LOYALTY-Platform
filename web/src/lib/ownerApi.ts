@@ -5,7 +5,7 @@ import { roleAllowed } from "./roles";
 
 /** Owner and manager screens. Team management is owner-only (pass ownerOnly). */
 export async function withOwner(handler: (staff: Staff) => Promise<Response>, ownerOnly = false): Promise<Response> {
-  const staff = await currentStaff();
+  const staff = await currentStaff("owner");
   if (!staff) return fail("Please sign in again.", 401);
   if (!roleAllowed(staff.role, ownerOnly)) return fail("Only the owner can open this.", 403);
   try {

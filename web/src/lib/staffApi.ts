@@ -8,7 +8,7 @@ export const fail = (error: string, status = 400) => Response.json({ error }, { 
 
 /** Runs a staff-only handler; answers 401 when nobody is signed in. */
 export async function withStaff(handler: (staff: Staff) => Promise<Response>): Promise<Response> {
-  const staff = await currentStaff();
+  const staff = await currentStaff("staff");
   if (!staff) return fail("Please sign in again.", 401);
   try {
     return await handler(staff);

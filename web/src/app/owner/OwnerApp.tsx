@@ -85,13 +85,13 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
 
   /** Used by the sign-in block below. Returns an error text, or null when the login worked. */
   async function signIn(pin: string): Promise<string | null> {
-    const r = await api<Me>("/api/staff/pin-login", "POST", { pin }, mock);
+    const r = await api<Me>("/api/staff/pin-login", "POST", { pin, area: "owner" }, mock);
     if (r.ok) { setMe(r.data); return null; }
     return r.error;
   }
 
   async function lock() {
-    await call("/api/staff/logout", "POST", {});
+    await call("/api/staff/logout", "POST", { area: "owner" });
     out();
   }
 

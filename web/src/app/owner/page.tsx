@@ -27,6 +27,6 @@ export default async function OwnerPage(props: PageProps<"/owner">) {
     const tab = TABS.find((t) => t === q.tab) ?? "overview";
     return <OwnerApp initialMe={q.signedout === "1" ? null : me} mock initialTab={tab} look={look} brand={brand} />;
   }
-  const staff = await currentStaff();
+  const staff = await currentStaff("owner");
   return <OwnerApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} />;
 }

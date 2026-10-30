@@ -18,6 +18,6 @@ export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
   if (process.env.NODE_ENV !== "production" && mock === "1") {
     return <StaffApp brand={brandProps()} look={loginLook("staff", look)} mock initialMe={signedout === "1" ? null : { name: "Ahmed", role: "staff", venue: brandName() }} />;
   }
-  const staff = await currentStaff();
+  const staff = await currentStaff("staff");
   return <StaffApp brand={brandProps()} look={loginLook("staff", look)} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} />;
 }

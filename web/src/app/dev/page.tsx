@@ -24,6 +24,6 @@ export default async function DevPage(props: PageProps<"/dev">) {
     const me: Me = { name: "Demo developer", role: "developer", venue: brandName() };
     return <DevApp initialMe={me} mock look={look} brand={brand} initialSection={initialSection} />;
   }
-  const staff = await currentStaff();
+  const staff = await currentStaff("dev");
   return <DevApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} initialSection={initialSection} />;
 }

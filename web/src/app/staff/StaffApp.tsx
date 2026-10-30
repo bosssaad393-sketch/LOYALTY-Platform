@@ -68,13 +68,13 @@ export default function StaffApp({ initialMe, mock = false, brand }: { initialMe
 
   async function signIn(pin: string) {
     setBusy(true); setLoginError(null);
-    const r = await api<Me>("/api/staff/pin-login", { pin }, mock);
+    const r = await api<Me>("/api/staff/pin-login", { pin, area: "staff" }, mock);
     setBusy(false);
     if (r.ok) setMe(r.data); else setLoginError(r.error);
   }
 
   async function lock() {
-    await api("/api/staff/logout", {}, mock);
+    await api("/api/staff/logout", { area: "staff" }, mock);
     signedOut();
   }
 
