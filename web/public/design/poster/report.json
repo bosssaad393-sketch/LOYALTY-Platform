@@ -194,16 +194,17 @@
         "camera400": true
       },
       "qr": {
-        "symbolMm": 51.9,
-        "plateMm": 62,
+        "symbolMm": 46.9,
+        "plateMm": 56,
         "modules": 41,
-        "moduleMm": 1.3,
-        "layoutPlateMm": 62,
+        "moduleMm": 1.1,
+        "layoutPlateMm": 56,
         "safeMarginOk": true
       },
-      "bytes": 555146,
+      "bytes": 591385,
       "safe": {
-        "sideMm": 19
+        "sideMm": 22,
+        "topBottomMm": 9
       }
     }
   ]

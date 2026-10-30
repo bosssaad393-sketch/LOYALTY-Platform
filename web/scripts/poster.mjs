@@ -221,4 +221,5 @@ server.close();
 writeFileSync(path.join(out, "report.json"), JSON.stringify(report, null, 2));
 console.log(`join link: ${JOIN_URL}`);
 for (const f of report.files) {
-  console.log(`${f.file.padEnd(26)} ${f.pagePx.join("x").padEnd(10)} QR plate ${String(f.qr.plateMm).padStart(5)} mm, symbol ${f.qr.symbolMm} mm (layout ${f.qr.layoutPlateMm})  decode full ${f.decode.
+  console.log(`${f.file.padEnd(26)} ${f.pagePx.join("x").padEnd(10)} QR plate ${String(f.qr.plateMm).padStart(5)} mm, symbol ${f.qr.symbolMm} mm (layout ${f.qr.layoutPlateMm})  decode full ${f.decode.full} 400px ${f.decode.width400} camera ${f.decode.camera} camera@400 ${f.decode.camera400}  safe ${f.qr.safeMarginOk}${f.pdf ? `  pdf pages ${f.pdf.pages} ${f.pdf.widthMm}x${f.pdf.heightMm} mm` : ""}`);
+}
