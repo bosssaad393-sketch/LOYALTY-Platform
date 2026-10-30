@@ -580,3 +580,9 @@ textarea.ow-terms { min-height: 240px; font-size: 15px; line-height: 1.6; resize
 .ow-rowbtns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .ow-panel form .ow-field, .ow-panel form .ow-chips { margin-top: 14px; }
 .ow-panel form .ow-actions { margin-top: 16px; }
+
+/* long venue names (for example "N10 Shisha Lounge by Hydur") must wrap neatly: tighter tracking, readable line height */
+.ow-name { letter-spacing: 0.16em; line-height: 1.3; font-size: 18px; }
+.st-brand { letter-spacing: 0.14em; line-height: 1.25; font-size: 20px; }
+.st-brand small { display: block; margin: 4px 0 0; }
+@media (max-width: 700px) { .ow-name { font-size: 18px; } }

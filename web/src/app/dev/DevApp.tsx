@@ -20,7 +20,7 @@ type Pos = {
 };
 type Req = { id: string; message: string; why: string; status: string; result: string | null; createdAt: string };
 type Person = { id: string; name: string; role: string; active: boolean; hasPin: boolean };
-type Section = "overview" | "till" | "requests" | "access";
+type Section = "overview" | "till" | "requests" | "calabos" | "access";
 
 const ago = (iso: string | null) => {
   if (!iso) return "never";
@@ -82,6 +82,7 @@ export default function DevApp({ initialMe, mock = false, look, brand }: { initi
     { id: "overview", label: "Overview" },
     { id: "till", label: "Till (POS)" },
     { id: "requests", label: "Requests", badge: open },
+    { id: "calabos", label: "CALABOS" },
     { id: "access", label: "Access" },
   ];
 
@@ -98,6 +99,7 @@ export default function DevApp({ initialMe, mock = false, look, brand }: { initi
             ))}
           </nav>
           <button className="ow-chip dv-lock" type="button" onClick={async () => { await api("/api/staff/logout", "POST", {}, mock); setMe(null); }}>Lock</button>
+          {brand.poweredBy && <p className="dv-powered">{brand.poweredBy}</p>}
         </aside>
         <main className="dv-main" id="ow-main" tabIndex={-1}>
           {!isDev ? (
@@ -105,6 +107,7 @@ export default function DevApp({ initialMe, mock = false, look, brand }: { initi
           ) : section === "overview" ? <Overview pos={pos} reqs={reqs} team={team} go={setSection} />
             : section === "till" ? <Till pos={pos} mock={mock} reload={reload} />
             : section === "requests" ? <Requests reqs={reqs} mock={mock} reload={reload} />
+            : section === "calabos" ? <CalabosChat mock={mock} />
             : <Access team={team} mock={mock} reload={reload} />}
         </main>
       </div>
@@ -334,6 +337,60 @@ function Access({ team, mock, reload }: { team: Person[] | null; mock: boolean; 
             </li>
           ))}
         </ul>
+      </section>
+    </>
+  );
+}
+
+type Msg = { id: string; author: "dev" | "calabos"; body: string; status: string; replyTo: string | null; createdAt: string };
+
+/** Chat with CALABOS: write what you need done about LOYALTY. CALABOS (on your PC) picks it up, turns requests into tasks and answers here. */
+function CalabosChat({ mock }: { mock: boolean }) {
+  const [msgs, setMsgs] = useState<Msg[] | null>(null);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<Note | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+    api<{ messages: Msg[] }>("/api/dev/calabos", "GET", undefined, mock).then((r) => { if (live && r.ok) setMsgs(r.data.messages); });
+    const t = setInterval(() => setTick((n) => n + 1), 6000);
+    return () => { live = false; clearInterval(t); };
+  }, [mock, tick]);
+
+  useEffect(() => { document.getElementById("cal-end")?.scrollIntoView({ block: "nearest" }); }, [msgs]);
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    const m = text.trim();
+    if (!m || busy) return;
+    setBusy(true); setNote(null);
+    const r = await api("/api/dev/calabos", "POST", { message: m }, mock);
+    setBusy(false);
+    if (!r.ok) { setNote({ kind: "bad", text: r.error }); return; }
+    setText(""); setTick((n) => n + 1);
+  }
+
+  const waiting = msgs?.filter((x) => x.author === "dev" && x.status === "new").length ?? 0;
+
+  return (
+    <>
+      <Head eyebrow="Your assistant" title="CALABOS">Tell CALABOS what you need done about LOYALTY. It queues it as a task and answers here. It answers when your PC is on and CALABOS is running.</Head>
+      <section className="ow-panel" aria-label="Chat with CALABOS">
+        <div className="dv-log" role="log" aria-live="polite">
+          {!msgs ? <p className="ow-sub">Loading…</p> : msgs.length === 0 ? <p className="ow-sub">No messages yet. Try: “Add a seasonal card for Eid”.</p> : msgs.map((m) => (
+            <p key={m.id} className={`dv-bubble ${m.author}`}><span className="sr-only">{m.author === "dev" ? "You: " : "CALABOS: "}</span>{m.body}<small>{ago(m.createdAt)}{m.author === "dev" && m.status === "new" ? " · waiting for CALABOS" : ""}</small></p>
+          ))}
+          <div id="cal-end" />
+        </div>
+        {waiting > 0 && <p className="ow-sub">CALABOS has not picked up {waiting === 1 ? "your last message" : `${waiting} messages`} yet. It does so when it is running on your PC.</p>}
+        <form onSubmit={send}>
+          <label className="sr-only" htmlFor="cal-in">Message for CALABOS</label>
+          <textarea id="cal-in" className="ow-in dv-text" rows={3} maxLength={2000} value={text} onChange={(e) => setText(e.target.value)} placeholder="For example: check why the owner chat feels slow, or prepare the Eid card design" />
+          <div className="ow-actions"><button className="ow-btn primary" type="submit" disabled={busy || !text.trim()}>Send to CALABOS</button></div>
+        </form>
+        <Msg note={note} />
       </section>
     </>
   );

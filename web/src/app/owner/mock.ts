@@ -337,6 +337,21 @@ export async function mockApi<T>(path: string, method: string, body: unknown): P
     return ok({ ok: true });
   }
 
+  if (p === "/api/dev/calabos") {
+    type CM = { id: string; author: "dev" | "calabos"; body: string; status: string; replyTo: string | null; createdAt: string };
+    const g = globalThis as unknown as { __cal?: CM[] };
+    const s = (g.__cal ??= [
+      { id: "c1", author: "dev", body: "Prepare an Eid card design for N10", status: "done", replyTo: null, createdAt: new Date(Date.now() - 3_600_000).toISOString() },
+      { id: "c2", author: "calabos", body: "Noted, Sir. Queued as a task: Eid card design for N10. Claude Code will pick it up next time it runs.", status: "done", replyTo: "c1", createdAt: new Date(Date.now() - 3_590_000).toISOString() },
+    ]);
+    if (m === "GET") return ok({ messages: s });
+    const body = String(b.message ?? "").trim();
+    if (!body) return bad("Write a message first (up to 2000 characters).");
+    const id = `c${s.length + 1}`;
+    s.push({ id, author: "dev", body, status: "done", replyTo: null, createdAt: new Date().toISOString() });
+    s.push({ id: `${id}r`, author: "calabos", body: `Noted, Sir. Queued as a task: ${body.slice(0, 80)}`, status: "done", replyTo: id, createdAt: new Date().toISOString() });
+    return ok({ ok: true });
+  }
   if (p === "/api/dev/team" && m === "GET") return ok({ team: state.team.filter((x) => x.role !== "developer").map((x) => ({ id: x.id, name: x.name, role: x.role, active: x.active, hasPin: x.hasPin })) });
   if (p === "/api/dev/pin" && m === "POST") {
     const t = state.team.find((x) => x.id === b.staffId);
