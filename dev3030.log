@@ -1,0 +1,25 @@
+
+> web@0.1.0 dev
+> next dev -p 3030
+
+▲ Next.js 16.4.3 (Turbopack)
+- Local:         http://localhost:3030
+- Network:       http://100.91.252.7:3030
+- Environments: .env.local
+✓ Ready in 4.2s
+✓ Running next.config.ts took 329ms
+- Cache Components enabled
+- Partial Prefetching enabled
+
+ GET /owner?mock=1 200 in 611ms (next.js: 463ms, application-code: 149ms)
+ GET /staff?mock=1&signedout=1 200 in 62ms (next.js: 11ms, application-code: 51ms)
+ GET /dev?mock=1 200 in 46ms (next.js: 12ms, application-code: 34ms)
+ GET /owner?mock=1&tab=overview 200 in 34ms (next.js: 1.5ms, application-code: 32ms)
+ GET /staff?mock=1 200 in 33ms (next.js: 2.0ms, application-code: 31ms)
+✓ Compiled in 37ms
+ GET /staff?mock=1 200 in 122ms (next.js: 3ms, application-code: 119ms)
+ GET /staff?mock=1 200 in 93ms (next.js: 5ms, application-code: 88ms)
+ GET /staff?mock=1 200 in 40ms (next.js: 2ms, application-code: 37ms)
+✓ Compiled in 21ms
+  Turbopack has seen frequent file updates and is waiting for the filesystem to settle (0.5s elapsed so far; last modified: "\\\\?\\C:\\Users\\3amka\\Documents\\CALABOS\\workspace\\loyalty-whitelabel\\web\\node_modules\\.vitest-cache").
+ GET /staff?mock=1 200 in 30ms (next.js: 3ms, application-code: 27ms)
