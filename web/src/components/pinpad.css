@@ -1,17 +1,25 @@
-.pp { min-height: 100dvh; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); background: radial-gradient(120% 70% at 50% 0%, rgb(var(--gold-rgb) / 0.1), transparent 60%), var(--bg); color: var(--text); }
-.pp-card { width: min(100%, 360px); text-align: center; }
-.pp-crest { display: block; margin: 0 auto 10px; border-radius: 50%; object-fit: cover; }
-.pp-venue { margin: 0; font: 600 13px/1 var(--sans); letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold); }
-.pp-title { margin: 14px 0 4px; font: 600 34px/1.1 var(--serif); }
+.pp { position: relative; overflow: hidden; min-height: 100dvh; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); background: radial-gradient(90% 60% at 50% 40%, rgb(var(--gold-rgb) / 0.07), transparent 70%), #050405; color: var(--text); }
+.pp-stage { position: relative; width: min(100%, 380px); }
+/* frosted-glass panel with a thin gold edge, over soft gold spheres */
+.pp-card { position: relative; z-index: 1; text-align: center; padding: 30px 24px 24px; border-radius: 28px; border: 1px solid rgb(var(--gold-rgb) / 0.55); background: linear-gradient(145deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.03)); -webkit-backdrop-filter: blur(22px) saturate(1.2); backdrop-filter: blur(22px) saturate(1.2); box-shadow: 0 24px 60px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.12); }
+.pp-orb { position: absolute; border-radius: 50%; background: radial-gradient(circle at 32% 26%, #f8e2ad 0%, #d3ab5f 30%, #8a6420 66%, #2a1c08 100%); box-shadow: 0 18px 40px rgb(0 0 0 / 0.5); }
+.pp-orb.o1 { width: 150px; height: 150px; left: -62px; top: 12%; }
+.pp-orb.o2 { width: 110px; height: 110px; right: -38px; top: -34px; }
+.pp-orb.o3 { width: 120px; height: 120px; right: -52px; bottom: 9%; }
+.pp-orb.o4 { width: 70px; height: 70px; left: 22%; bottom: -34px; }
+@media (max-width: 440px) { .pp-orb.o1 { left: -46px; width: 120px; height: 120px; } .pp-orb.o3 { right: -34px; width: 100px; height: 100px; } .pp-orb.o2 { right: -22px; } }
+.pp-crest { display: block; margin: 0 auto 8px; width: 140px; height: auto; object-fit: contain; }
+.pp-venue { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; font: 600 13px/1 var(--sans); letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold); }
+.pp-title { margin: 6px 0 4px; font: 600 34px/1.1 var(--serif); }
 .pp-sub { margin: 0; color: var(--muted); font-size: 15px; }
 .pp-dots { display: flex; justify-content: center; gap: 14px; height: 18px; margin: 26px 0 8px; }
 .pp-dots i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--gold-dim); background: transparent; transition: background 0.12s, transform 0.12s; }
 .pp-dots i.on { background: var(--gold); border-color: var(--gold); transform: scale(1.08); }
 .pp-err { min-height: 22px; margin: 0 0 8px; color: var(--bad); font-size: 14px; }
 .pp-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.pp-key { height: 64px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: 500 26px/1 var(--serif); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.1s, transform 0.08s; }
+.pp-key { height: 64px; border-radius: 16px; border: 1px solid rgb(var(--gold-rgb) / 0.28); background: rgb(255 255 255 / 0.06); color: var(--text); font: 500 26px/1 var(--serif); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.1s, transform 0.08s; }
 .pp-key:hover { border-color: var(--gold-dim); }
-.pp-key:active { background: var(--surface2); transform: scale(0.97); }
+.pp-key:active { background: rgb(255 255 255 / 0.14); transform: scale(0.97); }
 .pp-key:focus-visible, .pp-go:focus-visible { outline: 2px solid var(--gold2); outline-offset: 2px; }
 .pp-fn { font: 700 12px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); background: transparent; }
 .pp-key[disabled] { opacity: 0.5; cursor: default; }

@@ -44,9 +44,11 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
 
   return (
     <main className={`pp pp-${role}`}>
+      <div className="pp-stage">
+      <i className="pp-orb o1" aria-hidden="true" /><i className="pp-orb o2" aria-hidden="true" /><i className="pp-orb o3" aria-hidden="true" /><i className="pp-orb o4" aria-hidden="true" />
       <div className="pp-card">
-        {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark; hidden when the client has no crest file */}
-        <img className="pp-crest" src={`/venues/${venueSlug}/crest.png`} alt="" width={56} height={56} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+        {/* eslint-disable-next-line @next/next/no-img-element -- brand mark; hidden when the client has no crest file */}
+        <img className="pp-crest" src={`/venues/${venueSlug}/crest.png`} alt="" width={140} height={140} onError={(e) => { e.currentTarget.style.display = "none"; }} />
         <p className="pp-venue">{venueName}</p>
         <h1 className="pp-title">{owner ? "Owner" : "Staff"}</h1>
         <p className="pp-sub">{owner ? "Enter your PIN" : "Enter your PIN to start your shift"}</p>
@@ -67,6 +69,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
         <button className="pp-go" type="button" disabled={busy || pin.length < MIN} onClick={send}>{busy ? "Checking…" : owner ? "Enter" : "Start my shift"}</button>
         <p className="pp-help">Forgot your PIN? {owner ? "Ask your LOYALTY developer." : "Ask the owner or a manager."}</p>
         {poweredBy && <p className="pp-pw">{poweredBy}</p>}
+      </div>
       </div>
     </main>
   );
