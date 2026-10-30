@@ -45,6 +45,19 @@ describe("migrations 0001..latest", () => {
   });
 });
 
+describe("showcase seed (supabase/seeds/showcase.sql)", () => {
+  it("runs twice on top of the migrations and gives three guests and a team", async () => {
+    const fresh = new PGlite();
+    await fresh.exec(`create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users (id uuid primary key);`);
+    for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()) await fresh.exec(readFileSync(join(dir, f), "utf8").replace(/create extension if not exists pgcrypto;/i, ""));
+    const seed = readFileSync(join(dir, "../seeds/showcase.sql"), "utf8");
+    await fresh.exec(seed);
+    await fresh.exec(seed);
+    expect((await fresh.query<{ points: number }>("select points from cards order by code")).rows.map((r) => r.points)).toEqual([40, 380, 520]);
+    expect((await fresh.query("select 1 from staff_users where role = 'owner'")).rows.length).toBe(1);
+  });
+});
+
 describe("ledger_adjust (0005)", () => {
   it("owner of the venue can add and remove points; reason and limits enforced", async () => {
     await db.query("select * from ledger_adjust($1,$2,$3,$4)", [CARD_A, OWNER_A, 50, "welcome gift"]);

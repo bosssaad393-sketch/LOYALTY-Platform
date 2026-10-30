@@ -31,8 +31,9 @@ node scripts/new-client.mjs --name "Acme Cafe" --slug acme --accent "#3fa7a0" --
 - [ ] A domain for the client (e.g. `rewards.theirname.com`) when they have one.
 
 ## 4. Logins
-- [ ] Create the owner login in the client's own project (hash and insert as the existing staff table expects; see the migrations and `web/src/lib/staffAuth.ts`). Use a strong password, give it to the owner privately, ask them to change it.
-- [ ] The owner creates the team in the Owner app (Team tab). No shared PINs.
+- [ ] Create your own developer login: Supabase > Authentication > Users > Add user (your email + a password you choose), then link it as the venue's developer (see the last statement in `supabase/dev/seed-dev.sql` in the KAYA branch, or `docs/GO-LIVE.md`).
+- [ ] Set `LOGIN_MODE=pin` and a long `STAFF_SESSION_SECRET` in the hosting settings. Sign in at `/dev` > Access and give the owner their PIN (6 to 8 digits, shown once, handed over in person).
+- [ ] The owner creates the team in the Owner app (Team tab) and hands out each person's own PIN. No shared PINs.
 
 ## 5. Wallets (the long pole: start early)
 - [ ] **Google Wallet:** a Google Pay and Wallet Console issuer account, a service account, then `GOOGLE_WALLET_ISSUER_ID` and the service-account JSON. Free.
