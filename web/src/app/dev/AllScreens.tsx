@@ -23,8 +23,8 @@ function useCopy() {
 
 /**
  * One place that opens every surface of this deployment while you work: the guest pages (public), staff, owner
- * and this developer area. The guest join page is previewed live. Staff and owner are not embedded: the sign-in is
- * one cookie per browser, so inside this developer session they would only show "this login is for staff".
+ * and this developer area. The guest join page is previewed live. Staff and owner open in their own tab (each screen
+ * has its own sign-in cookie, see lib/staffAuth.ts) and are shown here as a still picture of their PIN screen.
  */
 export default function AllScreens({ brand, mock }: { brand: BrandProps; mock: boolean }) {
   const origin = useOrigin();
@@ -124,8 +124,7 @@ export default function AllScreens({ brand, mock }: { brand: BrandProps; mock: b
 function SessionNote({ who }: { who: string }) {
   return (
     <p className="sc-note">
-      Opens in its own tab. This browser keeps one sign-in, so signing in there as {who} signs you out here.
-      To stay the developer at the same time, open the link in a private window (Ctrl+Shift+N).
+      Opens in its own tab with its own sign-in, separate from yours here, so you can stay the developer while you sign in as {who}.
     </p>
   );
 }
