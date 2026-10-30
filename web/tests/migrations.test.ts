@@ -58,6 +58,16 @@ describe("showcase seed (supabase/seeds/showcase.sql)", () => {
   });
 });
 
+describe("one-paste showcase setup (supabase/showcase-setup.sql)", () => {
+  it("runs as a single script on an empty database", async () => {
+    const fresh = new PGlite();
+    await fresh.exec(`create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users (id uuid primary key);`);
+    await fresh.exec(readFileSync(join(dir, "../showcase-setup.sql"), "utf8").replace(/create extension if not exists pgcrypto;/i, ""));
+    expect((await fresh.query("select 1 from cards")).rows.length).toBe(3);
+    expect((await fresh.query("select 1 from venues where slug = 'demo' and name = 'Sol'")).rows.length).toBe(1);
+  });
+});
+
 describe("ledger_adjust (0005)", () => {
   it("owner of the venue can add and remove points; reason and limits enforced", async () => {
     await db.query("select * from ledger_adjust($1,$2,$3,$4)", [CARD_A, OWNER_A, 50, "welcome gift"]);
