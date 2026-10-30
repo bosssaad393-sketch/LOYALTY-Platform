@@ -586,3 +586,8 @@ textarea.ow-terms { min-height: 240px; font-size: 15px; line-height: 1.6; resize
 .st-brand { letter-spacing: 0.14em; line-height: 1.25; font-size: 20px; }
 .st-brand small { display: block; margin: 4px 0 0; }
 @media (max-width: 700px) { .ow-name { font-size: 18px; } }
+
+/* long venue names on the card (for example "N10 Shisha Lounge by Hydur") stay beside the logo plate instead of running over it */
+.bc-brand { max-width: 58cqw; text-align: right; }
+.bc-brand.m { font-size: 4.6cqw; letter-spacing: 0.22em; padding-left: 0.22em; }
+.bc-brand.s { font-size: 3.3cqw; letter-spacing: 0.14em; padding-left: 0.14em; line-height: 1.25; }

@@ -64,7 +64,7 @@ export default function BlackCard({ venueName, venueSlug, memberName, since, poi
           {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
           <img src={`/venues/${venueSlug}/icon.png`} alt="" width={30} height={30} />
         </div>
-        <div className="bc-brand foil">{venueName}</div>
+        <div className={`bc-brand foil ${venueName.length > 16 ? "s" : venueName.length > 8 ? "m" : ""}`}>{venueName}</div>
         <div className="bc-tag">Member</div>
 
         <div className="bc-codel">Your code</div>
