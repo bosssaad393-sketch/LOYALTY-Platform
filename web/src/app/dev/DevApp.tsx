@@ -6,6 +6,7 @@ import type { BrandProps } from "@/lib/brand";
 import { api } from "../owner/api";
 import type { Me, Note } from "../owner/types";
 import { Msg } from "../owner/ui";
+import AllScreens from "./AllScreens";
 import "./dev.css";
 
 type Ev = { id: number; kind: string; receipt: string | null; outcome: string; points: number | null; detail: string | null; createdAt: string };
@@ -20,7 +21,7 @@ type Pos = {
 };
 type Req = { id: string; message: string; why: string; status: string; result: string | null; createdAt: string };
 type Person = { id: string; name: string; role: string; active: boolean; hasPin: boolean };
-type Section = "overview" | "till" | "requests" | "calabos" | "access";
+export type Section = "overview" | "screens" | "till" | "requests" | "calabos" | "access";
 
 const ago = (iso: string | null) => {
   if (!iso) return "never";
@@ -44,11 +45,11 @@ function useCopy() {
 }
 
 /** Developer area: one place to see the health of this client, connect the till, answer the owner's requests, and give people their first PIN. */
-export default function DevApp({ initialMe, mock = false, look, brand }: { initialMe: Me | null; mock?: boolean; look: SignInLook; brand: BrandProps }) {
+export default function DevApp({ initialMe, mock = false, look, brand, initialSection = "overview" }: { initialMe: Me | null; mock?: boolean; look: SignInLook; brand: BrandProps; initialSection?: Section }) {
   const [me, setMe] = useState<Me | null>(initialMe);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [section, setSection] = useState<Section>("overview");
+  const [section, setSection] = useState<Section>(initialSection);
   const [pos, setPos] = useState<Pos | null>(null);
   const [reqs, setReqs] = useState<Req[] | null>(null);
   const [team, setTeam] = useState<Person[] | null>(null);
@@ -80,6 +81,7 @@ export default function DevApp({ initialMe, mock = false, look, brand }: { initi
   const open = reqs?.filter((r) => r.status !== "done").length ?? 0;
   const NAV: { id: Section; label: string; badge?: number }[] = [
     { id: "overview", label: "Overview" },
+    { id: "screens", label: "All screens" },
     { id: "till", label: "Till (POS)" },
     { id: "requests", label: "Requests", badge: open },
     { id: "calabos", label: "CALABOS" },
@@ -105,6 +107,7 @@ export default function DevApp({ initialMe, mock = false, look, brand }: { initi
           {!isDev ? (
             <section className="ow-panel"><p className="ow-msg bad">This area is for developer logins.</p></section>
           ) : section === "overview" ? <Overview pos={pos} reqs={reqs} team={team} go={setSection} />
+            : section === "screens" ? <AllScreens brand={brand} mock={mock} />
             : section === "till" ? <Till pos={pos} mock={mock} reload={reload} />
             : section === "requests" ? <Requests reqs={reqs} mock={mock} reload={reload} />
             : section === "calabos" ? <CalabosChat mock={mock} />

@@ -77,3 +77,67 @@
 .dv-bubble.dev { align-self: flex-end; background: color-mix(in srgb, var(--gold) 16%, var(--bg)); }
 .dv-bubble.calabos { align-self: flex-start; background: var(--surface2); }
 .dv-text { width: 100%; resize: vertical; font: inherit; }
+
+/* All screens: the live guest preview and the join QR side by side, then one ruled list of every surface.
+   Rows, not a grid of identical cards: it is a working list, read top to bottom. Touch targets 44 px here. */
+.sc-top { display: grid; grid-template-columns: minmax(0, 1fr) 248px; gap: 18px; align-items: start; }
+.sc-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sc-tools .dv-seg button, .sc-tools .ow-btn, .sc-act .ow-btn, .sc-qr .ow-btn { min-height: 44px; }
+.sc-stage { position: relative; overflow: hidden; border-radius: 4px; background: color-mix(in srgb, var(--bg) 70%, #000); }
+.sc-device { position: absolute; top: 0; left: 50%; transform-origin: top center; border: 1px solid var(--ow-frame); background: var(--bg); overflow: hidden; }
+.sc-device.sc-phone { border-radius: 28px; }
+.sc-device.sc-tablet { border-radius: 18px; }
+.sc-device.sc-desktop { border-radius: 6px; }
+.sc-device iframe { display: block; border: 0; background: var(--bg); }
+.sc-hint { margin: 0; color: var(--dim); font-size: 13px; line-height: 1.45; }
+
+.sc-qr { align-items: stretch; }
+.sc-plate { aspect-ratio: 1; border-radius: 6px; background: var(--text); overflow: hidden; }
+.sc-plate svg { display: block; width: 100%; height: 100%; }
+.sc-url { margin: 0; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.sc-note { margin: 0; color: var(--dim); font-size: 13px; line-height: 1.45; max-width: 62ch; }
+
+.sc-list { gap: 0; }
+.sc-list > .ow-h { margin-bottom: 0; }
+.sc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 24px; align-items: start; padding: 22px 0; border-top: 1px solid var(--ow-rule); }
+.sc-list > .ow-h + .sc-row { border-top: 0; }
+.sc-row:has(.sc-mini) { grid-template-columns: 96px minmax(0, 1fr) auto; }
+.sc-what { display: grid; gap: 6px; min-width: 0; }
+.sc-what h3 { font: 600 22px/1.2 var(--serif); }
+.sc-who { margin: 0; color: var(--gold2); font-size: 14px; }
+.sc-try { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; max-width: 62ch; }
+.sc-act { display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-width: 132px; }
+.sc-act .sc-hint { padding-top: 12px; text-align: center; }
+.sc-cardin { display: block; max-width: 440px; margin-top: 4px; }
+
+/* the still PIN screen: the real .pp styles drawn at 360 px and scaled to 96 px */
+.sc-mini { width: 96px; height: 168px; overflow: hidden; border: 1px solid var(--ow-frame); border-radius: 14px; background: var(--bg); pointer-events: none; user-select: none; }
+.sc-mini .pp { width: 360px; min-height: 0; height: 630px; padding: 28px 18px; place-items: start center; transform: scale(0.2667); transform-origin: top left; }
+.sc-mini .pp-key { display: grid; place-items: center; height: 58px; }
+
+@media (max-width: 900px) {
+  .sc-top { grid-template-columns: minmax(0, 1fr); }
+  .sc-qr { display: grid; grid-template-columns: 132px minmax(0, 1fr); align-items: center; gap: 8px 16px; }
+  .sc-qr .ow-h { grid-column: 1 / -1; }
+  .sc-qr .sc-plate { grid-row: span 3; }
+}
+@media (max-width: 560px) {
+  .sc-row, .sc-row:has(.sc-mini) { grid-template-columns: minmax(0, 1fr); }
+  .sc-row .sc-mini { display: none; }
+  .sc-act { flex-direction: row; flex-wrap: wrap; }
+  .sc-act .ow-btn { flex: 1 1 auto; }
+}
+.sc-fail { position: absolute; inset: 24px 24px auto; display: grid; gap: 8px; padding: 20px; border: 1px solid var(--bad); border-radius: 6px; background: var(--surface); color: var(--muted); font-size: 14px; line-height: 1.5; }
+.sc-fail b { color: var(--text); font-weight: 600; }
+/* the quiet action under "Open": text, not a second box, so each row has one clear button */
+.sc-copy { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--gold2); font: 600 14px/1.2 var(--sans); text-decoration: underline; text-decoration-color: rgb(var(--gold-rgb) / 0.4); text-underline-offset: 4px; cursor: pointer; }
+.sc-copy:hover { text-decoration-color: currentColor; }
+
+/* phones: a long client name (e.g. "N10 Shisha Lounge by Hydur") used to push the page to ~560 px wide. Let it wrap. */
+@media (max-width: 760px) {
+  .dv-shell { grid-template-columns: minmax(0, 1fr); }
+  .dv-side { min-width: 0; }
+  .dv-brand { min-width: 0; }
+  .dv-brand span { font-size: 18px; line-height: 1.2; letter-spacing: 0.08em; overflow-wrap: anywhere; }
+  .dv-nav { min-width: 0; }
+}
