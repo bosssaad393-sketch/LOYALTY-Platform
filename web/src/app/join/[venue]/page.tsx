@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { getVenue } from "@/lib/supabase";
 import VenueHeader from "@/components/VenueHeader";
@@ -12,8 +15,11 @@ export default async function JoinPage({ params }: PageProps<"/join/[venue]">) {
   const venue = await getVenue(slug);
   if (!venue) notFound();
 
+  const hasPhoto = existsSync(join(process.cwd(), "public", "venues", venue.slug, "lounge.webp"));
+
   return (
     <>
+    {hasPhoto && <div className="venue-bg" style={{ "--venue-photo": `url(/venues/${venue.slug}/lounge.webp)` } as CSSProperties} aria-hidden="true" />}
     <main className="app">
       <VenueHeader
         venueName={venue.name}

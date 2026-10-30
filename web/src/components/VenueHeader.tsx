@@ -15,7 +15,7 @@ export default function VenueHeader({
   return (
     <header className="vh">
       {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
-      <img className="vh-crest" src={`/venues/${venueSlug}/icon.png`} alt="" width={40} height={40} />
+      <img className="vh-crest" src={`/venues/${venueSlug}/crest.png`} alt={venueName} width={96} height={96} />
       <div className="vh-brand foil">{venueName}</div>
       <div className="rc-rule" />
       <div className="rc-tag">{eyebrow}</div>
