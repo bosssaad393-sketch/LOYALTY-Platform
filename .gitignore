@@ -6,3 +6,6 @@
 
 # keep the example settings file
 !.env.example
+
+# local logs
+*.log
