@@ -1,0 +1,389 @@
+{
+  "generated": "2026-10-30T15:30:22.319Z",
+  "colours": {
+    "ink": "#0a0710",
+    "bone": "#f7f0e1",
+    "gold": "#f0cf8a"
+  },
+  "payloads": {
+    "till": "LOYALTY:n10:4821",
+    "join": "https://example.com/join/n10"
+  },
+  "sizes": [
+    96,
+    128,
+    192,
+    320,
+    600
+  ],
+  "variants": [
+    {
+      "id": "a-plate",
+      "name": "Plate",
+      "use": "till",
+      "note": "Square modules, ink on a bone plate, full quiet zone. The plain, safe baseline.",
+      "ec": "Q"
+    },
+    {
+      "id": "b-soft",
+      "name": "Soft corners",
+      "use": "till",
+      "note": "Square modules, finder eyes with softened corners. Same contrast as the plate, a little more crafted.",
+      "ec": "Q"
+    },
+    {
+      "id": "c-dots",
+      "name": "Dots",
+      "use": "reject",
+      "note": "Round modules and soft eyes. Rejected: jsQR misses it at some sizes even at level H with near-touching dots (tried r 0.44 and 0.48 of a module).",
+      "ec": "H"
+    },
+    {
+      "id": "d-gold",
+      "name": "Gold plate",
+      "use": "poster",
+      "note": "Ink modules on a gold plate. Keeps dark-on-light polarity, so every camera and our scanner read it.",
+      "ec": "Q"
+    },
+    {
+      "id": "e-crest",
+      "name": "Crest centre",
+      "use": "poster",
+      "note": "Soft-corner code with the venue crest on a small ink tile in the middle (about 6 to 7% of the code). Level H covers the hidden modules.",
+      "ec": "H"
+    },
+    {
+      "id": "f-inverted",
+      "name": "Gold on black (inverted)",
+      "use": "reject",
+      "note": "Gold modules on black. Rejected: the polarity is inverted. Our staff scanner (jsQR with dontInvert) never reads it; other decoders only when they try both polarities.",
+      "ec": "Q"
+    }
+  ],
+  "results": [
+    {
+      "id": "a-plate",
+      "payload": "till",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 25,
+      "markArea": 0
+    },
+    {
+      "id": "a-plate",
+      "payload": "join",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 29,
+      "markArea": 0
+    },
+    {
+      "id": "b-soft",
+      "payload": "till",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 25,
+      "markArea": 0
+    },
+    {
+      "id": "b-soft",
+      "payload": "join",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 29,
+      "markArea": 0
+    },
+    {
+      "id": "c-dots",
+      "payload": "till",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": false
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": false,
+        "320": true,
+        "600": false
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": false,
+        "320": true,
+        "600": false
+      },
+      "modules": 29,
+      "markArea": 0
+    },
+    {
+      "id": "c-dots",
+      "payload": "join",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": false,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": false
+      },
+      "cameraAnyPolarity": {
+        "96": false,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": false
+      },
+      "modules": 33,
+      "markArea": 0
+    },
+    {
+      "id": "d-gold",
+      "payload": "till",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 25,
+      "markArea": 0
+    },
+    {
+      "id": "d-gold",
+      "payload": "join",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 29,
+      "markArea": 0
+    },
+    {
+      "id": "e-crest",
+      "payload": "till",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 29,
+      "markArea": 5.8
+    },
+    {
+      "id": "e-crest",
+      "payload": "join",
+      "clean": {
+        "96": true,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "camera": {
+        "96": false,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "cameraAnyPolarity": {
+        "96": false,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 33,
+      "markArea": 7.4
+    },
+    {
+      "id": "f-inverted",
+      "payload": "till",
+      "clean": {
+        "96": false,
+        "128": false,
+        "192": false,
+        "320": false,
+        "600": false
+      },
+      "camera": {
+        "96": false,
+        "128": false,
+        "192": false,
+        "320": false,
+        "600": false
+      },
+      "cameraAnyPolarity": {
+        "96": false,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 25,
+      "markArea": 0
+    },
+    {
+      "id": "f-inverted",
+      "payload": "join",
+      "clean": {
+        "96": false,
+        "128": false,
+        "192": false,
+        "320": false,
+        "600": false
+      },
+      "camera": {
+        "96": false,
+        "128": false,
+        "192": false,
+        "320": false,
+        "600": false
+      },
+      "cameraAnyPolarity": {
+        "96": false,
+        "128": true,
+        "192": true,
+        "320": true,
+        "600": true
+      },
+      "modules": 29,
+      "markArea": 0
+    }
+  ]
+}
