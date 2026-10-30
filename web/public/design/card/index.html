@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Member card directions</title>
+<style>
+  /* Tokens: the N10 deployment colours (BRAND_BG / BRAND_TEXT / BRAND_ACCENT). Another client swaps these four lines. */
+  :root {
+    --bg: #0a0710; --text: #f7f0e1; --gold: #f0cf8a; --ink: #0a0710;
+    --muted: color-mix(in srgb, var(--text) 74%, var(--bg)); --dim: color-mix(in srgb, var(--text) 56%, var(--bg));
+    --rule: color-mix(in srgb, var(--gold) 22%, transparent); --bad: #e58b79;
+    --marble: url(../../venues/n10/marble.jpg); --crest: url(../../venues/n10/crest.png);
+    --serif: Georgia, "Times New Roman", serif; --fig: Cambria, Georgia, "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.55 var(--sans); }
+  main { max-width: 1120px; margin: 0 auto; padding: 56px 24px 96px; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+  .flag { display: inline-block; padding: 4px 10px; border: 1px solid var(--gold); border-radius: 4px; color: var(--gold); font-size: 13px; }
+  h1 { margin-top: 20px; font: 600 44px/1.1 var(--serif); }
+  h2 { margin: 80px 0 8px; font: 600 30px/1.2 var(--serif); }
+  h3 { font: 600 20px/1.25 var(--serif); }
+  .lede, .s { max-width: 64ch; color: var(--muted); }
+  .lede { margin-top: 12px; font-size: 17px; }
+  ul.crit { margin-top: 16px; padding-left: 20px; color: var(--muted); max-width: 72ch; }
+  ul.crit li + li { margin-top: 8px; }
+  ul.crit b { color: var(--text); font-weight: 600; }
+
+  .dir { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px 48px; margin-top: 28px; align-items: start; }
+  .dir .why p + p { margin-top: 8px; }
+  .dir .why p { color: var(--muted); }
+  .dir .why b { color: var(--text); font-weight: 600; }
+  .wallets { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+  .cap { margin-top: 12px; color: var(--dim); font-size: 14px; }
+  .flipbtn { margin-top: 12px; min-height: 44px; padding: 0 18px; border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); border-radius: 6px; background: none; color: var(--gold); font: 600 14px/1 var(--sans); cursor: pointer; }
+  .flipbtn:hover { border-color: var(--gold); }
+
+  /* ---------- the card, all directions: 428 x 270 like a bank card; every size is a share of the card width ---------- */
+  .cw { container-type: inline-size; width: 100%; max-width: 480px; }
+  .card { position: relative; aspect-ratio: 428 / 270; border-radius: 4.6cqw; overflow: hidden; color: var(--text); isolation: isolate;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 30%, transparent), 0 18px 48px rgba(0, 0, 0, 0.5); }
+  .card > * { position: absolute; }
+  .crest { background: var(--crest) center / contain no-repeat; }
+  .fig { font-family: var(--fig); font-variant-numeric: lining-nums tabular-nums; }
+  .qr { background: url(../qr/png/b-soft-till.png) center / contain no-repeat; border-radius: 1.6cqw; }
+
+  /* A. Ledger: the member's name leads, points read like a balance, the till code sits bottom right. */
+  .a { background: linear-gradient(90deg, rgba(10,7,16,.96) 0%, rgba(10,7,16,.86) 46%, rgba(10,7,16,.25) 100%), var(--marble) 70% 34% / 150cqw auto no-repeat, var(--bg); }
+  .a .crest { left: 5cqw; top: 4cqw; width: 22cqw; height: 13cqw; background-position: left center; }
+  .a .since { right: 6.5cqw; top: 7.6cqw; font-size: 3.1cqw; color: var(--dim); }
+  .a .name { left: 6.5cqw; top: 25cqw; max-width: 56cqw; font: 600 6.2cqw/1.1 var(--serif); overflow-wrap: anywhere; }
+  .a .bal { left: 6.5cqw; top: 34cqw; display: flex; align-items: baseline; gap: 1.6cqw; }
+  .a .bal b { font: 600 11cqw/1 var(--fig); color: var(--gold); letter-spacing: -0.01em; }
+  .a .bal span { font-size: 3.3cqw; color: var(--muted); }
+  .a .line { left: 6.5cqw; width: 52cqw; bottom: 12.4cqw; height: 0.35cqw; background: color-mix(in srgb, var(--text) 18%, transparent); }
+  .a .line i { position: absolute; inset: 0 auto 0 0; background: var(--gold); }
+  .a .line i::after { content: ""; position: absolute; right: -0.7cqw; top: -0.7cqw; width: 1.75cqw; height: 1.75cqw; border-radius: 50%; background: var(--gold); }
+  .a .next { left: 6.5cqw; bottom: 5.6cqw; font-size: 3.1cqw; color: var(--dim); }
+  .a .qr { right: 6.5cqw; bottom: 11.4cqw; width: 26cqw; height: 26cqw; }
+  .a .code { right: 6.5cqw; bottom: 6.4cqw; width: 26cqw; text-align: center; font: 600 3cqw/1 var(--fig); letter-spacing: 0.24em; color: var(--muted); }
+  .a.ready .bal b { font: 600 6.4cqw/1.2 var(--serif); letter-spacing: 0; }
+  .a.ready .next { color: var(--gold); }
+
+  /* B. Counter: a bone stub on the right holds the code and a larger QR; the marble side is the guest's. */
+  .b { background: linear-gradient(90deg, rgba(10,7,16,.9), rgba(10,7,16,.35)), var(--marble) 40% 30% / 120cqw auto no-repeat, var(--bg); }
+  .b .stub { right: 0; top: 0; bottom: 0; width: 36cqw; background: var(--text); color: var(--ink); }
+  .b .crest { left: 5cqw; top: 4cqw; width: 22cqw; height: 13cqw; background-position: left center; }
+  .b .name { left: 6.5cqw; top: 30cqw; max-width: 50cqw; font: 600 5.6cqw/1.12 var(--serif); overflow-wrap: anywhere; }
+  .b .bal { left: 6.5cqw; bottom: 13cqw; font: 600 8.6cqw/1 var(--fig); color: var(--gold); }
+  .b .bal small { margin-left: 1.4cqw; font: 400 3.2cqw/1 var(--sans); color: var(--muted); }
+  .b .ticks { left: 6.5cqw; bottom: 7cqw; width: 50cqw; height: 2.2cqw; display: grid; grid-template-columns: repeat(10, 1fr); gap: 1cqw; }
+  .b .ticks i { background: color-mix(in srgb, var(--text) 20%, transparent); }
+  .b .ticks i.on { background: var(--gold); }
+  .b .codel { right: 0; width: 36cqw; top: 7cqw; text-align: center; font-size: 3.1cqw; color: color-mix(in srgb, var(--ink) 62%, var(--text)); }
+  .b .code { right: 0; width: 36cqw; top: 11cqw; text-align: center; font: 600 8cqw/1 var(--fig); letter-spacing: 0.12em; color: var(--ink); }
+  .b .qr { right: 5cqw; bottom: 6cqw; width: 26cqw; height: 26cqw; border-radius: 0; }
+  .b.ready .bal { font: 600 6.2cqw/1 var(--serif); }
+
+  /* C. Seal: a calm front (crest, name, one line of progress), the code on the back. Tap to turn over. */
+  .flip { perspective: 1400px; }
+  .flip .inner { position: relative; transition: transform .5s cubic-bezier(.22, 1, .36, 1); transform-style: preserve-3d; }
+  .flip.turned .inner { transform: rotateY(180deg); }
+  .flip .face { backface-visibility: hidden; }
+  .flip .face.back { position: absolute; inset: 0; transform: rotateY(180deg); }
+  @media (prefers-reduced-motion: reduce) { .flip .inner { transition: none; } }
+  .c { background: radial-gradient(90cqw 60cqw at 50% 0%, rgba(10,7,16,.2), rgba(10,7,16,.85)), var(--marble) 55% 38% / 130cqw auto no-repeat, var(--bg); text-align: center; }
+  .c .crest { left: 50%; top: 9cqw; width: 22cqw; height: 13cqw; transform: translateX(-50%); }
+  .c .name { left: 8cqw; right: 8cqw; top: 29cqw; font: 600 6cqw/1.1 var(--serif); overflow-wrap: anywhere; }
+  .c .track { left: 8cqw; right: 8cqw; top: 46cqw; height: 0.35cqw; background: color-mix(in srgb, var(--text) 18%, transparent); }
+  .c .track i { position: absolute; inset: 0 auto 0 0; background: var(--gold); }
+  .c .pos { top: 39.4cqw; transform: translateX(-50%); font: 600 4.6cqw/1 var(--fig); color: var(--gold); white-space: nowrap; }
+  .c .foot { left: 8cqw; right: 8cqw; bottom: 6.5cqw; display: flex; justify-content: space-between; font-size: 3.1cqw; color: var(--dim); }
+  .c-back { background: var(--text); color: var(--ink); }
+  .c-back .qr { left: 50%; top: 6cqw; width: 36cqw; height: 36cqw; transform: translateX(-50%); }
+  .c-back .code { left: 0; right: 0; bottom: 10cqw; text-align: center; font: 600 7cqw/1 var(--fig); letter-spacing: 0.2em; }
+  .c-back .hint { left: 0; right: 0; bottom: 5cqw; text-align: center; font-size: 3.1cqw; color: color-mix(in srgb, var(--ink) 60%, var(--text)); }
+
+  /* ---------- Wallet mock-ups (not real passes): Apple store card and Google loyalty card ---------- */
+  .pass { container-type: inline-size; width: 100%; max-width: 360px; border-radius: 14px; overflow: hidden; background: rgb(8, 7, 10); color: var(--text); box-shadow: 0 0 0 1px rgba(255,255,255,.08); }
+  .pass .top { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; }
+  .pass .logo { width: 48px; height: 40px; background: var(--crest) left center / contain no-repeat; }
+  .pass .hdr { text-align: right; font-size: 10px; color: var(--gold); line-height: 1.2; }
+  .pass .hdr b { display: block; color: var(--text); font: 600 17px/1.1 var(--sans); }
+  .strip { aspect-ratio: 375 / 144; width: 100%; }
+  .pass .fields { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; padding: 12px 14px 4px; }
+  .pass .fields span { display: block; font-size: 10px; color: var(--gold); letter-spacing: .04em; }
+  .pass .fields b { display: block; font: 500 14px/1.3 var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pass .bar { margin: 16px auto 18px; width: 128px; padding: 10px; border-radius: 8px; background: #fff; }
+  .pass .bar i { display: block; aspect-ratio: 1; background: url(../qr/png/a-plate-till.png) center / contain; }
+  .pass .bar small { display: block; margin-top: 6px; text-align: center; color: #333; font-size: 11px; }
+  .hero { aspect-ratio: 1032 / 336; width: 100%; border-radius: 10px; }
+  .gpass { width: 100%; max-width: 360px; border-radius: 22px; overflow: hidden; background: var(--bg); box-shadow: 0 0 0 1px rgba(255,255,255,.08); }
+  .gpass .gh { display: flex; align-items: center; gap: 10px; padding: 14px 16px; font: 500 14px/1.2 var(--sans); }
+  .gpass .gh i { width: 30px; height: 30px; border-radius: 50%; background: #000 var(--crest) center / 86% no-repeat; flex: none; }
+  .gpass .gt { padding: 0 16px 12px; font: 400 22px/1.2 var(--sans); }
+  .gpass .gf { display: grid; grid-template-columns: 1.3fr 1fr 1fr; padding: 4px 16px 16px; gap: 8px; }
+  .gpass .gf span { display: block; font-size: 11px; color: var(--dim); }
+  .gpass .gf b { display: block; font: 500 14px/1.3 var(--sans); }
+  .gpass .hero { border-radius: 0; }
+
+  /* strip and hero art per direction: pictures only, no text (Apple advises against text in the strip) */
+  .art-a { background: linear-gradient(90deg, rgba(10,7,16,.85), rgba(10,7,16,.1) 70%), var(--marble) 62% 30% / 120% auto no-repeat, var(--bg); }
+  .art-b { background: linear-gradient(90deg, rgba(10,7,16,.6), rgba(10,7,16,.1)), var(--marble) 40% 52% / 140% auto no-repeat, var(--bg); position: relative; }
+  .art-b::after { content: ""; position: absolute; right: 13%; top: 50%; width: 22%; aspect-ratio: 1; transform: translateY(-50%); background: var(--crest) center / contain no-repeat; opacity: .92; }
+  .art-c { background: linear-gradient(180deg, rgba(10,7,16,.1), rgba(10,7,16,.7)), var(--marble) 55% 40% / 120% auto no-repeat, var(--bg); position: relative; }
+  .art-c::before { content: ""; position: absolute; left: 8%; right: 8%; bottom: 22%; height: 3px; background: color-mix(in srgb, var(--text) 22%, transparent); }
+  .art-c::after { content: ""; position: absolute; left: 8%; width: calc(84% * var(--p, .48)); bottom: 22%; height: 3px; background: var(--gold); }
+
+  .states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 28px; }
+  .rec { margin-top: 28px; border-top: 1px solid var(--gold); padding-top: 20px; max-width: 70ch; }
+  .rec p { color: var(--muted); margin-top: 8px; }
+  .rec b { color: var(--text); font-weight: 600; }
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--rule); color: var(--dim); font-size: 13px; }
+
+  @media (max-width: 860px) {
+    main { padding: 40px 16px 72px; }
+    h1 { font-size: 34px; }
+    .dir, .wallets, .states { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* ?shot=<id> shows one element alone at its real size, for the PNG export (scripts/card-shots.mjs) */
+  body.shot { background: transparent; }
+  body.shot main > :not(#shotbox) { display: none; }
+  #shotbox { display: none; }
+  body.shot #shotbox { display: block; position: fixed; inset: 0; }
+  body.shot #shotbox > * { width: 100% !important; max-width: none !important; height: 100%; }
+  body.shot .card { border-radius: 0; box-shadow: none; }
+</style>
+</head>
+<body>
+<main>
+  <span class="flag">Design exploration, sample data</span>
+  <h1>The member card</h1>
+  <p class="lede">Three directions for the N10 card on the web, and how each would carry into Apple and Google Wallet. The name, points and codes are invented. The Wallet pictures are mock-ups of what we would send, not real passes.</p>
+
+  <h2>Today&rsquo;s card, honestly</h2>
+  <ul class="crit">
+    <li><b>The code shouts, the points whisper.</b> The four-digit code is the biggest thing on the card; a guest cares first about their points, and staff scan the QR instead of reading the code.</li>
+    <li><b>The venue is named twice.</b> The N10 crest already carries the wordmark, and the full name &ldquo;N10 Shisha Lounge by Hydur&rdquo; is set again in gold, shrunk and wrapped to fit beside it.</li>
+    <li><b>Progress is nearly invisible.</b> A 0.7% tall bar on the bottom edge; the reward-ready state only changes one small label.</li>
+    <li><b>A light follows the pointer.</b> That is the kind of effect our design rules rule out, and on a phone it does nothing.</li>
+    <li><b>Small labels in tracked capitals everywhere</b> (Member, Your code, Points). They add texture, not information.</li>
+    <li><b>Some text is too small.</b> At the width of a phone (about 360 px) the smallest labels are about 7 px. The directions below keep every line at 11 px or more on a phone.</li>
+    <li><b>The QR is a little small</b> at about 22% of the card width. It still read well in our scan test, but staff phones work from further away.</li>
+  </ul>
+
+  <!-- A -->
+  <h2>A. Ledger</h2>
+  <div class="dir">
+    <div>
+      <div class="cw"><div class="card a" data-card="a"></div></div>
+      <p class="cap">Mid-way state: 240 of 500.</p>
+    </div>
+    <div class="why">
+      <p><b>The idea:</b> it reads like a private account. The guest&rsquo;s name leads, the points sit beneath it like a balance, and one gold line shows how far they are. The crest replaces the written venue name.</p>
+      <p><b>For staff:</b> the QR grows to 26% of the width, with the code under it for typing when a camera fails.</p>
+      <p><b>Risk:</b> quiet. It relies on good marble and good type; it does not perform.</p>
+    </div>
+    <div class="wallets">
+      <figure><div class="pass" data-pass="a"></div><figcaption class="cap">Apple store card mock-up. Wallet draws the fields and the barcode itself; the strip is our picture.</figcaption></figure>
+      <figure><div class="gpass" data-gpass="a"></div><figcaption class="cap">Google loyalty card mock-up with our hero image.</figcaption></figure>
+    </div>
+  </div>
+
+  <!-- B -->
+  <h2>B. Counter</h2>
+  <div class="dir">
+    <div>
+      <div class="cw"><div class="card b" data-card="b"></div></div>
+      <p class="cap">Mid-way state: 240 of 500, ten marks of 50 points.</p>
+    </div>
+    <div class="why">
+      <p><b>The idea:</b> built for the moment at the till. A bone stub holds the code and the QR, the marble side holds the guest&rsquo;s name and progress, in ten marks.</p>
+      <p><b>For staff:</b> the code is readable across the counter and the QR sits on a large light field, the easiest of the three to scan.</p>
+      <p><b>Risk:</b> a third of the card is bright. It starts to look like a ticket rather than a black card.</p>
+    </div>
+    <div class="wallets">
+      <figure><div class="pass" data-pass="b"></div><figcaption class="cap">Apple: the stub cannot be reproduced (Wallet owns the barcode area), so the strip carries the crest instead.</figcaption></figure>
+      <figure><div class="gpass" data-gpass="b"></div><figcaption class="cap">Google loyalty card mock-up.</figcaption></figure>
+    </div>
+  </div>
+
+  <!-- C -->
+  <h2>C. Seal</h2>
+  <div class="dir">
+    <div>
+      <div class="cw flip" id="flipC"><div class="inner">
+        <div class="card c face" data-card="c"></div>
+        <div class="card c-back face back" data-card="cb"></div>
+      </div></div>
+      <button type="button" class="flipbtn" aria-controls="flipC" aria-pressed="false" id="flipBtn">Turn the card over</button>
+    </div>
+    <div class="why">
+      <p><b>The idea:</b> the front is only crest, name and one line of progress, centred like a seal. The code lives on the back: the guest taps the card to turn it over at the till.</p>
+      <p><b>For staff:</b> the back is the largest QR of the three, on a full bone field.</p>
+      <p><b>Risk:</b> one extra tap at a busy counter, and guests have to learn it. The line in the Wallet strip would need a new picture for every points change.</p>
+    </div>
+    <div class="wallets">
+      <figure><div class="pass" data-pass="c"></div><figcaption class="cap">Apple: the strip shows progress, rendered per member (we already render per-member strips for the QR preview).</figcaption></figure>
+      <figure><div class="gpass" data-gpass="c"></div><figcaption class="cap">Google loyalty card mock-up.</figcaption></figure>
+    </div>
+  </div>
+
+  <h2>Recommendation: A, Ledger</h2>
+  <div class="rec">
+    <p><b>Why:</b> it fixes the hierarchy (name, then points, then code), keeps the QR on the front where staff expect it, and stays a black card. It carries into Wallet without tricks: the strip is plain marble, the fields do the talking.</p>
+    <p><b>Borrowed from the others:</b> C&rsquo;s back as a full-screen &ldquo;Show my code&rdquo; view on the card page, for staff whose phones struggle; B&rsquo;s larger code figures if staff type codes often.</p>
+    <p><b>Needs from Saad:</b> whether the crest may stand in for the written name on the card (it already contains &ldquo;N10 by Hydur&rdquo;), and the real reward wording.</p>
+  </div>
+
+  <h2>States, direction A</h2>
+  <p class="s">A new member, a member half way, and a reward ready. Points and the goal of 500 are sample values; the real goal is set by the venue.</p>
+  <div class="states">
+    <figure><div class="cw"><div class="card a" data-card="a" data-points="0"></div></div><figcaption class="cap">New member, 0 points.</figcaption></figure>
+    <figure><div class="cw"><div class="card a" data-card="a" data-points="240"></div></div><figcaption class="cap">Half way, 240 points.</figcaption></figure>
+    <figure><div class="cw"><div class="card a ready" data-card="a" data-points="500"></div></div><figcaption class="cap">Reward ready, 500 points.</figcaption></figure>
+  </div>
+
+  <p class="s" style="margin-top:28px">Scan check: the QR in each exported card picture (A in all three states, B, and the back of C) was decoded with jsQR at 1284, 428 and 360 px wide. All read. Not tested on a real phone screen.</p>
+
+  <footer>Card art uses the venue&rsquo;s own marble and crest from <code>public/venues/n10/</code>. The QR is the &ldquo;soft corners&rdquo; style from the QR exploration. Not wired into the app. Powered by LOYALTY.</footer>
+  <div id="shotbox"></div>
+</main>
+<script>
+  // Sample data only.
+  const M = { name: "Sara Hasan", code: "4821", since: "10/26", goal: 500 };
+  const pct = (p) => Math.max(0, Math.min(100, Math.round((p / M.goal) * 100)));
+  const left = (p) => (p >= M.goal ? "Show this card to the staff" : p === 0 ? "Points are added when you pay" : `${M.goal - p} points to your reward`);
+
+  const CARDS = {
+    a: (p) => `<div class="crest"></div><div class="since">Member since ${M.since}</div><div class="name">${M.name}</div>
+      <div class="bal">${p >= M.goal ? "<b>Reward ready</b>" : `<b>${p}</b><span>points of ${M.goal}</span>`}</div>
+      <div class="line"><i style="width:${pct(p)}%"></i></div><div class="next">${left(p)}</div>
+      <div class="qr" role="img" aria-label="Sample till QR code"></div><div class="code fig">${M.code}</div>`,
+    b: (p) => `<div class="stub"></div><div class="crest"></div><div class="name">${M.name}</div>
+      <div class="bal">${p >= M.goal ? "Reward ready" : `${p}<small>of ${M.goal} points</small>`}</div>
+      <div class="ticks">${Array.from({ length: 10 }, (_, i) => `<i class="${(i + 1) * (M.goal / 10) <= p ? "on" : ""}"></i>`).join("")}</div>
+      <div class="codel">Your code</div><div class="code fig">${M.code}</div><div class="qr" role="img" aria-label="Sample till QR code"></div>`,
+    c: (p) => `<div class="crest"></div><div class="name">${M.name}</div><div class="track"><i style="width:${pct(p)}%"></i></div>
+      <div class="pos" style="left:calc(8cqw + (100cqw - 16cqw) * ${pct(p) / 100})">${p}</div>
+      <div class="foot"><span>${left(p)}</span><span>Tap for your code</span></div>`,
+    cb: () => `<div class="qr" role="img" aria-label="Sample till QR code"></div><div class="code fig">${M.code}</div><div class="hint">Show this side at the till</div>`,
+  };
+  const STRIP = { a: "art-a", b: "art-b", c: "art-c" };
+  const pass = (d, p) => `<div class="top"><div class="logo" role="img" aria-label="Crest"></div></div>
+    <div class="strip ${STRIP[d]}" style="--p:${p / M.goal}"></div>
+    <div class="fields"><div><span>MEMBER</span><b>${M.name}</b></div><div><span>POINTS</span><b>${p} / ${M.goal}</b></div><div><span>YOUR CODE</span><b>${M.code}</b></div></div>
+    <div class="bar"><i></i><small>${M.code}</small></div>`;
+  const gpass = (d, p) => `<div class="gh"><i></i>N10 Shisha Lounge by Hydur</div><div class="gt">Rewards</div>
+    <div class="gf"><div><span>Member</span><b>${M.name}</b></div><div><span>Points</span><b>${p}</b></div><div><span>Your code</span><b>${M.code}</b></div></div>
+    <div class="hero ${STRIP[d]}" style="--p:${p / M.goal}"></div>`;
+
+  for (const el of document.querySelectorAll("[data-card]")) el.innerHTML = CARDS[el.dataset.card](Number(el.dataset.points ?? 240));
+  for (const el of document.querySelectorAll("[data-pass]")) el.innerHTML = pass(el.dataset.pass, 240);
+  for (const el of document.querySelectorAll("[data-gpass]")) el.innerHTML = gpass(el.dataset.gpass, 240);
+
+  const flip = document.getElementById("flipC"), btn = document.getElementById("flipBtn");
+  const turn = () => { const on = flip.classList.toggle("turned"); btn.setAttribute("aria-pressed", String(on)); btn.textContent = on ? "Turn back to the front" : "Turn the card over"; };
+  btn.addEventListener("click", turn);
+  flip.addEventListener("click", turn);
+
+  // Export view: ?shot=card-a|card-b|card-c|card-cb|card-a-0|card-a-500|strip-a|strip-b|strip-c|hero-a|hero-b|hero-c
+  const shot = new URLSearchParams(location.search).get("shot");
+  if (shot) {
+    document.body.classList.add("shot");
+    const box = document.getElementById("shotbox");
+    const [kind, d, pts] = shot.split("-");
+    const p = Number(pts ?? 240);
+    if (kind === "card") box.innerHTML = `<div class="cw"><div class="card ${d === "cb" ? "c-back" : d}${p >= M.goal ? " ready" : ""}" >${CARDS[d](p)}</div></div>`;
+    else box.innerHTML = `<div class="${STRIP[d]}" style="--p:${p / M.goal}"></div>`;
+  }
+</script>
+</body>
+</html>
