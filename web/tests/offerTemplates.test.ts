@@ -44,7 +44,7 @@ describe("template list", () => {
     expect(first.title).toBe("Today's update");
     expect(first.text).toBe("Update from {from}: today's reward is {reward}. Today's bonus is {bonus}.");
     expect(first.fields.map((f) => f.key)).toEqual(["from", "reward", "bonus"]);
-    expect(DEFAULT_SIGNED_BY).toBe("the Big Boss Saud");
+    expect(DEFAULT_SIGNED_BY).toBe("the manager");
     expect(first.fields[0].example).toBe(DEFAULT_SIGNED_BY);
     expect(first.fields[1].example).toBe("a complimentary dessert with any main");
     expect(first.fields[2].example).toBe("double points until midnight");
@@ -179,7 +179,7 @@ describe("fillTemplate", () => {
 
   it("gives the agreed demo message when filled with the examples", () => {
     expect(fillTemplate(t, {})).toBe(
-      "Update from the Big Boss Saud: today's reward is a complimentary dessert with any main. Today's bonus is double points until midnight.",
+      "Update from the manager: today's reward is a complimentary dessert with any main. Today's bonus is double points until midnight.",
     );
   });
 

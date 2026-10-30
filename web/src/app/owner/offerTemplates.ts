@@ -20,11 +20,11 @@ export type OfferTemplate = {
   when: string; // one line: when an owner would use it
   text: string; // the message with {key} placeholders, 200 characters or fewer AFTER filling the examples
   fields: OfferField[]; // every {key} used in text, in the order the owner fills them
-  demo?: boolean; // true for the Big Boss Saud demo message
+  demo?: boolean; // true for the demo message
 };
 
 /** Demo sender name. Only used by the "Today's update" demo; it is not a real person at the venue. */
-export const DEFAULT_SIGNED_BY = "the Big Boss Saud";
+export const DEFAULT_SIGNED_BY = "the manager";
 
 export const OFFER_TEMPLATES: OfferTemplate[] = [
   {
