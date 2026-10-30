@@ -37,3 +37,13 @@ One generic adapter works with any till that can send an HTTPS request after a s
 - The business is found from the key, never from the message body, so a key can only touch its own business.
 - Needs migration `0006_pos_connector.sql` (apply to the client's own database after a backup, after `0005`).
 - Not yet run against a real Postgres or a real till.
+
+## Try it with the demo till (no real POS needed)
+`web/scripts/demo-pos.mjs` is a small fake till that runs on your PC and sends real messages to the platform.
+```powershell
+cd C:\Users\3amka\Documents\CALABOS\workspace\loyalty-whitelabel\web
+$env:POS_URL = "https://loyalty-platform-steel.vercel.app"
+$env:POS_KEY = "loy_pos_..."        # the key from /dev > Till (shown once)
+node scripts/demo-pos.mjs
+```
+Open http://localhost:8790. Pick items, type a guest's 4-digit card code, press **Pay**: the platform adds the points. **Refund last sale** takes them back. The key stays in this program, never in the page.
