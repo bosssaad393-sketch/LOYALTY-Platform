@@ -92,7 +92,7 @@ export default function DevApp({ initialMe, mock = false, look, brand, initialSe
     <div className="ow dv">
       <div className="dv-shell">
         <aside className="dv-side">
-          <div className="dv-brand"><span>{me.venue}</span><small>Developer</small></div>
+          <div className="dv-brand"><img src="/loyalty-logo.svg" alt="LOYALTY, developer" width={72} height={72} /></div>
           <nav className="dv-nav" aria-label="Developer sections">
             {NAV.map((n) => (
               <button key={n.id} type="button" className="dv-navbtn" aria-current={section === n.id ? "page" : undefined} onClick={() => setSection(n.id)}>

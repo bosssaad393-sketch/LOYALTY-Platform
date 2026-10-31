@@ -1,8 +1,7 @@
 /* developer area: side menu on desktop, a strip on phones; status pills; set-up checklist; tiles */
 .dv-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 0; max-width: 1040px; margin: 0 auto; min-height: 100dvh; }
 .dv-side { display: flex; flex-direction: column; gap: 18px; padding: 28px 18px; border-right: 1px solid var(--ow-rule); position: sticky; top: 0; align-self: start; height: 100dvh; }
-.dv-brand span { display: block; font: 600 20px/1.1 var(--serif); letter-spacing: 0.18em; color: var(--gold); }
-.dv-brand small { display: block; margin-top: 6px; font: 600 13px/1 var(--sans); letter-spacing: 0.01em; color: var(--dim); }
+.dv-brand img { display: block; width: 72px; height: 72px; }
 .dv-nav { display: flex; flex-direction: column; gap: 4px; }
 .dv-navbtn { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-left: 2px solid transparent; background: transparent; color: var(--muted); font: 600 14px/1 var(--sans); text-align: left; cursor: pointer; }
 .dv-navbtn:hover { color: var(--text); }
@@ -138,6 +137,5 @@
   .dv-shell { grid-template-columns: minmax(0, 1fr); }
   .dv-side { min-width: 0; }
   .dv-brand { min-width: 0; }
-  .dv-brand span { font-size: 18px; line-height: 1.2; letter-spacing: 0.08em; overflow-wrap: anywhere; }
   .dv-nav { min-width: 0; }
 }
