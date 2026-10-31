@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getVenue } from "@/lib/supabase";
+import NetworkBackdrop from "@/components/NetworkBackdrop";
 import VenueHeader from "@/components/VenueHeader";
 import { footerLine } from "@/lib/brand";
 import JoinForm from "./JoinForm";
@@ -14,6 +15,7 @@ export default async function JoinPage({ params }: PageProps<"/join/[venue]">) {
 
   return (
     <>
+    <NetworkBackdrop fixed />
     <main className="app">
       <VenueHeader
         venueName={venue.name}

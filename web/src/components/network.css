@@ -3,3 +3,4 @@
 .pp > .pp-stage, .si > .si-col { position: relative; z-index: 1; }
 .dv > .dv-shell { position: relative; z-index: 1; }
 .ow > .ow-shell { position: relative; z-index: 1; }
+.netbg-fixed + main.app { position: relative; z-index: 1; }
