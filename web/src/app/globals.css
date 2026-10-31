@@ -32,8 +32,8 @@ body {
   -webkit-text-size-adjust: 100%;
   min-height: 100vh;
 }
-/* customers, staff and developer: the venue's black marble behind one flat dark scrim (the owner app and the sign-in screens have their own ground) */
-body:has(main.app), body:has(.dv) { background: linear-gradient(rgb(10 7 16 / 0.8), rgb(10 7 16 / 0.8)), var(--brand-marble) center / cover fixed no-repeat, var(--bg); }
+/* customers, staff, owner and developer: the venue's black marble behind one flat dark scrim (the owner app and the sign-in screens have their own ground) */
+body:has(main.app), body:has(.ow) { background: linear-gradient(rgb(10 7 16 / 0.8), rgb(10 7 16 / 0.8)), var(--brand-marble) center / cover fixed no-repeat, var(--bg); }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--gold2); }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
@@ -216,7 +216,6 @@ select.in { appearance: none; }
    Cambria for figures (lining numerals), small tracked capitals for labels, one gold accent. Phone first; 900 px and wider gets a side menu. */
 :root:has(.ow) { color-scheme: dark; }
 :root:has(.ow-dialog[open]) { overflow: hidden; }
-body:has(.ow):not(:has(.dv)) { background-image: none; }
 .ow {
   --ow-rule: rgb(var(--gold-rgb) / 0.18);
   --ow-frame: rgb(var(--gold-rgb) / 0.3);

@@ -1,5 +1,6 @@
 "use client";
 
+import NetworkBackdrop from "@/components/NetworkBackdrop";
 import { useCallback, useEffect, useRef, useState } from "react";
 import PinPad from "@/components/PinPad";
 import type { SignInLook } from "@/components/SignIn";
@@ -101,6 +102,7 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
 
   return (
     <div className="ow">
+      <NetworkBackdrop fixed />
       <a className="ow-skip" href="#ow-main">Skip to the content</a>
       <div className="ow-shell">
         <aside className="ow-side">
