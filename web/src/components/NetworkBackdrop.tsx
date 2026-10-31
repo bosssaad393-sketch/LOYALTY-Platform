@@ -23,7 +23,7 @@ export default function NetworkBackdrop({ fixed = false }: { fixed?: boolean }) 
       w = canvas.clientWidth; h = canvas.clientHeight;
       canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.max(26, Math.min(70, Math.round((w * h) / 16000)));
+      const count = Math.max(18, Math.min(34, Math.round((w * h) / 30000)));
       nodes = Array.from({ length: count }, () => ({
         x: Math.random() * w, y: Math.random() * h,
         vx: (Math.random() - 0.5) * 0.18, vy: (Math.random() - 0.5) * 0.18, r: 0.8 + Math.random() * 1.6,
@@ -34,7 +34,7 @@ export default function NetworkBackdrop({ fixed = false }: { fixed?: boolean }) 
       for (let i = 0; i < lines; i++) {
         const k = i / (lines - 1);
         ctx.beginPath();
-        for (let x = -10; x <= w + 10; x += 12) {
+        for (let x = -10; x <= w + 10; x += 28) {
           const u = x / w;
           const y = y0 + Math.sin(u * 5 + t * 0.35 + phase) * amp * (0.35 + k * 0.65) + Math.sin(u * 2.2 - t * 0.2 + phase) * amp * 0.5 + (k - 0.5) * amp * 0.9 * Math.sin(u * 3 + t * 0.25);
           if (x === -10) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -48,8 +48,8 @@ export default function NetworkBackdrop({ fixed = false }: { fixed?: boolean }) 
     const frame = (ms: number) => {
       const t = ms / 1000;
       ctx.clearRect(0, 0, w, h);
-      ribbon(t, h * 0.22, h * 0.09, 0, 26, 0.16);
-      ribbon(t, h * 0.82, h * 0.1, 2.4, 26, 0.14);
+      ribbon(t, h * 0.22, h * 0.09, 0, 9, 0.2);
+      ribbon(t, h * 0.82, h * 0.1, 2.4, 9, 0.18);
       const link = Math.min(170, Math.max(110, w / 6));
       for (const n of nodes) {
         if (!still) {
@@ -58,26 +58,34 @@ export default function NetworkBackdrop({ fixed = false }: { fixed?: boolean }) 
           if (n.y < -20) n.y = h + 20; else if (n.y > h + 20) n.y = -20;
         }
       }
+      // One path for all links and one for all points: a draw call per line made this the slowest thing on the page.
+      ctx.beginPath();
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y, d = Math.hypot(dx, dy);
-          if (d < link) {
-            ctx.strokeStyle = gold(0.34 * (1 - d / link));
-            ctx.lineWidth = 0.7;
-            ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke();
-          }
+          const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+          if (dx * dx + dy * dy < link * link) { ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); }
         }
       }
-      for (const n of nodes) {
-        ctx.fillStyle = gold(0.85);
-        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
-      }
-      if (!still && !document.hidden) raf = requestAnimationFrame(frame);
-      else if (!still) raf = requestAnimationFrame(frame);
+      ctx.strokeStyle = gold(0.2);
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+      ctx.beginPath();
+      for (const n of nodes) { ctx.moveTo(n.x + n.r, n.y); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); }
+      ctx.fillStyle = gold(0.8);
+      ctx.fill();
+    };
+
+    // About 24 frames a second, and nothing at all while the tab is hidden.
+    let prev = 0;
+    const loop = (ms: number) => {
+      raf = requestAnimationFrame(loop);
+      if (document.hidden || ms - prev < 42) return;
+      prev = ms;
+      frame(ms);
     };
 
     size();
-    raf = requestAnimationFrame(frame);
+    if (still) frame(0); else raf = requestAnimationFrame(loop);
     const ro = new ResizeObserver(() => { size(); if (still) frame(0); });
     ro.observe(canvas);
     return () => { cancelAnimationFrame(raf); ro.disconnect(); };

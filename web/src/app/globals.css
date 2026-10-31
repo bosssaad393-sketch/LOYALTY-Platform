@@ -33,7 +33,8 @@ body {
   min-height: 100vh;
 }
 /* customers, staff, owner and developer: the venue's black marble behind one flat dark scrim (the owner app and the sign-in screens have their own ground) */
-body:has(main.app), body:has(.ow) { background: linear-gradient(rgb(10 7 16 / 0.8), rgb(10 7 16 / 0.8)), var(--brand-marble) center / cover fixed no-repeat, var(--bg); }
+body:has(main.app), body:has(.ow) { background: var(--bg); }
+body:has(main.app)::before, body:has(.ow)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(rgb(10 7 16 / 0.8), rgb(10 7 16 / 0.8)), var(--brand-marble) center / cover no-repeat; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--gold2); }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
