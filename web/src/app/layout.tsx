@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { brandColors, brandName, brandStyle, brandVenue } from "@/lib/brand";
 
@@ -20,11 +21,13 @@ export function generateViewport(): Viewport {
   };
 }
 
+const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["600", "700"], variable: "--display", display: "swap" });
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const venue = brandVenue();
   const style = { ...brandStyle(), "--brand-marble": `url("/venues/${venue}/marble.jpg")` } as CSSProperties;
   return (
-    <html lang="en" style={style}>
+    <html lang="en" style={style} className={display.variable}>
       <body>{children}</body>
     </html>
   );

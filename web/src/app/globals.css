@@ -147,10 +147,10 @@ h1 { font: 600 34px/1.1 var(--serif); margin-top: 6px; }
 .vh-crest { display: block; margin: 0 auto 18px; width: 160px; height: auto; }
 /* optional venue photo behind the guest pages (public/venues/<slug>/lounge.webp): blurred and dimmed so the form stays readable */
 .vh-brand { font: 600 30px/1 var(--serif); letter-spacing: 0.5em; padding-left: 0.5em; width: fit-content; margin: 0 auto; }
-.vh-title { margin-top: 22px; font: 600 32px/1.12 var(--serif); }
+.vh-title { margin-top: 22px; font: 600 38px/1.08 var(--display, var(--serif)); letter-spacing: 0.01em; }
 .vh-sub { margin: 10px auto 0; max-width: 320px; color: var(--muted); font-size: 15.5px; line-height: 1.5; }
 .pane { position: relative; margin-top: 26px; border-radius: 26px; padding: 34px 26px 28px; overflow: hidden; display: flex; flex-direction: column; gap: 20px;
-  background: linear-gradient(180deg, rgba(13, 11, 10, 0.55), rgba(13, 11, 10, 0.82)), var(--tex, none) center / cover, #0d0b0a;
+  background: #0f0d0b;
   box-shadow: 0 34px 70px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgb(var(--gold-rgb) / 0.5), inset 0 1px 0 rgba(255, 240, 200, 0.12);
   animation: rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.25s both; }
 .pane::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgb(var(--gold-rgb) / 0.3); border-radius: 18px; pointer-events: none; }
