@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import "./pinpad.css";
+import NetworkBackdrop from "./NetworkBackdrop";
 
 type Props = {
   role: "owner" | "staff";
@@ -15,6 +16,7 @@ type Props = {
 
 const MIN = 4;
 const MAX = 8;
+const AUTO = 6;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"] as const;
 
 /** PIN sign-in for staff and owners: a keypad that also takes the keyboard. No email, no password. */
@@ -30,6 +32,13 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
   // The dots empty as soon as the PIN is sent, so a wrong try starts clean.
   const send = useCallback(() => { onSubmit(pin); setPin(""); }, [onSubmit, pin]);
 
+  // Six digits sign in at once (a short pause lets a longer PIN keep going); 4, 5, 7 and 8 digits use the button or Enter.
+  useEffect(() => {
+    if (pin.length !== AUTO || busy) return;
+    const t = setTimeout(send, 300);
+    return () => clearTimeout(t);
+  }, [pin, busy, send]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -44,6 +53,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
 
   return (
     <main className={`pp pp-${role}`}>
+      <NetworkBackdrop />
       <div className="pp-stage">
       <i className="pp-orb o1" aria-hidden="true" /><i className="pp-orb o2" aria-hidden="true" /><i className="pp-orb o3" aria-hidden="true" /><i className="pp-orb o4" aria-hidden="true" />
       <div className="pp-card">

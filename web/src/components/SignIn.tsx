@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import "./signin.css";
+import NetworkBackdrop from "./NetworkBackdrop";
 
 /** Two designs per role. The client picks the letter; nothing else in the app depends on it. */
 export type SignInLook = "a" | "b";
@@ -80,6 +81,7 @@ export default function SignIn({ role, look, busy, error, onSubmit, venueName = 
 
   return (
     <main className={`si si-${key}`} style={{ "--si-marble": `url(${marble})` } as React.CSSProperties}>
+      <NetworkBackdrop />
       {key === "owner-a" && (
         <div className="si-col">
           <div className="si-frame" aria-hidden="true" />

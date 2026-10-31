@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import NetworkBackdrop from "@/components/NetworkBackdrop";
 import SignIn, { type SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
 import { api } from "../owner/api";
@@ -90,6 +91,7 @@ export default function DevApp({ initialMe, mock = false, look, brand, initialSe
 
   return (
     <div className="ow dv">
+      <NetworkBackdrop fixed />
       <div className="dv-shell">
         <aside className="dv-side">
           <div className="dv-brand"><img src="/loyalty-logo.svg" alt="LOYALTY, developer" width={72} height={72} /></div>
