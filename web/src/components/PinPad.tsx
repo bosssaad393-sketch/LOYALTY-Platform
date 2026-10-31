@@ -23,11 +23,12 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"]
 export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewards", venueSlug = "demo", poweredBy = "Powered by LOYALTY" }: Props) {
   const [pin, setPin] = useState("");
   const owner = role === "owner";
+  const max = owner ? AUTO : MAX; // owners: exactly six digits, no spare dot
 
   const press = useCallback((k: (typeof KEYS)[number]) => {
     if (busy) return;
-    setPin((p) => (k === "clear" ? "" : k === "back" ? p.slice(0, -1) : p.length < MAX ? p + k : p));
-  }, [busy]);
+    setPin((p) => (k === "clear" ? "" : k === "back" ? p.slice(0, -1) : p.length < max ? p + k : p));
+  }, [busy, max]);
 
   // The dots empty as soon as the PIN is sent, so a wrong try starts clean.
   const send = useCallback(() => { onSubmit(pin); setPin(""); }, [onSubmit, pin]);
@@ -35,9 +36,9 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
   // Six digits sign in at once (a short pause lets a longer PIN keep going); 4, 5, 7 and 8 digits use the button or Enter.
   useEffect(() => {
     if (pin.length !== AUTO || busy) return;
-    const t = setTimeout(send, 300);
+    const t = setTimeout(send, owner ? 120 : 300);
     return () => clearTimeout(t);
-  }, [pin, busy, send]);
+  }, [pin, busy, send, owner]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -64,7 +65,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
         <p className="pp-sub">{owner ? "Enter your PIN" : "Enter your PIN to start your shift"}</p>
 
         <div className="pp-dots" role="img" aria-label={`${pin.length} digits entered`}>
-          {Array.from({ length: MAX }, (_, i) => <i key={i} className={i < pin.length ? "on" : ""} hidden={i >= Math.max(pin.length + 1, owner ? 6 : 4)} />)}
+          {Array.from({ length: max }, (_, i) => <i key={i} className={i < pin.length ? "on" : ""} hidden={!owner && i >= Math.max(pin.length + 1, 4)} />)}
         </div>
         <p className="pp-err" role="alert">{error ?? ""}</p>
 
