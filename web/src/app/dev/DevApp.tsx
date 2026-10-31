@@ -158,7 +158,7 @@ function Overview({ pos, reqs, team, go }: { pos: Pos | null; reqs: Req[] | null
         <ol className="dv-steps">
           {steps.map((s, i) => (
             <li key={s.label} className={s.done ? "done" : i === next ? "next" : ""}>
-              <span className="dv-tick" aria-hidden="true">{s.done ? "✓" : i + 1}</span>
+              <span className="dv-tick" aria-hidden="true">{s.done ? <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg> : i + 1}</span>
               <span>{s.label}</span>
               {!s.done && <button type="button" className="ow-btn small" onClick={() => go(s.to)}>{i === next ? "Do this next" : "Open"}</button>}
             </li>

@@ -106,8 +106,7 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
         <aside className="ow-side">
           <div className="ow-brand">
             {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark; hidden when the client has no crest file */}
-            <img className="ow-crest" src={`/venues/${brand.slug}/crest.png`} alt="" width={36} height={36} onError={(e) => { e.currentTarget.style.display = "none"; }} />
-            <span className="ow-name">{venue}<small>Owner</small></span>
+            <img className="ow-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${venue}, owner`} width={112} height={112} onError={(e) => { e.currentTarget.style.display = "none"; }} />
           </div>
           <button className="ow-chip ow-lock" type="button" onClick={lock}>Lock</button>
           {canSee && (

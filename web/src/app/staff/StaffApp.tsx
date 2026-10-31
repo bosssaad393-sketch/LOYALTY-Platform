@@ -126,7 +126,8 @@ export default function StaffApp({ initialMe, mock = false, brand }: { initialMe
   return (
     <main className="app staff">
       <header className="st-head">
-        <span className="st-brand">{me.venue} <small>Staff</small></span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
+        <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, staff`} width={96} height={96} />
         <button className="chip" type="button" onClick={lock}>Lock</button>
       </header>
 

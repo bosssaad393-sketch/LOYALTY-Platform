@@ -20,7 +20,7 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
 
   const s = summary.data;
   const trend = s && s.visitsPrev7d > 0 ? Math.round(((s.visits7d - s.visitsPrev7d) / s.visitsPrev7d) * 100) : null;
-  const top = useMemo(() => (guests.data?.guests ?? []).filter((g) => g.visits > 0).sort((a, b) => b.visits - a.visits || b.points - a.points).slice(0, 5), [guests.data]);
+  const top = useMemo(() => (guests.data?.guests ?? []).filter((g) => g.visits > 0).sort((a, b) => b.visits - a.visits || b.points - a.points).slice(0, 3), [guests.data]);
 
   return (
     <>
@@ -28,17 +28,15 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
 
       <div className={`ow-quick${isOwner ? "" : " one"}`} role="group" aria-label="Quick actions">
         <Quick
-          label="Points"
           title="Points given out"
           lead={week.data ? `${n(week.data.issued)} in the last 7 days` : "Today, 7 days, 30 days or all time"}
           onClick={() => setSheet("points")}
         />
         {isOwner && (
-          <Quick label="Message" title="Send an update" lead="Today’s reward and bonus" onClick={onSendUpdate} />
+          <Quick title="Send an update" lead="Today’s reward and bonus" onClick={onSendUpdate} />
         )}
         {isOwner && (
           <Quick
-            label="Reward"
             title="Change the reward"
             lead={rules.data ? `${rules.data.rewardText}, at ${n(rules.data.rewardGoal)} points` : "The reward, the goal and points per BHD"}
             onClick={() => setSheet("reward")}
@@ -57,13 +55,12 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
               <span className="ow-kpi-l">Points held by guests</span><b className="foil"><Count id="ov-held" value={s.pointsHeld} /></b>
               <button type="button" className="ow-link" onClick={() => setSheet("points")}>Points given out<Arrow /></button>
             </div>
-            <div className="ow-panel ow-kpi"><span className="ow-kpi-l">Rewards given, 30 days</span><b className="foil"><Count id="ov-rewards" value={s.rewards30d} /></b></div>
+            <div className="ow-panel ow-kpi"><span className="ow-kpi-l">Rewards given</span><b className="foil"><Count id="ov-rewards" value={s.rewards30d} /></b><em className="quiet">Last 30 days</em></div>
           </div>
           <div className="ow-grid ow-c2 ow-gap-top">
             <section className="ow-panel" aria-labelledby="ow-h-chart">
               <h2 className="ow-h" id="ow-h-chart">Visits per day, last 14 days</h2>
               <VisitsChart days={s.perDay14} />
-              <p className="ow-note">Today is in full gold.</p>
             </section>
             {top.length > 0 && (
               <section className="ow-panel" aria-labelledby="ow-h-top">
@@ -77,7 +74,6 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
                     </li>
                   ))}
                 </ol>
-                <p className="ow-note">Most visits first.</p>
               </section>
             )}
           </div>
@@ -90,10 +86,9 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
   );
 }
 
-function Quick({ label, title, lead, onClick }: { label: string; title: string; lead: string; onClick: () => void }) {
+function Quick({ title, lead, onClick }: { title: string; lead: string; onClick: () => void }) {
   return (
     <button type="button" className="ow-quick-card" onClick={onClick}>
-      <span className="ow-quick-l">{label}</span>
       <span className="ow-quick-t">{title}</span>
       <span className="ow-quick-s">{lead}</span>
       <Arrow />
