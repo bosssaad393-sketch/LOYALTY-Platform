@@ -3,12 +3,12 @@ import { areaFor, makeSessionValue, sessionCookie } from "@/lib/staffAuth";
 import { fail } from "@/lib/staffApi";
 import { signInWithPin } from "@/lib/pin";
 
-const Input = z.object({ pin: z.string().regex(/^\d{4,8}$/), area: z.enum(["owner", "staff"]).optional() });
+const Input = z.object({ pin: z.string().regex(/^\d{4,6}$/), area: z.enum(["owner", "staff"]).optional() });
 
 /** Sign in with a PIN (staff, manager, owner). Wrong tries are counted; too many pause sign-in for a few minutes. */
 export async function POST(request: Request) {
   const parsed = Input.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return fail("Enter your PIN (4 to 8 digits).");
+  if (!parsed.success) return fail("Enter your PIN.");
   const caller = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || request.headers.get("x-real-ip") || "unknown";
   const r = await signInWithPin(parsed.data.pin, caller).catch(() => null);
   if (!r) return fail("Something went wrong. Please try again.", 500);

@@ -85,13 +85,13 @@ describe("PIN login", () => {
 describe("PIN rules", () => {
   it("staff 4+ digits, managers and owners 6+, digits only, no easy PINs", () => {
     expect(pinProblem("7391", "staff")).toBeNull();
-    expect(pinProblem("7391", "owner")).toMatch(/6 to 8/);
+    expect(pinProblem("7391", "owner")).toMatch(/6 digits/);
     expect(pinProblem("482915", "owner")).toBeNull();
     expect(pinProblem("1111", "staff")).toMatch(/easy/);
     expect(pinProblem("1234", "staff")).toMatch(/easy/);
     expect(pinProblem("987654", "owner")).toMatch(/easy/);
     expect(pinProblem("12a4", "staff")).toMatch(/digits/);
-    expect(pinProblem("123456789", "owner")).toMatch(/6 to 8/);
+    expect(pinProblem("123456789", "owner")).toMatch(/6 digits/);
   });
   it("generated PINs always follow the rules", () => {
     for (let i = 0; i < 200; i++) {

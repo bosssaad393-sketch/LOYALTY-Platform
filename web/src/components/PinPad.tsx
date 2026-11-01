@@ -14,16 +14,15 @@ type Props = {
   poweredBy?: string;
 };
 
-const MIN = 4;
-const MAX = 8;
-const AUTO = 6;
+const STAFF_LEN = 4;
+const OWNER_LEN = 6;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"] as const;
 
 /** PIN sign-in for staff and owners: a keypad that also takes the keyboard. No email, no password. */
 export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewards", venueSlug = "demo", poweredBy = "Powered by LOYALTY" }: Props) {
   const [pin, setPin] = useState("");
   const owner = role === "owner";
-  const max = owner ? AUTO : MAX; // owners: exactly six digits, no spare dot
+  const max = owner ? OWNER_LEN : STAFF_LEN; // exactly this many digits and dots, no spare one
 
   const press = useCallback((k: (typeof KEYS)[number]) => {
     if (busy) return;
@@ -33,12 +32,12 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
   // The dots empty as soon as the PIN is sent, so a wrong try starts clean.
   const send = useCallback(() => { onSubmit(pin); setPin(""); }, [onSubmit, pin]);
 
-  // Six digits sign in at once (a short pause lets a longer PIN keep going); 4, 5, 7 and 8 digits use the button or Enter.
+  // A full PIN (4 for staff, 6 for owners) signs in at once.
   useEffect(() => {
-    if (pin.length !== AUTO || busy) return;
-    const t = setTimeout(send, owner ? 120 : 300);
+    if (pin.length !== max || busy) return;
+    const t = setTimeout(send, 120);
     return () => clearTimeout(t);
-  }, [pin, busy, send, owner]);
+  }, [pin, busy, send, max]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -46,7 +45,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
       if (/^\d$/.test(e.key)) press(e.key as (typeof KEYS)[number]);
       else if (e.key === "Backspace") press("back");
       else if (e.key === "Escape") press("clear");
-      else if (e.key === "Enter" && pin.length >= MIN && !busy) send();
+      else if (e.key === "Enter" && pin.length === max && !busy) send();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -65,7 +64,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
         <p className="pp-sub">{owner ? "Enter your PIN" : "Enter your PIN to start your shift"}</p>
 
         <div className="pp-dots" role="img" aria-label={`${pin.length} digits entered`}>
-          {Array.from({ length: max }, (_, i) => <i key={i} className={i < pin.length ? "on" : ""} hidden={!owner && i >= Math.max(pin.length + 1, 4)} />)}
+          {Array.from({ length: max }, (_, i) => <i key={i} className={i < pin.length ? "on" : ""} />)}
         </div>
         <p className="pp-err" role="alert">{error ?? ""}</p>
 
@@ -77,7 +76,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
           ))}
         </div>
 
-        <button className="pp-go" type="button" disabled={busy || pin.length < MIN} onClick={send}>{busy ? "Checking…" : owner ? "Enter" : "Start my shift"}</button>
+        <button className="pp-go" type="button" disabled={busy || pin.length < max} onClick={send}>{busy ? "Checking…" : owner ? "Enter" : "Start my shift"}</button>
         <p className="pp-help">Forgot your PIN? {owner ? "Ask your LOYALTY developer." : "Ask the owner or a manager."}</p>
         {poweredBy && <p className="pp-pw">{poweredBy}</p>}
       </div>

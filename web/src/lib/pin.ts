@@ -31,7 +31,7 @@ export function minPinLength(role: Staff["role"]): number {
 /** null when the PIN is acceptable, otherwise the reason in plain words. */
 export function pinProblem(pin: string, role: Staff["role"]): string | null {
   if (!/^\d+$/.test(pin)) return "A PIN is digits only.";
-  if (pin.length < minPinLength(role) || pin.length > 8) return `A PIN for this role is ${minPinLength(role)} to 8 digits.`;
+  if (pin.length !== minPinLength(role)) return `A PIN for this role is ${minPinLength(role)} digits.`;
   if (/^(\d)\1+$/.test(pin)) return "That PIN is too easy to guess (all the same digit).";
   const d = [...pin].map(Number);
   const step = d[1] - d[0];

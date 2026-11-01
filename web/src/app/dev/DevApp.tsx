@@ -354,7 +354,7 @@ function Access({ team, reload }: { team: Person[] | null; reload: () => void })
             </select>
           </label>
           <label className="ow-field"><span className="ow-lbl">PIN</span>
-            <input className="ow-in" name="pin" inputMode="numeric" pattern="[0-9]{4,8}" minLength={4} maxLength={8} autoComplete="off" required placeholder="Staff 4 to 8 digits, owner 6 to 8" />
+            <input className="ow-in" name="pin" inputMode="numeric" pattern="[0-9]{4,6}" minLength={4} maxLength={6} autoComplete="off" required placeholder="Staff 4 digits, owner 6 digits" />
           </label>
           <button className="ow-btn primary" type="submit">Set this PIN</button>
         </form>
