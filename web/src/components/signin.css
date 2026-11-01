@@ -4,19 +4,19 @@
 .si *, .si *::before, .si *::after { box-sizing: border-box; }
 .si-col { position: relative; width: 100%; max-width: 440px; min-height: 100dvh; margin: 0 auto; padding: max(46px, env(safe-area-inset-top)) 28px max(22px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
 .si-ic { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.si input { font: inherit; color: inherit; background: none; border: 0; outline: 0; width: 100%; min-width: 0; }
+.si input { font: inherit; color: inherit; background: none; border: 0; outline: 0; width: 100%; min-width: 0; min-height: 44px; }
 .si input::placeholder { color: var(--dim); opacity: 1; }
 .si button { font: inherit; }
-.si-l { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); }
+.si-l { display: block; font-size: 12px; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); }
 .si-f { display: block; margin-top: 14px; }
 .si-in { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.si-eye { background: none; border: 0; padding: 6px; margin: -6px; color: var(--gold-dim); cursor: pointer; display: grid; place-items: center; }
+.si-eye { background: none; border: 0; padding: 10px; margin: -10px; min-width: 44px; min-height: 44px; box-sizing: border-box; color: var(--gold-dim); cursor: pointer; display: grid; place-items: center; }
 .si-eye:focus-visible { outline: 2px solid var(--gold2); outline-offset: 2px; border-radius: 6px; }
 .si-err { margin-top: 14px; color: var(--bad); font-size: 14px; line-height: 1.4; }
 .si-go { width: 100%; cursor: pointer; border: 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--on-gold); }
 .si-go:disabled { opacity: .6; cursor: default; }
 .si-go:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-.si-pw { margin-top: auto; padding-top: 28px; text-align: center; font-size: 10px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--dim); }
+.si-pw { margin-top: auto; padding-top: 28px; text-align: center; font-size: 12px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--dim); }
 .si-pw b { color: var(--gold); }
 .si .foil { filter: drop-shadow(0 1px 0 rgb(var(--gold-rgb) / .28)); }
 
@@ -34,7 +34,7 @@
 /* the venue name is carried by the logo; kept in the page for screen readers */
 .si-owner-a .si-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .si-owner-a .si-rule { display: block; width: 70px; height: 1px; margin: 18px auto 14px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
-.si-owner-a .si-tag { font-size: 11px; font-weight: 700; letter-spacing: .5em; padding-left: .5em; color: var(--gold); text-transform: uppercase; }
+.si-owner-a .si-tag { font-size: 12px; font-weight: 700; letter-spacing: .5em; padding-left: .5em; color: var(--gold); text-transform: uppercase; }
 .si-owner-a .si-body { margin-top: clamp(20px, 5dvh, 44px); padding: 28px 24px 24px; border-radius: 28px; border: 1px solid rgb(var(--gold-rgb) / .55); background: linear-gradient(145deg, rgb(255 255 255 / .09), rgb(255 255 255 / .03)); -webkit-backdrop-filter: blur(22px) saturate(1.2); backdrop-filter: blur(22px) saturate(1.2); box-shadow: 0 24px 60px rgb(0 0 0 / .55), inset 0 1px 0 rgb(255 255 255 / .12); }
 .si-owner-a .si-h { font: 600 27px/1.1 var(--serif); text-align: center; }
 .si-owner-a .si-s { text-align: center; color: var(--muted); font-size: 14px; margin: 8px 0 22px; }
@@ -82,7 +82,7 @@
 .si-staff-a .si-go { margin-top: 20px; height: 58px; border-radius: 999px; font-size: 17px; font-weight: 800; background: linear-gradient(135deg, var(--gold-hi), var(--gold)); box-shadow: 0 12px 30px rgb(var(--gold-rgb) / .4); }
 .si-staff-a .si-go .si-ic { width: 22px; height: 22px; stroke-width: 2.2; }
 .si-staff-a .si-steps { list-style: none; display: flex; justify-content: space-between; gap: 6px; margin: 26px 0 0; padding: 0 2px; }
-.si-staff-a .si-steps li { text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--muted); width: 31%; }
+.si-staff-a .si-steps li { text-align: center; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--muted); width: 31%; }
 .si-staff-a .si-steps i { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 6px; background: rgb(var(--gold-rgb) / .14); border: 1px solid rgb(var(--gold-rgb) / .45); color: var(--gold2); }
 .si-staff-a .si-err { text-align: center; }
 
