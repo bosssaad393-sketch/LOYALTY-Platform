@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type CSSProperties, type PointerEvent } from "react";
+import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
 
 type Props = {
   venueName: string;
@@ -30,6 +30,7 @@ function displayName(name: string) {
  */
 export default function BlackCard({ venueName, venueSlug, memberName, since, points, goal, code, qr }: Props) {
   const card = useRef<HTMLElement>(null);
+  const [noCrest, setNoCrest] = useState(false);
   const ready = points >= goal;
   const pct = Math.max(0, Math.min(100, Math.round((points / goal) * 100)));
   const name = displayName(memberName);
@@ -64,7 +65,12 @@ export default function BlackCard({ venueName, venueSlug, memberName, since, poi
           {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
           <img src={`/venues/${venueSlug}/icon.png`} alt="" width={30} height={30} />
         </div>
-        <div className={`bc-brand foil ${venueName.length > 16 ? "s" : venueName.length > 8 ? "m" : ""}`}>{venueName}</div>
+        {noCrest ? (
+          <div className={`bc-brand foil ${venueName.length > 16 ? "s" : venueName.length > 8 ? "m" : ""}`}>{venueName}</div>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- the venue's own logo lockup
+          <img className="bc-crest" src={`/venues/${venueSlug}/crest.png`} alt={venueName} onError={() => setNoCrest(true)} />
+        )}
         <div className="bc-tag">Member</div>
 
         <div className="bc-codel">Your code</div>

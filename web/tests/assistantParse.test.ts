@@ -50,7 +50,7 @@ describe("reward", () => {
 
   it("changes both", () => {
     expect(act("change the reward to a free dessert at 300 points")).toEqual({ type: "set_reward", rewardGoal: 300, rewardText: "A free dessert" });
-    expect(act("make the reward a free shisha for 500 points")).toEqual({ type: "set_reward", rewardGoal: 500, rewardText: "A free shisha" });
+    expect(act("make the reward a free dessert for 500 points")).toEqual({ type: "set_reward", rewardGoal: 500, rewardText: "A free dessert" });
   });
 
   it("asks when it is not clear, and refuses silly numbers", () => {

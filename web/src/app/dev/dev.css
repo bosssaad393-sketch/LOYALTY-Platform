@@ -132,7 +132,7 @@
 .sc-copy { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--gold2); font: 600 14px/1.2 var(--sans); text-decoration: underline; text-decoration-color: rgb(var(--gold-rgb) / 0.4); text-underline-offset: 4px; cursor: pointer; }
 .sc-copy:hover { text-decoration-color: currentColor; }
 
-/* phones: a long client name (e.g. "N10 Shisha Lounge by Hydur") used to push the page to ~560 px wide. Let it wrap. */
+/* phones: a long client name (e.g. "Nº10 by Hydur") used to push the page to ~560 px wide. Let it wrap. */
 @media (max-width: 760px) {
   .dv-shell { grid-template-columns: minmax(0, 1fr); }
   .dv-side { min-width: 0; }

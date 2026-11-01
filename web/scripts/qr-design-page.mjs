@@ -118,7 +118,7 @@ export function qrDesignPage({ C, venue, VARIANTS, SIZES, results }) {
     <figure>
       <div class="card">
         <img class="crest" src="../../venues/${venue}/crest.png" alt="">
-        <div class="venue">N10 Shisha Lounge<br>by Hydur</div>
+        <div class="venue">Nº10<br>by Hydur</div>
         <div class="name">Sample Member</div>
         <div class="pts"><b>240</b>points of 500</div>
         <img class="qr" src="png/b-soft-till.png" alt="Sample till QR code, soft corners">
