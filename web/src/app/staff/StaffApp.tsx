@@ -13,12 +13,7 @@ type Perk = { id: string; title: string; note: string | null; validUntil: string
 type Tab = "guest" | "recent" | "help" | "end";
 type Res<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 
-/** Development only: with ?mock=1 the screens run on fake data (the module is removed from production builds). */
-async function api<T>(path: string, body?: unknown, mock = false): Promise<Res<T>> {
-  if (process.env.NODE_ENV !== "production" && mock) {
-    const { mockApi } = await import("../owner/mock");
-    return mockApi<T>(path, body === undefined ? "GET" : "POST", body) as Promise<Res<T>>;
-  }
+async function api<T>(path: string, body?: unknown): Promise<Res<T>> {
   const res = await fetch(path, body === undefined ? undefined : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
   if (!res) return { ok: false, error: "No connection. Try again.", status: 0 };
   const data = await res.json().catch(() => ({}));
@@ -30,7 +25,7 @@ const time = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: 
 const dayKey = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Bahrain" });
 const QUICK = [3, 5, 10, 15, 20];
 
-export default function StaffApp({ initialMe, mock = false, brand }: { initialMe: Me | null; mock?: boolean; look?: SignInLook; brand: BrandProps }) {
+export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; look?: SignInLook; brand: BrandProps }) {
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>("guest");
   const [guest, setGuest] = useState<Guest | null>(null);
@@ -46,50 +41,50 @@ export default function StaffApp({ initialMe, mock = false, brand }: { initialMe
   const signedOut = useCallback(() => { setMe(null); setGuest(null); setTab("guest"); }, []);
 
   const loadRecent = useCallback(async () => {
-    const r = await api<{ items: Recent[] }>("/api/staff/recent", undefined, mock);
+    const r = await api<{ items: Recent[] }>("/api/staff/recent", undefined);
     if (r.ok) setRecent(r.data.items); else if (r.status === 401) signedOut();
-  }, [mock, signedOut]);
+  }, [signedOut]);
   const loadPerks = useCallback(async () => {
-    const r = await api<{ perks: Perk[] }>("/api/staff/perks", undefined, mock);
+    const r = await api<{ perks: Perk[] }>("/api/staff/perks", undefined);
     if (r.ok) setPerks(r.data.perks);
-  }, [mock]);
+  }, []);
 
   // Once signed in: today's list (for the tally) and any thank-you rewards waiting.
   useEffect(() => {
     if (!me) return;
     let live = true;
-    Promise.all([api<{ items: Recent[] }>("/api/staff/recent", undefined, mock), api<{ perks: Perk[] }>("/api/staff/perks", undefined, mock)]).then(([a, b]) => {
+    Promise.all([api<{ items: Recent[] }>("/api/staff/recent", undefined), api<{ perks: Perk[] }>("/api/staff/perks", undefined)]).then(([a, b]) => {
       if (!live) return;
       if (a.ok) setRecent(a.data.items);
       if (b.ok) setPerks(b.data.perks);
     });
     return () => { live = false; };
-  }, [me, mock]);
+  }, [me]);
 
   async function signIn(pin: string) {
     setBusy(true); setLoginError(null);
-    const r = await api<Me>("/api/staff/pin-login", { pin, area: "staff" }, mock);
+    const r = await api<Me>("/api/staff/pin-login", { pin, area: "staff" });
     setBusy(false);
     if (r.ok) setMe(r.data); else setLoginError(r.error);
   }
 
   async function lock() {
-    await api("/api/staff/logout", { area: "staff" }, mock);
+    await api("/api/staff/logout", { area: "staff" });
     signedOut();
   }
 
   const find = useCallback(async (code: string) => {
     setScanning(false); setMsg(null); setBusy(true);
-    const r = await api<Guest>(`/api/staff/card?code=${encodeURIComponent(code)}`, undefined, mock);
+    const r = await api<Guest>(`/api/staff/card?code=${encodeURIComponent(code)}`, undefined);
     setBusy(false);
     if (r.ok) { setGuest(r.data); setBill(""); setLastEntry(null); }
     else if (r.status === 401) signedOut();
     else setMsg({ kind: "bad", text: r.error });
-  }, [signedOut, mock]);
+  }, [signedOut]);
 
   async function act(path: string, body: unknown, success: (d: { guest: Guest; ledgerId?: number; added?: number }) => string) {
     setBusy(true); setMsg(null);
-    const r = await api<{ guest: Guest; ledgerId?: number; added?: number }>(path, body, mock);
+    const r = await api<{ guest: Guest; ledgerId?: number; added?: number }>(path, body);
     setBusy(false);
     if (!r.ok) { if (r.status === 401) signedOut(); else setMsg({ kind: "bad", text: r.error }); return; }
     setGuest(r.data.guest);
@@ -99,7 +94,7 @@ export default function StaffApp({ initialMe, mock = false, brand }: { initialMe
   }
 
   async function claim(p: Perk) {
-    const r = await api("/api/staff/perks", { id: p.id }, mock);
+    const r = await api("/api/staff/perks", { id: p.id });
     if (r.ok) { setPerks((l) => l.filter((x) => x.id !== p.id)); setMsg({ kind: "ok", text: "Marked as used. Enjoy!" }); }
     else setMsg({ kind: "bad", text: r.error });
   }

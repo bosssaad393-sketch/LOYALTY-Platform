@@ -5,7 +5,7 @@ import { ago, n } from "./format";
 import { Confirm, Loading, LoadError, Msg, PageHead, useDebounced, useGet } from "./ui";
 import type { Call, Guest, Note } from "./types";
 
-export default function Guests({ call, isOwner, mock }: { call: Call; isOwner: boolean; mock: boolean }) {
+export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean }) {
   const [q, setQ] = useState("");
   const dq = useDebounced(q.trim(), 250);
   const list = useGet<{ guests: Guest[] }>(call, `/api/owner/guests?q=${encodeURIComponent(dq)}`);
@@ -37,7 +37,7 @@ export default function Guests({ call, isOwner, mock }: { call: Call; isOwner: b
           </label>
         </form>
         {isOwner && (
-          <a className="ow-btn" href="/api/owner/export" download onClick={mock ? (e) => { e.preventDefault(); setNote({ kind: "ok", text: "Mock data: the real app downloads a spreadsheet here." }); } : undefined}>Export CSV</a>
+          <a className="ow-btn" href="/api/owner/export" download>Export CSV</a>
         )}
       </div>
       <Msg note={note} />

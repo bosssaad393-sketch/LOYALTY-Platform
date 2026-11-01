@@ -28,7 +28,7 @@ const TABS: { id: Tab; label: string; ownerOnly?: boolean }[] = [
 type Props = {
   initialMe: Me | null;
   /** Development only: run on fake data. page.tsx sets this, and api.ts checks the environment again. */
-  mock?: boolean;
+  
   initialTab?: Tab;
   /** Which sign-in design to show (A or B). */
   look?: SignInLook;
@@ -36,7 +36,7 @@ type Props = {
   brand: BrandProps;
 };
 
-export default function OwnerApp({ initialMe, mock = false, initialTab = "overview", look = "a", brand }: Props) {
+export default function OwnerApp({ initialMe, initialTab = "overview", look = "a", brand }: Props) {
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>(initialTab);
   // Is 1 after "Send an update" is chosen on the Overview, so Offers opens with the form ready. Any other tab click clears it.
@@ -47,11 +47,11 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
   const out = useCallback(() => setMe(null), []);
   const call: Call = useCallback(
     <T,>(path: string, method?: string, body?: unknown) =>
-      api<T>(path, method, body, mock).then((r) => {
+      api<T>(path, method, body).then((r) => {
         if (!r.ok && r.status === 401) out();
         return r;
       }),
-    [mock, out],
+    [out],
   );
 
   const tabs = TABS.filter((t) => !t.ownerOnly || isOwner);
@@ -86,7 +86,7 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
 
   /** Used by the sign-in block below. Returns an error text, or null when the login worked. */
   async function signIn(pin: string): Promise<string | null> {
-    const r = await api<Me>("/api/staff/pin-login", "POST", { pin, area: "owner" }, mock);
+    const r = await api<Me>("/api/staff/pin-login", "POST", { pin, area: "owner" });
     if (r.ok) { setMe(r.data); return null; }
     return r.error;
   }
@@ -130,18 +130,17 @@ export default function OwnerApp({ initialMe, mock = false, initialTab = "overvi
           ) : (
             <>
               {current === "overview" && <Overview call={call} isOwner={isOwner} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
-              {current === "guests" && <Guests call={call} isOwner={isOwner} mock={mock} />}
+              {current === "guests" && <Guests call={call} isOwner={isOwner} />}
               {current === "rules" && <Rules call={call} isOwner={isOwner} />}
               {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} />}
               {current === "assistant" && isOwner && <Assistant call={call} />}
               {current === "team" && isOwner && <Team call={call} />}
-              {current === "privacy" && isOwner && <Privacy call={call} venue={venue} mock={mock} />}
+              {current === "privacy" && isOwner && <Privacy call={call} venue={venue} />}
             </>
           )}
           <p className="ow-end">Signed in as {me.name}{brand.poweredBy ? ` · ${brand.poweredBy}` : ""}</p>
         </main>
       </div>
-      {mock && <span className="ow-mockflag">Mock data</span>}
     </div>
   );
 }

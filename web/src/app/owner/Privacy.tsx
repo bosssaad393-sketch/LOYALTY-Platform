@@ -8,14 +8,13 @@ import type { Call, DeletionRequest, Note, Privacy as PrivacyData } from "./type
 const MIN = 50;
 const MAX = 8000;
 
-export default function Privacy({ call, venue, mock }: { call: Call; venue: string; mock: boolean }) {
+export default function Privacy({ call, venue }: { call: Call; venue: string }) {
   const loaded = useGet<PrivacyData>(call, "/api/owner/privacy");
   const [target, setTarget] = useState<DeletionRequest | null>(null);
   const [busy, setBusy] = useState(false);
   const [eraseNote, setEraseNote] = useState<Note | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
   const [termsNote, setTermsNote] = useState<Note | null>(null);
-  const [exportNote, setExportNote] = useState<Note | null>(null);
   const termsId = useId();
   const countId = useId();
 
@@ -84,9 +83,8 @@ export default function Privacy({ call, venue, mock }: { call: Call; venue: stri
               <h2 className="ow-h" id="ow-h-export">Export</h2>
               <p className="ow-note ow-lead">A spreadsheet of your guests with their phone, email and points. Every download is logged.</p>
               <div className="ow-actions">
-                <a className="ow-btn" href="/api/owner/export" download onClick={mock ? (e) => { e.preventDefault(); setExportNote({ kind: "ok", text: "Mock data: the real app downloads a spreadsheet here." }); } : undefined}>Download all guests (CSV)</a>
+                <a className="ow-btn" href="/api/owner/export" download>Download all guests (CSV)</a>
               </div>
-              <Msg note={exportNote} />
             </section>
           </div>
 

@@ -139,3 +139,4 @@
   .dv-brand { min-width: 0; }
   .dv-nav { min-width: 0; }
 }
+.dv-pin-form { display: grid; gap: 14px; margin-top: 12px; max-width: 420px; }

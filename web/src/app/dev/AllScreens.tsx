@@ -26,7 +26,7 @@ function useCopy() {
  * and this developer area. The guest join page is previewed live. Staff and owner open in their own tab (each screen
  * has its own sign-in cookie, see lib/staffAuth.ts) and are shown here as a still picture of their PIN screen.
  */
-export default function AllScreens({ brand, mock }: { brand: BrandProps; mock: boolean }) {
+export default function AllScreens({ brand }: { brand: BrandProps }) {
   const origin = useOrigin();
   const links = screenLinks(origin, brand.slug);
   const { copied, copy } = useCopy();
@@ -89,7 +89,6 @@ export default function AllScreens({ brand, mock }: { brand: BrandProps; mock: b
           </div>
           <div className="sc-act">
             {open(links.staff)}{copyBtn("staff", links.staff)}
-            {mock && <a className="sc-copy" href="/staff?mock=1" target="_blank" rel="noopener">Demo version</a>}
           </div>
         </article>
 
@@ -103,7 +102,6 @@ export default function AllScreens({ brand, mock }: { brand: BrandProps; mock: b
           </div>
           <div className="sc-act">
             {open(links.owner)}{copyBtn("owner", links.owner)}
-            {mock && <a className="sc-copy" href="/owner?mock=1&signedout=1" target="_blank" rel="noopener">Demo version</a>}
           </div>
         </article>
 
@@ -116,7 +114,6 @@ export default function AllScreens({ brand, mock }: { brand: BrandProps; mock: b
           <div className="sc-act">{copyBtn("dev", links.dev)}</div>
         </article>
       </section>
-      {mock && <p className="sc-hint">Demo versions run on invented data and only exist on the development server.</p>}
     </>
   );
 }

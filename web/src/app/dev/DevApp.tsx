@@ -46,7 +46,7 @@ function useCopy() {
 }
 
 /** Developer area: one place to see the health of this client, connect the till, answer the owner's requests, and give people their first PIN. */
-export default function DevApp({ initialMe, mock = false, look, brand, initialSection = "overview" }: { initialMe: Me | null; mock?: boolean; look: SignInLook; brand: BrandProps; initialSection?: Section }) {
+export default function DevApp({ initialMe, look, brand, initialSection = "overview" }: { initialMe: Me | null; look: SignInLook; brand: BrandProps; initialSection?: Section }) {
   const [me, setMe] = useState<Me | null>(initialMe);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -61,18 +61,18 @@ export default function DevApp({ initialMe, mock = false, look, brand, initialSe
   useEffect(() => {
     if (!isDev) return;
     let live = true;
-    Promise.all([api<Pos>("/api/dev/pos", "GET", undefined, mock), api<{ requests: Req[] }>("/api/dev/requests", "GET", undefined, mock), api<{ team: Person[] }>("/api/dev/team", "GET", undefined, mock)]).then(([a, b, c]) => {
+    Promise.all([api<Pos>("/api/dev/pos", "GET", undefined), api<{ requests: Req[] }>("/api/dev/requests", "GET", undefined), api<{ team: Person[] }>("/api/dev/team", "GET", undefined)]).then(([a, b, c]) => {
       if (!live) return;
       if (a.ok) setPos(a.data);
       if (b.ok) setReqs(b.data.requests);
       if (c.ok) setTeam(c.data.team);
     });
     return () => { live = false; };
-  }, [isDev, mock, tick]);
+  }, [isDev, tick]);
 
   async function signIn(email: string, password: string) {
     setBusy(true); setError(null);
-    const r = await api<Me>("/api/staff/login", "POST", { email, password }, mock);
+    const r = await api<Me>("/api/staff/login", "POST", { email, password });
     setBusy(false);
     if (r.ok) setMe(r.data); else setError(r.error);
   }
@@ -102,21 +102,20 @@ export default function DevApp({ initialMe, mock = false, look, brand, initialSe
               </button>
             ))}
           </nav>
-          <button className="ow-chip dv-lock" type="button" onClick={async () => { await api("/api/staff/logout", "POST", {}, mock); setMe(null); }}>Lock</button>
+          <button className="ow-chip dv-lock" type="button" onClick={async () => { await api("/api/staff/logout", "POST", {}); setMe(null); }}>Lock</button>
           {brand.poweredBy && <p className="dv-powered">{brand.poweredBy}</p>}
         </aside>
         <main className="dv-main" id="ow-main" tabIndex={-1}>
           {!isDev ? (
             <section className="ow-panel"><p className="ow-msg bad">This area is for developer logins.</p></section>
           ) : section === "overview" ? <Overview pos={pos} reqs={reqs} team={team} go={setSection} />
-            : section === "screens" ? <AllScreens brand={brand} mock={mock} />
-            : section === "till" ? <Till pos={pos} mock={mock} reload={reload} />
-            : section === "requests" ? <Requests reqs={reqs} mock={mock} reload={reload} />
-            : section === "calabos" ? <CalabosChat mock={mock} />
-            : <Access team={team} mock={mock} reload={reload} />}
+            : section === "screens" ? <AllScreens brand={brand} />
+            : section === "till" ? <Till pos={pos} reload={reload} />
+            : section === "requests" ? <Requests reqs={reqs} reload={reload} />
+            : section === "calabos" ? <CalabosChat />
+            : <Access team={team} reload={reload} />}
         </main>
       </div>
-      {mock && <span className="ow-mockflag">Mock data</span>}
     </div>
   );
 }
@@ -181,7 +180,7 @@ function Overview({ pos, reqs, team, go }: { pos: Pos | null; reqs: Req[] | null
   );
 }
 
-function Till({ pos, mock, reload }: { pos: Pos | null; mock: boolean; reload: () => void }) {
+function Till({ pos, reload }: { pos: Pos | null; reload: () => void }) {
   const [key, setKey] = useState<string | null>(null);
   const [note, setNote] = useState<Note | null>(null);
   const [filter, setFilter] = useState<"all" | "problems">("all");
@@ -190,12 +189,12 @@ function Till({ pos, mock, reload }: { pos: Pos | null; mock: boolean; reload: (
 
   async function makeKey() {
     if (pos?.configured && !window.confirm("A new key replaces the old one. The till stops working until it uses the new key. Continue?")) return;
-    const r = await api<{ key: string }>("/api/dev/pos", "POST", {}, mock);
+    const r = await api<{ key: string }>("/api/dev/pos", "POST", {});
     if (!r.ok) { setNote({ kind: "bad", text: r.error }); return; }
     setKey(r.data.key); setNote(null); reload();
   }
   async function toggle() {
-    const r = await api("/api/dev/pos", "PATCH", { status: pos?.status === "active" ? "disabled" : "active" }, mock);
+    const r = await api("/api/dev/pos", "PATCH", { status: pos?.status === "active" ? "disabled" : "active" });
     if (!r.ok) setNote({ kind: "bad", text: r.error }); else reload();
   }
   const sample = `curl -X POST ${pos.endpoint} \\\n  -H "Authorization: Bearer ${key ?? "<your key>"}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"type":"ping"}'`;
@@ -266,7 +265,7 @@ function Till({ pos, mock, reload }: { pos: Pos | null; mock: boolean; reload: (
   );
 }
 
-function Requests({ reqs, mock, reload }: { reqs: Req[] | null; mock: boolean; reload: () => void }) {
+function Requests({ reqs, reload }: { reqs: Req[] | null; reload: () => void }) {
   const [tab, setTab] = useState<"open" | "in_progress" | "done">("open");
   const [note, setNote] = useState<Note | null>(null);
   const [text, setText] = useState<Record<string, string>>({});
@@ -275,7 +274,7 @@ function Requests({ reqs, mock, reload }: { reqs: Req[] | null; mock: boolean; r
   const shown = reqs.filter((r) => r.status === tab);
 
   async function set(id: string, status: "in_progress" | "done") {
-    const r = await api("/api/dev/requests", "PATCH", { id, status, result: text[id]?.trim() || undefined }, mock);
+    const r = await api("/api/dev/requests", "PATCH", { id, status, result: text[id]?.trim() || undefined });
     if (!r.ok) setNote({ kind: "bad", text: r.error }); else { setNote(null); reload(); }
   }
 
@@ -309,7 +308,7 @@ function Requests({ reqs, mock, reload }: { reqs: Req[] | null; mock: boolean; r
   );
 }
 
-function Access({ team, mock, reload }: { team: Person[] | null; mock: boolean; reload: () => void }) {
+function Access({ team, reload }: { team: Person[] | null; reload: () => void }) {
   const [shown, setShown] = useState<{ who: string; pin: string } | null>(null);
   const [note, setNote] = useState<Note | null>(null);
   const { copied, copy } = useCopy();
@@ -317,9 +316,21 @@ function Access({ team, mock, reload }: { team: Person[] | null; mock: boolean; 
 
   async function setPin(p: Person) {
     if (p.hasPin && !window.confirm(`Make a new PIN for ${p.name}? The old one stops working at once.`)) return;
-    const r = await api<{ pin: string }>("/api/dev/pin", "POST", { staffId: p.id }, mock);
+    const r = await api<{ pin: string }>("/api/dev/pin", "POST", { staffId: p.id });
     if (!r.ok) { setNote({ kind: "bad", text: r.error }); return; }
     setNote(null); setShown({ who: p.name, pin: r.data.pin }); reload();
+  }
+
+  async function choosePin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const staffId = String(f.get("who") ?? ""), pin = String(f.get("pin") ?? "").trim();
+    const p = team?.find((x) => x.id === staffId);
+    if (!p) return;
+    const r = await api<{ pin: string }>("/api/dev/pin", "POST", { staffId, pin });
+    if (!r.ok) { setNote({ kind: "bad", text: r.error }); return; }
+    setNote(null); setShown({ who: p.name, pin: r.data.pin }); reload();
+    e.currentTarget.reset();
   }
 
   return (
@@ -333,6 +344,21 @@ function Access({ team, mock, reload }: { team: Person[] | null; mock: boolean; 
         </div>
       )}
       <Msg note={note} />
+      <section className="ow-panel" aria-label="Choose a PIN">
+        <h2 className="ow-h">Choose a PIN</h2>
+        <form className="dv-pin-form" onSubmit={choosePin}>
+          <label className="ow-field"><span className="ow-lbl">Person</span>
+            <select className="ow-in ow-select" name="who" required defaultValue="">
+              <option value="" disabled>Pick someone</option>
+              {team.filter((p) => p.active).map((p) => <option key={p.id} value={p.id}>{p.name} ({p.role})</option>)}
+            </select>
+          </label>
+          <label className="ow-field"><span className="ow-lbl">PIN</span>
+            <input className="ow-in" name="pin" inputMode="numeric" pattern="[0-9]{4,8}" minLength={4} maxLength={8} autoComplete="off" required placeholder="Staff 4 to 8 digits, owner 6 to 8" />
+          </label>
+          <button className="ow-btn primary" type="submit">Set this PIN</button>
+        </form>
+      </section>
       <section className="ow-panel ow-flush" aria-label="People">
         <ul className="ow-list">
           {team.map((p) => (
@@ -350,7 +376,7 @@ function Access({ team, mock, reload }: { team: Person[] | null; mock: boolean; 
 type Msg = { id: string; author: "dev" | "calabos"; body: string; status: string; replyTo: string | null; createdAt: string };
 
 /** Chat with CALABOS: write what you need done about LOYALTY. CALABOS (on your PC) picks it up, turns requests into tasks and answers here. */
-function CalabosChat({ mock }: { mock: boolean }) {
+function CalabosChat() {
   const [msgs, setMsgs] = useState<Msg[] | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -359,10 +385,10 @@ function CalabosChat({ mock }: { mock: boolean }) {
 
   useEffect(() => {
     let live = true;
-    api<{ messages: Msg[] }>("/api/dev/calabos", "GET", undefined, mock).then((r) => { if (live && r.ok) setMsgs(r.data.messages); });
+    api<{ messages: Msg[] }>("/api/dev/calabos", "GET", undefined).then((r) => { if (live && r.ok) setMsgs(r.data.messages); });
     const t = setInterval(() => setTick((n) => n + 1), 6000);
     return () => { live = false; clearInterval(t); };
-  }, [mock, tick]);
+  }, [tick]);
 
   useEffect(() => { document.getElementById("cal-end")?.scrollIntoView({ block: "nearest" }); }, [msgs]);
 
@@ -371,7 +397,7 @@ function CalabosChat({ mock }: { mock: boolean }) {
     const m = text.trim();
     if (!m || busy) return;
     setBusy(true); setNote(null);
-    const r = await api("/api/dev/calabos", "POST", { message: m }, mock);
+    const r = await api("/api/dev/calabos", "POST", { message: m });
     setBusy(false);
     if (!r.ok) { setNote({ kind: "bad", text: r.error }); return; }
     setText(""); setTick((n) => n + 1);
