@@ -17,6 +17,8 @@ type Props = {
   venueSlug?: string;
   /** The "Powered by ..." line; empty hides it. */
   poweredBy?: string;
+  /** The word under the logo; "Owner" unless the developer screen uses it. */
+  roleLabel?: string;
 };
 
 const Icon = ({ d }: { d: ReactNode }) => (
@@ -33,7 +35,7 @@ const SCAN = <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 
 const PLUS = <><circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" /></>;
 const SMILE = <><circle cx="12" cy="12" r="9" /><path d="M8 14.5s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01" /></>;
 
-export default function SignIn({ role, look, busy, error, onSubmit, venueName = "Rewards", venueSlug = "demo", poweredBy = "Powered by LOYALTY" }: Props) {
+export default function SignIn({ role, look, busy, error, onSubmit, venueName = "Rewards", venueSlug = "demo", poweredBy = "Powered by LOYALTY", roleLabel = "Owner" }: Props) {
   const [show, setShow] = useState(false);
   const crest = `/venues/${venueSlug}/crest.png`;
   const marble = `/venues/${venueSlug}/marble.jpg`;
@@ -89,7 +91,7 @@ export default function SignIn({ role, look, busy, error, onSubmit, venueName = 
             <Crest src={crest} size={150} />
             <h1 className="si-name">{venueName}</h1>
             <i className="si-rule" aria-hidden="true" />
-            <span className="si-tag">Owner</span>
+            <span className="si-tag">{roleLabel}</span>
           </header>
           <section className="si-body">
             <h2 className="si-h">Welcome back</h2>
@@ -105,7 +107,7 @@ export default function SignIn({ role, look, busy, error, onSubmit, venueName = 
           <div className="si-card" aria-hidden="true">
             <span className="si-plate"><Crest src={crest} size={22} /></span>
             <span className="si-ck foil">{venueName}</span>
-            <span className="si-ct">Owner</span>
+            <span className="si-ct">{roleLabel}</span>
             <span className="si-cw">Private access</span>
           </div>
           <section className="si-body">

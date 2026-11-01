@@ -77,7 +77,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
     if (r.ok) setMe(r.data); else setError(r.error);
   }
 
-  if (!me) return <SignIn role="owner" look={look} busy={busy} error={error} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} />;
+  if (!me) return <SignIn role="owner" look={look} busy={busy} error={error} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} roleLabel="Developer" />;
 
   const open = reqs?.filter((r) => r.status !== "done").length ?? 0;
   const NAV: { id: Section; label: string; badge?: number }[] = [
