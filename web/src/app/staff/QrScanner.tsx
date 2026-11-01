@@ -7,11 +7,13 @@ import jsQR from "jsqr";
 export default function QrScanner({ onCode, onClose }: { onCode: (text: string) => void; onClose: () => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState("");
+  const [found, setFound] = useState(false);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
     let raf = 0;
     let done = false;
+    let lock = 0;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
@@ -26,7 +28,9 @@ export default function QrScanner({ onCode, onClose }: { onCode: (text: string) 
         const hit = jsQR(img.data, img.width, img.height, { inversionAttempts: "dontInvert" });
         if (hit?.data) {
           done = true;
-          onCode(hit.data);
+          setFound(true);
+          // a beat for the corners to lock before the guest sheet comes up
+          lock = window.setTimeout(() => onCode(hit.data), 450);
           return;
         }
       }
@@ -47,14 +51,21 @@ export default function QrScanner({ onCode, onClose }: { onCode: (text: string) 
 
     return () => {
       done = true;
+      clearTimeout(lock);
       cancelAnimationFrame(raf);
       stream?.getTracks().forEach((t) => t.stop());
     };
   }, [onCode]);
 
   return (
-    <div className="scan">
-      {error ? <p className="err">{error}</p> : <video ref={video} playsInline muted />}
+    <div className={`scan${found ? " scan-found" : ""}`}>
+      {error ? <p className="err">{error}</p> : (
+        <div className="scan-view">
+          <video ref={video} playsInline muted />
+          <div className="scan-frame" aria-hidden="true"><u /><u /><u /><u /><i className="scan-line" /></div>
+          <p className="scan-hint" role="status">{found ? "Got it" : "Point at the guest’s card"}</p>
+        </div>
+      )}
       <button className="btn" type="button" onClick={onClose}>Stop camera</button>
     </div>
   );
