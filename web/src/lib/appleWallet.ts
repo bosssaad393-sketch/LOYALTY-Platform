@@ -164,7 +164,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   };
   const pointsField = { key: "points", label: "POINTS", value: card.points, changeMessage: "You now have %@ points." };
   const codeField = { key: "code", label: "YOUR CODE", value: card.code };
-  const poweredField = { key: "by", label: "POWERED BY", value: "LOYALTY" }; // small, top right of the front (the back also says it)
+  const poweredField = { key: "by", label: "POWERED BY", value: "Orbyn" }; // small, top right of the front (the back also says it)
   // The offer comes first on the back, but only for guests who agreed to offers (see appleOfferField in offers.ts).
   const offer = await offerStateForCard(card.id, venue.id);
   // The landscape card itself lives on the web: a Wallet pass is always a tall card, so the back links to it (it also shows the latest points).
@@ -175,7 +175,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     { key: "how", label: "How it works", value: `Show this card at the till. You earn ${venue.points_per_bhd} points for every BHD 1.` },
     { key: "reward", label: "Your reward", value: venue.reward_text },
     { key: "terms", label: "Terms", value: `Points have no cash value. Rewards are set by ${venue.name} and can change.` },
-    { key: "powered", label: "Powered by", value: "LOYALTY" },
+    { key: "powered", label: "Powered by", value: "Orbyn" },
   ];
 
   // Store card (all iPhones): the strip is the card artwork only and nothing is printed over it (no primary fields).

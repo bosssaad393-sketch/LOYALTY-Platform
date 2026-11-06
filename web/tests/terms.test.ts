@@ -36,7 +36,7 @@ describe("cleanTerms", () => {
 describe("default clauses", () => {
   it("name the venue and keep the six built-in clauses", () => {
     const c = defaultClauses("Demo Venue");
-    expect(c.map(([t]) => t)).toEqual(["Your card", "Your details", "Notifications", "Rewards", "Deleting your data", "Powered by LOYALTY"]);
+    expect(c.map(([t]) => t)).toEqual(["Your card", "Your details", "Notifications", "Rewards", "Deleting your data", "Powered by Orbyn"]);
     expect(c[0][1]).toContain("Demo Venue Loyalty Rewards");
   });
   it("the editor text for the default terms passes validation", () => {

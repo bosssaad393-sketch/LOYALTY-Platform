@@ -39,9 +39,9 @@ export function brandVenue(env: Env = process.env): string {
   return v && SLUG.test(v) ? v : "demo";
 }
 
-/** "Powered by LOYALTY" by default. Set BRAND_POWERED_BY to your own words, or to nothing to hide it. */
+/** "Powered by Orbyn" by default. Set BRAND_POWERED_BY to your own words, or to nothing to hide it. */
 export function poweredBy(env: Env = process.env): string {
-  return env.BRAND_POWERED_BY === undefined ? "Powered by LOYALTY" : env.BRAND_POWERED_BY.trim();
+  return env.BRAND_POWERED_BY === undefined ? "Powered by Orbyn" : env.BRAND_POWERED_BY.trim();
 }
 
 /** The languages this client offers, default first: "en,ar", "ar,en" or just "en". Codes without text are ignored. */
@@ -50,7 +50,7 @@ export function brandLanguages(env: Env = process.env): Locale[] {
   return codes.length ? [...new Set(codes)] : ["en", "ar"];
 }
 
-/** The line under the pages:"<venue> Loyalty Rewards · Powered by LOYALTY". */
+/** The line under the pages:"<venue> Loyalty Rewards · Powered by Orbyn". */
 export function footerLine(venueName: string, env: Env = process.env): string {
   return [`${venueName} Loyalty Rewards`, poweredBy(env)].filter(Boolean).join(" · ");
 }

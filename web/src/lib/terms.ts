@@ -33,8 +33,8 @@ export function defaultClauses(venueName: string): Clause[] {
     ["Your details", "We keep your name and your phone number or email only to run your rewards and to contact you about them. We do not sell them."],
     ["Notifications", "Offers are sent to your Wallet card only if you agreed to receive them. You can turn them off at any time."],
     ["Rewards", `Points, rewards and their value are set by ${n} and can change. Points have no cash value.`],
-    ["Deleting your data", `You can ask ${n} or LOYALTY to delete your details at any time.`],
-    ["Powered by LOYALTY", `The card system is provided to ${n} by LOYALTY. ${n} owns its members' data.`],
+    ["Deleting your data", `You can ask ${n} or Orbyn to delete your details at any time.`],
+    ["Powered by Orbyn", `The card system is provided to ${n} by Orbyn. ${n} owns its members' data.`],
   ];
 }
 

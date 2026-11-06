@@ -47,7 +47,7 @@ export default function Privacy({ call, venue }: { call: Call; venue: string }) 
 
   return (
     <>
-      <PageHead eyebrow="Your guests’ data" title="Data and privacy">{venue} owns its guests’ data. LOYALTY only processes it for you.</PageHead>
+      <PageHead eyebrow="Your guests’ data" title="Data and privacy">{venue} owns its guests’ data. Orbyn only processes it for you.</PageHead>
       {loaded.error && <LoadError text={loaded.error} onRetry={loaded.reload} />}
       {!data && !loaded.error && <Loading />}
       {data && (

@@ -30,8 +30,8 @@ describe("brand settings", () => {
 });
 
 describe("powered-by line", () => {
-  it("shows LOYALTY by default, can be renamed and can be hidden", () => {
-    expect(footerLine("Acme", {})).toBe("Acme Loyalty Rewards · Powered by LOYALTY");
+  it("shows Orbyn by default, can be renamed and can be hidden", () => {
+    expect(footerLine("Acme", {})).toBe("Acme Loyalty Rewards · Powered by Orbyn");
     expect(footerLine("Acme", { BRAND_POWERED_BY: "Powered by Acme Digital" })).toBe("Acme Loyalty Rewards · Powered by Acme Digital");
     expect(poweredBy({ BRAND_POWERED_BY: "" })).toBe("");
     expect(footerLine("Acme", { BRAND_POWERED_BY: "" })).toBe("Acme Loyalty Rewards");

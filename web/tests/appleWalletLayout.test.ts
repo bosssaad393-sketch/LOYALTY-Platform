@@ -68,9 +68,9 @@ describe("store card layout (the default)", () => {
     expect(get(store.backFields, "togo")).toMatchObject({ label: "To your reward", value: 180 });
   });
 
-  it("keeps the header (Powered by LOYALTY) and the logo file", async () => {
+  it("keeps the header (Powered by Orbyn) and the logo file", async () => {
     const { store, files } = await pass(320);
-    expect(store.headerFields).toEqual([{ key: "by", label: "POWERED BY", value: "LOYALTY" }]);
+    expect(store.headerFields).toEqual([{ key: "by", label: "POWERED BY", value: "Orbyn" }]);
     expect(files.has("logo.png") && files.has("logo@2x.png") && files.has("logo@3x.png")).toBe(true);
   });
 

@@ -94,7 +94,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
       <NetworkBackdrop fixed />
       <div className="dv-shell">
         <aside className="dv-side">
-          <div className="dv-brand"><img src="/loyalty-logo.svg" alt="LOYALTY, developer" width={72} height={72} /></div>
+          <div className="dv-brand"><img src="/orbyn-mark.png" alt="Orbyn, developer" width={72} height={72} /></div>
           <nav className="dv-nav" aria-label="Developer sections">
             {NAV.map((n) => (
               <button key={n.id} type="button" className="dv-navbtn" aria-current={section === n.id ? "page" : undefined} onClick={() => setSection(n.id)}>
@@ -375,7 +375,7 @@ function Access({ team, reload }: { team: Person[] | null; reload: () => void })
 
 type Msg = { id: string; author: "dev" | "calabos"; body: string; status: string; replyTo: string | null; createdAt: string };
 
-/** Chat with CALABOS: write what you need done about LOYALTY. CALABOS (on your PC) picks it up, turns requests into tasks and answers here. */
+/** Chat with CALABOS: write what you need done about Orbyn. CALABOS (on your PC) picks it up, turns requests into tasks and answers here. */
 function CalabosChat() {
   const [msgs, setMsgs] = useState<Msg[] | null>(null);
   const [text, setText] = useState("");
@@ -407,7 +407,7 @@ function CalabosChat() {
 
   return (
     <>
-      <Head eyebrow="Your assistant" title="CALABOS">Tell CALABOS what you need done about LOYALTY. It queues it as a task and answers here. It answers when your PC is on and CALABOS is running.</Head>
+      <Head eyebrow="Your assistant" title="CALABOS">Tell CALABOS what you need done about Orbyn. It queues it as a task and answers here. It answers when your PC is on and CALABOS is running.</Head>
       <section className="ow-panel" aria-label="Chat with CALABOS">
         <div className="dv-log" role="log" aria-live="polite">
           {!msgs ? <p className="ow-sub">Loading…</p> : msgs.length === 0 ? <p className="ow-sub">No messages yet. Try: “Add a seasonal card for Eid”.</p> : msgs.map((m) => (
