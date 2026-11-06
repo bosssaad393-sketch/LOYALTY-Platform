@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/supabase";
 import { fail } from "@/lib/staffApi";
 import { withOwner } from "@/lib/ownerApi";
-import { generatePin, setPin } from "@/lib/pin";
+import { generatePin, pinProblem, setPin } from "@/lib/pin";
 
 export async function GET() {
   return withOwner(async (staff) => {
@@ -13,7 +13,7 @@ export async function GET() {
   }, true);
 }
 
-const Invite = z.object({ name: z.string().trim().min(1).max(60), role: z.enum(["staff", "manager"]) });
+const Invite = z.object({ name: z.string().trim().min(1).max(60), role: z.enum(["staff", "manager"]), pin: z.string().max(8).optional() });
 
 /** Adds a team member and returns a one-time PIN to hand over in person. No email or password. */
 export async function POST(request: Request) {
@@ -21,10 +21,22 @@ export async function POST(request: Request) {
     const parsed = Invite.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return fail("Enter a name and a role.");
     const { name, role } = parsed.data;
+    const chosen = parsed.data.pin?.trim();
+    if (chosen) {
+      const problem = pinProblem(chosen, role);
+      if (problem) return fail(problem);
+    }
     const { data, error } = await db().from("staff_users").insert({ venue_id: staff.venueId, name, role, active: true }).select("id").single();
     if (error || !data) throw error ?? new Error("insert failed");
     let pin = "";
-    for (let i = 0; i < 5; i++) {
+    if (chosen) {
+      if ((await setPin(staff.venueId, data.id as string, chosen, staff.id)) !== true) {
+        await db().from("staff_users").delete().eq("id", data.id as string).eq("venue_id", staff.venueId);
+        return fail("That PIN is already in use. Choose another.", 409);
+      }
+      pin = chosen;
+    }
+    for (let i = 0; i < 5 && !pin; i++) {
       pin = generatePin(role);
       if ((await setPin(staff.venueId, data.id as string, pin, staff.id)) === true) break;
       pin = "";

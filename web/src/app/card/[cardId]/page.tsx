@@ -42,20 +42,12 @@ export default async function CardPage({ params }: PageProps<"/card/[cardId]">) 
         <CardSheet points={card.points} goal={goal} rewardText={venue.reward_text} />
 
         <div className="actions after">
-          {appleWalletConfigured() ? (
-            <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> Add to Apple Wallet</a>
-          ) : (
-            <button className="btn wallet" type="button" aria-disabled="true" disabled>
-               Add to Apple Wallet <small>(coming soon)</small>
-            </button>
-          )}
-          {googleWalletConfigured() ? (
+          {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> Add to Apple Wallet</a>}
+          {googleWalletConfigured() && (
             <a className="gw-badge" href={`/api/wallet/google/${card.id}`} aria-label="Add to Google Wallet">
               {/* eslint-disable-next-line @next/next/no-img-element -- official Google Wallet button artwork */}
               <img src="/badges/add-to-google-wallet-en.svg" alt="Add to Google Wallet" width={283} height={50} />
             </a>
-          ) : (
-            <button className="btn wallet" type="button" disabled>Add to Google Wallet <small>(not configured)</small></button>
           )}
         </div>
         <p className="note after" style={{ marginTop: 14 }}>Tip: bookmark this page. It always shows your latest points.</p>

@@ -27,7 +27,7 @@ export default function Team({ call }: { call: Call }) {
     const form = e.currentTarget;
     const f = new FormData(form);
     setBusy(true); setNote(null); setShown(null);
-    const r = await call<{ name: string; pin: string }>("/api/owner/team", "POST", { name: f.get("name"), role: f.get("role") });
+    const r = await call<{ name: string; pin: string }>("/api/owner/team", "POST", { name: f.get("name"), role: f.get("role"), pin: String(f.get("pin") ?? "").trim() || undefined });
     setBusy(false);
     if (r.ok) { setShown({ who: r.data.name, pin: r.data.pin, what: "new" }); form.reset(); team.reload(); }
     else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
@@ -106,6 +106,7 @@ export default function Team({ call }: { call: Call }) {
           <h2 className="ow-h" id="ow-h-add">Add someone</h2>
           <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-name">Name</label><input className="ow-in" id="ow-t-name" name="name" required maxLength={60} autoComplete="off" /></div>
           <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-role">Role</label><select className="ow-in ow-select" id="ow-t-role" name="role" defaultValue="staff"><option value="staff">Staff (4-digit PIN)</option><option value="manager">Manager (6-digit PIN)</option></select></div>
+          <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-pin">PIN (optional)</label><input className="ow-in" id="ow-t-pin" name="pin" inputMode="numeric" pattern="[0-9]{4,6}" maxLength={6} autoComplete="off" /><small>Staff 4 digits, manager 6. Leave empty for a random one. It stays the same until you press New PIN.</small></div>
           <div className="ow-actions"><button className="ow-btn primary" type="submit" disabled={busy}>{busy ? "Adding…" : "Add to team"}</button></div>
         </form>
       </div>
