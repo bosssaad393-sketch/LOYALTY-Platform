@@ -5,5 +5,5 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   // Some tests build a whole database, which can pass the default 5 s when the machine is busy.
-  test: { testTimeout: 30_000 },
+  test: { testTimeout: 30_000, hookTimeout: 30_000 },
 });
