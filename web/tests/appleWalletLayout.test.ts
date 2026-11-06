@@ -16,7 +16,7 @@ vi.mock("../src/lib/passOffer", () => ({ offerStateForCard: async () => h.offer 
 import { STRIP, STRIP_FILES, buildPass, pngSize, stripPixels, stripProblems } from "../src/lib/appleWallet";
 import type { Card, Venue } from "../src/lib/supabase";
 
-const venue: Venue = { id: "v1", slug: "demo", name: "Demo Venue", points_per_bhd: 2, reward_goal: 500, reward_text: "A dessert on the house." };
+const venue: Venue = { id: "v1", slug: "orbyn", name: "Orbyn", points_per_bhd: 2, reward_goal: 500, reward_text: "A dessert on the house." };
 const card = (points: number): Card => ({ id: "11111111-1111-4111-8111-111111111111", venue_id: "v1", member_id: "m1", code: "7523", points, visits: 3 });
 
 type Field = { key: string; label: string; value: string | number; textAlignment?: string; changeMessage?: string };
@@ -102,7 +102,7 @@ describe("store card layout (the default)", () => {
 
   it("keeps the QR (card code inside) and its alt text", async () => {
     const { json } = await pass(320);
-    expect(json.barcodes?.[0]).toMatchObject({ format: "PKBarcodeFormatQR", message: "LOYALTY:demo:7523", altText: "7523" });
+    expect(json.barcodes?.[0]).toMatchObject({ format: "PKBarcodeFormatQR", message: "LOYALTY:orbyn:7523", altText: "7523" });
   });
 
   it("keeps the back fields, and the offer first for a guest who agreed to offers", async () => {

@@ -66,7 +66,7 @@ describe("one-paste showcase setup (supabase/showcase-setup.sql)", () => {
     await fresh.exec(`create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users (id uuid primary key);`);
     await fresh.exec(readFileSync(join(dir, "../showcase-setup.sql"), "utf8").replace(/create extension if not exists pgcrypto;/i, ""));
     expect((await fresh.query("select 1 from cards")).rows.length).toBe(3);
-    expect((await fresh.query("select 1 from venues where slug = 'demo' and name = 'Sol'")).rows.length).toBe(1);
+    expect((await fresh.query("select 1 from venues where slug = 'orbyn' and name = 'Sol'")).rows.length).toBe(1);
   });
 });
 

@@ -2,9 +2,9 @@
 
 > **Update, 6 Nov 2026:** the default look is now Orbyn: deep teal `#04191D`, light text `#EAF7F5`, cyan accent `#14F1E9`, success green `#2BE39A`, font Outfit with Tajawal for Arabic. The token names (`--gold` and friends) stayed, so read them as "accent". The gold, serif look below remains possible for a client through `BRAND_BG`, `BRAND_TEXT`, `BRAND_ACCENT` and `BRAND_FONT=classic`. Logo files: `web/public/orbyn-mark.svg`, `web/public/orbyn-logo-horizontal.svg`.
 
-**Decision (Sir, 12 Oct 2026):** the real product copies the look and feel of the template demo exactly: colours, fonts, feel, UI. This applies to the guest page, the Apple / Google Wallet card, and the staff and owner app.
+**Decision (Sir, 12 Oct 2026):** the real product copies the look and feel of the template sample exactly: colours, fonts, feel, UI. This applies to the guest page, the Apple / Google Wallet card, and the staff and owner app.
 
-**Reference source:** `design/templates/` (the original template demo, kept as clickable HTML prototypes). When in doubt, open those pages and match them.
+**Reference source:** `design/templates/` (the original template sample, kept as clickable HTML prototypes). When in doubt, open those pages and match them.
 
 ## Feel
 - Dark, warm and premium: a fine-dining or members-club feel. Black-brown, not pure black or blue.
@@ -61,4 +61,4 @@ Background glow: two soft radial gradients, gold at the top right (`rgba(205,165
 - **Apple / Google Wallet passes** use the same colours: background `#141210`, labels gold `#CDA55B`, values cream `#F3E9D2`, the {{CLIENT}} logo, and the QR in the barcode area.
 
 ## Tone of the copy
-Short, warm, plain English. Examples from the demo: "Get your digital card in seconds. No app to install." / "Show this QR or your 4-digit code to the staff to get your points."
+Short, warm, plain English. Examples from the sample: "Get your digital card in seconds. No app to install." / "Show this QR or your 4-digit code to the staff to get your points."

@@ -1,4 +1,4 @@
-Sample menu photos, for the demo only. A real venue uses its own photos.
+Menu photo credits.
 Each is resized and cropped square.
 
 karak-tea.webp: "Karak Tea" by Gaurav Dhwaj Khadka, CC BY-SA 4.0, via Wikimedia Commons https://creativecommons.org/licenses/by-sa/4.0/ https://commons.wikimedia.org/w/index.php?curid=133910840

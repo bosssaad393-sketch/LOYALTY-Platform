@@ -20,24 +20,24 @@ export type OfferTemplate = {
   when: string; // one line: when an owner would use it
   text: string; // the message with {key} placeholders, 200 characters or fewer AFTER filling the examples
   fields: OfferField[]; // every {key} used in text, in the order the owner fills them
-  demo?: boolean; // true for the demo message
+  sample?: boolean; // true for the sample message
 };
 
-/** Demo sender name. Only used by the "Today's update" demo; it is not a real person at the venue. */
+/** Sample sender name. Only used by the "Today's update" sample; it is not a real person at the venue. */
 export const DEFAULT_SIGNED_BY = "the manager";
 
 export const OFFER_TEMPLATES: OfferTemplate[] = [
   {
     id: "todays-update",
     title: "Today's update",
-    when: "Demo of a short daily note. The examples are not real offers: replace them with your own.",
+    when: "A short daily note. Replace the examples with your own offers.",
     text: "Update from {from}: today's reward is {reward}. Today's bonus is {bonus}.",
     fields: [
       { key: "from", label: "From", example: DEFAULT_SIGNED_BY, maxLength: 30 },
       { key: "reward", label: "Today's reward", example: "a complimentary dessert with any main", maxLength: 60 },
       { key: "bonus", label: "Today's bonus", example: "double points until midnight", maxLength: 50 },
     ],
-    demo: true,
+    sample: true,
   },
   {
     id: "weekend-invitation",

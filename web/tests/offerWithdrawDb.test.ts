@@ -47,7 +47,7 @@ const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 const ago = (ms: number) => new Date(NOW - ms).toISOString();
 
-const VENUE = "venue-demo";
+const VENUE = "venue-sample";
 const OTHER = "venue-other";
 const OFFER_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"; // 5 days old, live
 const OFFER_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"; // 1 hour old, live
@@ -55,7 +55,7 @@ const OFFER_OLD = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"; // 20 days old
 const OFFER_GOOGLE = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"; // for Google only
 const OFFER_OTHER = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"; // another venue's
 
-const staffOf = (role: Staff["role"]): Staff => ({ id: `staff-${role}`, name: role, role, venueId: VENUE, venueSlug: "demo", venueName: "Demo Venue" });
+const staffOf = (role: Staff["role"]): Staff => ({ id: `staff-${role}`, name: role, role, venueId: VENUE, venueSlug: "orbyn", venueName: "Orbyn" });
 
 const offerRow = (id: string, message: string, sentAgo: number, extra: Row = {}): Row => ({
   id,

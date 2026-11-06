@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { filsText, linesTotal, REQUEST_KINDS, type RequestKind } from "@/lib/table/rules";
 import type { MenuView } from "@/lib/table/db";
@@ -25,6 +25,8 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [section, setSection] = useState(initialMenu[0]?.id ?? "");
+  const [review, setReview] = useState(false);
+  const sheet = useRef<HTMLDialogElement>(null);
 
   const money = (fils: number) => t("money", { amount: filsText(fils) });
 
@@ -61,6 +63,14 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     if (chip && bar) bar.scrollTo({ left: chip.offsetLeft - bar.clientWidth / 2 + chip.clientWidth / 2, behavior: "smooth" });
   }, [section]);
 
+  // The order sheet: a native dialog, so focus and the Escape key are handled by the browser.
+  useEffect(() => {
+    const d = sheet.current;
+    if (!d) return;
+    if (review && !d.open) d.showModal();
+    if (!review && d.open) d.close();
+  }, [review]);
+
   const allItems = useMemo(() => menu.flatMap((c) => c.items), [menu]);
   const picked = allItems.filter((i) => i.available && (qty[i.id] ?? 0) > 0);
   const count = picked.reduce((n, i) => n + qty[i.id], 0);
@@ -69,6 +79,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
   function change(id: string, by: number) {
     setError(null);
     setSent(false);
+    if (count + by <= 0) setReview(false);
     setQty((q) => ({ ...q, [id]: Math.max(0, Math.min(20, (q[id] ?? 0) + by)) }));
   }
 
@@ -91,6 +102,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     if (!data) return;
     setTab(data.tab);
     setQty({});
+    setReview(false);
     setSent(true);
     document.getElementById("tb-rounds")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -143,6 +155,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
                   <span className="tb-roundno">{t("round", { n: i + 1 })}</span>
                   <span className="tb-status">{status(r)}</span>
                 </div>
+                {r.status !== "cancelled" && <div className={`tb-prog p-${r.status}`} aria-hidden="true"><i /><i /><i /></div>}
                 <ul>
                   {r.lines.map((l, j) => <li key={j}><span className="tb-q">{l.qty}×</span> {name(l)}{l.note ? <small> · {l.note}</small> : null}</li>)}
                 </ul>
@@ -199,18 +212,42 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       ))}
 
       {poweredBy && <p className="foot">{poweredBy}</p>}
-      {allItems.some((i) => i.imageUrl?.startsWith("/samples/")) && <p className="foot"><a href="/samples/menu/CREDITS.txt">{t("sampleCredits")}</a></p>}
+      {allItems.some((i) => i.imageUrl?.startsWith("/menu-photos/")) && <p className="foot"><a href="/menu-photos/CREDITS.txt">{t("photoCredits")}</a></p>}
 
-      <div role="alert">{error && <p className="tb-error">{error}</p>}</div>
+      {!review && <div role="alert">{error && <p className="tb-error">{error}</p>}</div>}
 
       {count > 0 && (
         <div className="tb-bar">
-          <button type="button" className="btn primary" disabled={busy} onClick={send}>
-            <span>{busy ? t("sending") : t("send", { count })}</span>
-            <span className="tb-bar-total">{money(total)}</span>
-          </button>
+          <div className="tb-bar-in">
+            <div className="tb-bar-sum"><small>{t("items", { count })}</small><b>{money(total)}</b></div>
+            <button type="button" className="btn primary" onClick={() => setReview(true)}>{t("review")}</button>
+          </div>
         </div>
       )}
+
+      <dialog ref={sheet} className="tb-sheet" aria-labelledby="tb-h-order" onClose={() => setReview(false)} onClick={(e) => { if (e.target === e.currentTarget) setReview(false); }}>
+        <div className="tb-sheet-in">
+          <div className="tb-grip" aria-hidden="true" />
+          <h2 className="tb-h" id="tb-h-order">{t("yourOrder")}</h2>
+          <ul className="tb-sum">
+            {picked.map((i) => (
+              <li key={i.id}>
+                <div className="tb-step">
+                  <button type="button" aria-label={t("less", { item: name(i) })} onClick={() => change(i.id, -1)}>−</button>
+                  <span aria-live="polite">{qty[i.id]}</span>
+                  <button type="button" className="add" aria-label={t("more", { item: name(i) })} onClick={() => change(i.id, 1)}>+</button>
+                </div>
+                <b>{name(i)}</b>
+                <em>{money(i.priceFils * qty[i.id])}</em>
+              </li>
+            ))}
+          </ul>
+          <div className="tb-sum-total"><span>{t("total")}</span><b>{money(total)}</b></div>
+          {review && <div role="alert">{error && <p className="tb-error" style={{ marginBlock: "0 12px" }}>{error}</p>}</div>}
+          <button type="button" className="btn primary" disabled={busy} onClick={send}>{busy ? t("sending") : t("send", { count })}</button>
+          <button type="button" className="tb-more" onClick={() => setReview(false)}>{t("addMore")}</button>
+        </div>
+      </dialog>
     </>
   );
 }

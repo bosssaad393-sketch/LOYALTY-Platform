@@ -1,6 +1,6 @@
 # Connecting a real till (POS) to LOYALTY, step by step
 
-Tested 30 Oct 2026 with the demo till against the live platform: sale (points added), refund (points taken back), the same refund pressed again (ignored). The event list in /dev > Till showed each one.
+Tested 30 Oct 2026 with the sample till against the live platform: sale (points added), refund (points taken back), the same refund pressed again (ignored). The event list in /dev > Till showed each one.
 
 ## How it works in one picture
 ```
@@ -25,11 +25,11 @@ The same receipt twice never counts twice. A wrong card code is refused and logg
    - no code: a Make / n8n / Zapier flow: trigger = the POS event "order paid"; action = HTTP request to the address with the `Authorization: Bearer` header and the JSON above;
    - or a small adapter we write for that one POS (needs its API documents and a test account).
    Map: `receiptId` = the POS order id; `billBhd` = the order total in BHD; `cardCode` = the 4 digits from the field chosen in step 2. Skip orders with no code. Send a `refund` when the POS cancels or refunds the order.
-5. **Test on a demo or test branch**, never on live takings: ping, a small sale (0.5 BHD), the same sale again (must be ignored), a refund, a wrong code (must be rejected).
+5. **Test on a sample or test branch**, never on live takings: ping, a small sale (0.5 BHD), the same sale again (must be ignored), a refund, a wrong code (must be rejected).
 6. **Go live** with one venue, watch /dev > Till for problems for the first week.
 
 ## Try it today without a real POS
-`web/scripts/demo-pos.mjs` is a fake till (see docs/POS.md). Run it with `POS_URL` and `POS_KEY`, open http://localhost:8790.
+`web/scripts/sample-pos.mjs` is a fake till (see docs/POS.md). Run it with `POS_URL` and `POS_KEY`, open http://localhost:8790.
 
 ## What we still need to decide with the venue
 - Which POS, and who at the venue talks to the POS vendor.

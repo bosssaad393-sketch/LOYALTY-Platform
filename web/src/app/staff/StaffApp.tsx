@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import CountUp from "@/components/CountUp";
 import QrScanner from "./QrScanner";
 import PinPad from "@/components/PinPad";
 import type { SignInLook } from "@/components/SignIn";
@@ -34,6 +35,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   const [lastEntry, setLastEntry] = useState<{ id: number; at: number } | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "bad"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ added: number; first: string; total: number; ready: boolean } | null>(null);
   const [recent, setRecent] = useState<Recent[]>([]);
   const [perks, setPerks] = useState<Perk[]>([]);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     setScanning(false); setMsg(null); setBusy(true);
     const r = await api<Guest>(`/api/staff/card?code=${encodeURIComponent(code)}`, undefined);
     setBusy(false);
-    if (r.ok) { setGuest(r.data); setBill(""); setLastEntry(null); }
+    if (r.ok) { setGuest(r.data); setBill(""); setLastEntry(null); setResult(null); }
     else if (r.status === 401) signedOut();
     else setMsg({ kind: "bad", text: r.error });
   }, [signedOut]);
@@ -123,7 +125,10 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
       <header className="st-head">
         {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
         <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, staff`} width={96} height={96} />
-        <button className="chip" type="button" onClick={lock}>Lock</button>
+        <div className="st-actions">
+          <a className="chip" href="/staff/board">Table board</a>
+          <button className="chip" type="button" onClick={lock}>Lock</button>
+        </div>
       </header>
 
       {tab !== "end" && (
@@ -137,12 +142,16 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
       {tab === "guest" ? (
         !guest ? (
           <>
-            <a className="btn" href="/staff/board" style={{ marginBottom: 16 }}>Open the table board</a>
             <div className="eyebrow">Hello {first}</div>
             <h1 className="st-title">Find the guest</h1>
             <p className="sub">Scan the QR on the guest&apos;s Wallet card, or type the 4-digit code under it.</p>
-            <div className="panel">
-              {scanning ? <QrScanner onCode={find} onClose={() => setScanning(false)} /> : <button className="btn primary st-big" type="button" onClick={() => setScanning(true)}>Scan the QR</button>}
+            {scanning ? <div className="panel"><QrScanner onCode={find} onClose={() => setScanning(false)} /></div> : (
+              <button className="sc" type="button" onClick={() => setScanning(true)}>
+                <span className="sc-box" aria-hidden="true"><i /><i /><i /><i /><span className="sc-line" /></span>
+                <span className="sc-go">Scan the QR</span>
+              </button>
+            )}
+            <div className="panel st-or">
               <form className="row" onSubmit={(e) => { e.preventDefault(); const c = new FormData(e.currentTarget).get("code"); if (c) find(String(c)); }}>
                 <label className="field"><span className="lbl">Card code (4 digits)</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="4827" autoComplete="off" required /></label>
                 <button className="btn" type="submit" disabled={busy}>Find</button>
@@ -150,13 +159,23 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
               {msg && <p className={`msg ${msg.kind}`} role="alert">{msg.text}</p>}
             </div>
           </>
+        ) : result ? (
+          <section className="sr" role="status">
+            <svg className="sr-check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" pathLength={1} /><path d="M20 33l8 8 16-17" pathLength={1} /></svg>
+            <h1 className="st-title">Points added</h1>
+            <p className="sr-fig">+<CountUp value={result.added} /><small>pts</small></p>
+            <p className="sub">{result.first} now has {result.total} points.</p>
+            {canUndo && <button className="sr-undo" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); setResult(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} points.`; })}>Added by mistake? <u>Undo</u> within 10 minutes</button>}
+            {result.ready && <p className="msg warn">{result.first} has a reward ready.</p>}
+            {result.ready ? <button className="btn primary st-big" type="button" onClick={() => setResult(null)}>Give the reward</button> : <button className="btn primary st-big" type="button" onClick={() => { setResult(null); setGuest(null); setMsg(null); }}>Next guest</button>}
+          </section>
         ) : (
           <>
-            <section className={`panel st-guest${guest.rewardReady ? " st-ready" : ""}`}>
+            <section className={`panel st-guest st-sheet${guest.rewardReady ? " st-ready" : ""}`}>
               <h2 className="st-name">{guest.firstName}</h2>
               <p className="note st-left">Code {guest.code} · {guest.visits} {guest.visits === 1 ? "visit" : "visits"}</p>
               <div className="pts"><b>{guest.points}</b><span>Points</span></div>
-              <div className="bar" aria-hidden="true"><i style={{ width: `${Math.max(3, Math.min(100, Math.round((guest.points / guest.goal) * 100)))}%` }} /></div>
+              <div className="bar" aria-hidden="true">{guest.points > 0 && <i style={{ width: `${Math.min(100, Math.round((guest.points / guest.goal) * 100))}%` }} />}</div>
               <p className={guest.rewardReady ? "msg warn" : "note st-left"}>{guest.rewardReady ? `Reward ready: ${guest.rewardText}. Give it and take ${guest.goal} points.` : `${guest.goal - guest.points} points to the reward.`}</p>
               {guest.rewardReady && (
                 <button className="btn primary st-big" type="button" disabled={busy} onClick={() => act("/api/staff/redeem", { cardId: guest.cardId }, (d) => `Reward given. ${d.guest.firstName} now has ${d.guest.points} points.`)}>Give reward and take {guest.goal} points</button>
@@ -170,7 +189,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
               <div className="st-quick" role="group" aria-label="Common bill amounts">
                 {QUICK.map((q) => <button key={q} type="button" className="chip" onClick={() => setBill(String(q))}>{q}</button>)}
               </div>
-              <button className="btn primary st-big" type="button" disabled={busy || !(billNum > 0)} onClick={() => act("/api/staff/earn", { cardId: guest.cardId, billBhd: billNum }, (d) => `Added ${d.added} points for ${bhd(billNum)}. ${d.guest.firstName} now has ${d.guest.points}.`)}>Add points</button>
+              <button className="btn primary st-big" type="button" disabled={busy || !(billNum > 0)} onClick={() => act("/api/staff/earn", { cardId: guest.cardId, billBhd: billNum }, (d) => { setBill(""); setResult({ added: d.added ?? 0, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady }); return `Added ${d.added} points for ${bhd(billNum)}. ${d.guest.firstName} now has ${d.guest.points}.`; })}>Add points</button>
               {canUndo && (
                 <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} points.`; })}>Undo my last entry (10 minutes)</button>
               )}

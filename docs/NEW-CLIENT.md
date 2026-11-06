@@ -22,7 +22,7 @@ node scripts/new-client.mjs --name "Acme Cafe" --slug acme --accent "#3fa7a0" --
 ## 2. A database of their own
 - [ ] New Supabase project (free tier is fine to start). Choose the region on purpose (PDPL: where do guests' details live?).
 - [ ] SQL editor: run `supabase/migrations/0001` to the newest, in order.
-- [ ] Run `supabase/seeds/<slug>.sql`. Remove the `demo` venue if you do not want it (`delete from venues where slug = 'demo';`).
+- [ ] Run `supabase/seeds/<slug>.sql`. Remove the `orbyn` venue if you do not want it (`delete from venues where slug = 'orbyn';`).
 - [ ] Project settings, API: copy the URL and the `service_role` key into the Vercel settings only (never the repo, a chat or a screenshot).
 
 ## 3. Hosting

@@ -37,10 +37,10 @@ describe("template list", () => {
     expect(OFFER_TEMPLATES.length).toBeLessThanOrEqual(12);
   });
 
-  it("starts with the demo Today's update, exactly as agreed", () => {
+  it("starts with the sample Today's update, exactly as agreed", () => {
     const [first] = OFFER_TEMPLATES;
     expect(first.id).toBe("todays-update");
-    expect(first.demo).toBe(true);
+    expect(first.sample).toBe(true);
     expect(first.title).toBe("Today's update");
     expect(first.text).toBe("Update from {from}: today's reward is {reward}. Today's bonus is {bonus}.");
     expect(first.fields.map((f) => f.key)).toEqual(["from", "reward", "bonus"]);
@@ -50,8 +50,8 @@ describe("template list", () => {
     expect(first.fields[2].example).toBe("double points until midnight");
   });
 
-  it("marks only the first template as the demo", () => {
-    expect(OFFER_TEMPLATES.filter((t) => t.demo).map((t) => t.id)).toEqual(["todays-update"]);
+  it("marks only the first template as the sample", () => {
+    expect(OFFER_TEMPLATES.filter((t) => t.sample).map((t) => t.id)).toEqual(["todays-update"]);
   });
 
   it("has unique kebab-case ids", () => {
@@ -154,7 +154,7 @@ describe("tone and safety", () => {
     for (const t of OFFER_TEMPLATES) {
       const fixed = t.text.replace(PLACEHOLDER, "");
       expect(fixed, t.id).not.toMatch(/[0-9%]/);
-      expect(fixed, t.id).not.toMatch(/\b(BHD|BD|Demo Venue|free|discount|off)\b/i);
+      expect(fixed, t.id).not.toMatch(/\b(BHD|BD|Orbyn|free|discount|off)\b/i);
     }
   });
 
@@ -177,7 +177,7 @@ describe("fillTemplate", () => {
     );
   });
 
-  it("gives the agreed demo message when filled with the examples", () => {
+  it("gives the agreed sample message when filled with the examples", () => {
     expect(fillTemplate(t, {})).toBe(
       "Update from the manager: today's reward is a complimentary dessert with any main. Today's bonus is double points until midnight.",
     );

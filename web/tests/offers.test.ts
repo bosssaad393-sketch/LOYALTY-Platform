@@ -166,15 +166,15 @@ describe("double tap", () => {
 
 describe("Apple back field", () => {
   it("a live offer carries the message and changeMessage %@", () => {
-    expect(appleOfferField("Demo Venue", "Double points on Friday")).toEqual({
+    expect(appleOfferField("Orbyn", "Double points on Friday")).toEqual({
       key: "offer",
-      label: "From Demo Venue",
+      label: "From Orbyn",
       value: "Double points on Friday",
       changeMessage: "%@",
     });
   });
   it("without an offer it shows a neutral line and never an alert", () => {
-    const f = appleOfferField("Demo Venue", null);
+    const f = appleOfferField("Orbyn", null);
     expect(f.value).toBe(NO_OFFER_TEXT);
     expect("changeMessage" in f).toBe(false);
     expect(f.key).toBe("offer");

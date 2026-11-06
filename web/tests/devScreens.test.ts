@@ -14,8 +14,8 @@ describe("All screens links", () => {
   });
 
   it("never puts an unsafe venue name into a link", () => {
-    expect(screenLinks("http://localhost:3040", "../owner").join).toBe("http://localhost:3040/join/demo");
-    expect(screenLinks("http://localhost:3040", "N10").join).toBe("http://localhost:3040/join/demo");
+    expect(screenLinks("http://localhost:3040", "../owner").join).toBe("http://localhost:3040/join/orbyn");
+    expect(screenLinks("http://localhost:3040", "N10").join).toBe("http://localhost:3040/join/orbyn");
   });
 
   it("drops an origin that is not plain http(s), so links stay relative", () => {

@@ -4,6 +4,7 @@ import { getCardView, isUuid } from "@/lib/cards";
 import { googleWalletConfigured } from "@/lib/googleWallet";
 import { appleWalletConfigured } from "@/lib/appleWallet";
 import BlackCard from "@/components/BlackCard";
+import CardSheet from "./CardSheet";
 import { brandColors, footerLine } from "@/lib/brand";
 
 // Live data on every request: allow this page to block instead of prerendering.
@@ -24,7 +25,6 @@ export default async function CardPage({ params }: PageProps<"/card/[cardId]">) 
   const since = card.created_at
     ? new Date(card.created_at).toLocaleDateString("en-GB", { month: "2-digit", year: "2-digit", timeZone: "Asia/Bahrain" })
     : undefined;
-  const ready = card.points >= goal;
 
   return (
     <>
@@ -39,9 +39,7 @@ export default async function CardPage({ params }: PageProps<"/card/[cardId]">) 
           code={card.code}
           qr={qr}
         />
-        <p className="bc-note">
-          {ready ? `Reward ready: ${venue.reward_text}. Show your code to the staff.` : `${goal - card.points} points to your reward.`}
-        </p>
+        <CardSheet points={card.points} goal={goal} rewardText={venue.reward_text} />
 
         <div className="actions after">
           {appleWalletConfigured() ? (

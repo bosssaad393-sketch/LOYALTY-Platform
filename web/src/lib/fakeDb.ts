@@ -14,7 +14,7 @@ const uuid = () => crypto.randomUUID();
 const VENUE = "00000000-0000-4000-8000-000000000001";
 const fakeId = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
-// Sample photos are open-licence pictures, for the demo only: public/samples/menu/CREDITS.txt
+// Sample photos are open-licence pictures, for the sample only: public/menu-photos/CREDITS.txt
 const sampleCategories = [
   { n: 101, en: "Coffee and tea", ar: "قهوة وشاي" },
   { n: 102, en: "Cold drinks", ar: "مشروبات باردة" },
@@ -39,23 +39,23 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   venues: [
     {
       id: VENUE,
-      slug: "demo",
-      name: "Demo Venue",
+      slug: "orbyn",
+      name: "Orbyn",
       points_per_bhd: 2,
       reward_goal: 500,
-      reward_text: "Reward chosen by Demo Venue",
+      reward_text: "A dessert on the house",
       active: true,
     },
   ],
   members: [],
   cards: [],
   staff_users: [
-    { id: fakeId(900), venue_id: VENUE, name: "Sample Staff", role: "owner", active: true },
-    { id: fakeId(901), venue_id: VENUE, name: "Sample Developer", role: "developer", active: true },
+    { id: fakeId(900), venue_id: VENUE, name: "Saad", role: "owner", active: true },
+    { id: fakeId(901), venue_id: VENUE, name: "Saad", role: "developer", active: true },
   ],
-  venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `sample-table-token-${n}`, active: true })),
+  venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `orbyn-table-code-${n}`, active: true })),
   menu_categories: sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
-  menu_items: sampleItems.map(([n, cat, en, ar, fils, photo], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, image_url: `/samples/menu/${photo}.webp`, price_fils: fils, available: true, active: true, sort: i })),
+  menu_items: sampleItems.map(([n, cat, en, ar, fils, photo], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, image_url: `/menu-photos/${photo}.webp`, price_fils: fils, available: true, active: true, sort: i })),
   tabs: [],
   orders: [],
   order_items: [],
@@ -197,4 +197,37 @@ class Query implements PromiseLike<Result> {
   }
 }
 
-export const fakeDb = () => ({ from: (table: string) => new Query(table) });
+/** The three point actions staff use, so the staff screens can be seen working. The real rules live in the database (0002_ledger.sql). */
+function fakeRpc(fn: string, args: Record<string, unknown>): Result {
+  const ledger = (store.ledger ??= []);
+  const entry = (card: Row, kind: string, points: number, bill: unknown = null) => {
+    card.points = Number(card.points ?? 0) + points;
+    const row = { id: ledger.length + 1, venue_id: card.venue_id, card_id: card.id, staff_id: args.p_staff, kind, points, bill_bhd: bill, created_at: new Date().toISOString() };
+    ledger.push(row);
+    return row;
+  };
+  const cardOf = (id: unknown) => store.cards.find((c) => c.id === id);
+  if (fn === "ledger_earn") {
+    const card = cardOf(args.p_card);
+    const venue = store.venues.find((v) => v.id === card?.venue_id);
+    if (!card || !venue) return { data: null, error: { code: "P0001", message: "card not found" } };
+    card.visits = Number(card.visits ?? 0) + 1;
+    const added = Math.floor(Number(args.p_bill) * Number(venue.points_per_bhd));
+    return { data: [{ ledger_id: entry(card, "earn", added, args.p_bill).id, points_added: added, new_balance: card.points }], error: null };
+  }
+  if (fn === "ledger_redeem") {
+    const card = cardOf(args.p_card);
+    const venue = store.venues.find((v) => v.id === card?.venue_id);
+    if (!card || !venue) return { data: null, error: { code: "P0001", message: "card not found" } };
+    return { data: [{ ledger_id: entry(card, "redeem", -Number(venue.reward_goal)).id, new_balance: card.points }], error: null };
+  }
+  if (fn === "ledger_undo") {
+    const was = ledger.find((l) => l.id === args.p_entry);
+    const card = cardOf(was?.card_id);
+    if (!was || !card) return { data: null, error: { code: "P0001", message: "entry not found" } };
+    return { data: [{ ledger_id: entry(card, "undo", -Number(was.points)).id, new_balance: card.points }], error: null };
+  }
+  return { data: null, error: { code: "P0001", message: `${fn} is not part of the sample data` } };
+}
+
+export const fakeDb = () => ({ from: (table: string) => new Query(table), rpc: async (fn: string, args: Record<string, unknown>) => fakeRpc(fn, args) });

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * A DEMO till (POS) for showing LOYALTY's till link. Runs on YOUR PC, serves one page, and sends real messages to the platform:
- *   POS_URL=https://loyalty-platform-steel.vercel.app POS_KEY=loy_pos_... node scripts/demo-pos.mjs        then open http://localhost:8790
+ * A SAMPLE till (POS) for showing LOYALTY's till link. Runs on YOUR PC, serves one page, and sends real messages to the platform:
+ *   POS_URL=https://loyalty-platform-steel.vercel.app POS_KEY=loy_pos_... node scripts/sample-pos.mjs        then open http://localhost:8790
  * The key stays in this program (an environment variable), never in the browser page. Plain Node, nothing to install.
  * It is a stand-in for a real POS: the cashier picks items, types the guest's 4-digit card code, presses Pay, and the platform adds the points.
- * Nothing here touches real money. Use only with a demo business.
+ * Nothing here touches real money. Use only with a sample business.
  */
 import http from "node:http";
 
@@ -25,7 +25,7 @@ async function send(body) {
   }
 }
 
-const PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Demo POS</title>
+const PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sample POS</title>
 <style>
 :root{--bg:#0d0d10;--card:#17171c;--line:#2c2c34;--text:#ecebe6;--dim:#9a98a0;--gold:#e0b45f;--ok:#7fc08a;--bad:#e38b7a}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,Segoe UI,Arial,sans-serif;display:grid;grid-template-columns:1fr 340px;min-height:100vh}
@@ -40,7 +40,7 @@ button.act{border:0;border-radius:12px;padding:16px;font:700 16px system-ui;curs
 #msg{min-height:64px;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px}.ok{color:var(--ok)}.bad{color:var(--bad)}
 @media(max-width:800px){body{grid-template-columns:1fr}aside{border-left:0;border-top:1px solid var(--line)}}
 </style>
-<main><h1>Demo POS</h1><small>A stand-in till for showing the LOYALTY link. Demo items, not real prices.</small>
+<main><h1>Sample POS</h1><small>A stand-in till for showing the LOYALTY link. Sample items, not real prices.</small>
 <div class="grid" id="items"></div></main>
 <aside><h1>Order</h1><div id="lines" class="line">Nothing yet</div><div class="total"><span>Total</span><span id="tot">0.000</span></div>
 <label><small>Guest card code (4 digits)</small><input id="code" inputmode="numeric" maxlength="4" placeholder="4821"></label>
@@ -59,7 +59,7 @@ $("#clear").onclick=()=>{order=[];draw();say("")};
 $("#ping").onclick=async()=>{const r=await post("/api/ping",{});say(r.ok?"Connected. The platform answered.":"Not connected: "+(r.error||r.status),r.ok?"ok":"bad")};
 $("#pay").onclick=async()=>{const total=order.reduce((s,o)=>s+o[1],0);if(!total)return say("Add an item first.","bad");const code=$("#code").value.trim();
  if(!/^\\d{4}$/.test(code))return say("Type the guest's 4-digit card code, or pay without a card (no points).","bad");
- const receiptId="DEMO-"+Date.now();const r=await post("/api/sale",{receiptId,cardCode:code,billBhd:Math.round(total*1000)/1000});
+ const receiptId="SAMPLE-"+Date.now();const r=await post("/api/sale",{receiptId,cardCode:code,billBhd:Math.round(total*1000)/1000});
  if(r.ok){last=receiptId;say("Paid BHD "+money(total)+". Points added: "+r.pointsAdded+". Guest balance: "+r.balance+(r.duplicate?" (duplicate ignored)":""),"ok");order=[];draw()}else say("Not sent: "+(r.error||r.status),"bad")};
 $("#refund").onclick=async()=>{if(!last)return say("No sale to refund yet.","bad");const r=await post("/api/refund",{receiptId:last});
  if(r.ok){say("Refunded. Points taken back: "+r.pointsRemoved+". Balance: "+r.balance+(r.duplicate?" (already refunded)":""),"ok")}else say("Not refunded: "+(r.error||r.status),"bad")};
@@ -82,4 +82,4 @@ const server = http.createServer(async (req, res) => {
   }
   res.writeHead(404).end("Not found");
 });
-server.listen(PORT, "127.0.0.1", () => console.log(`Demo POS on http://localhost:${PORT}  ->  ${URL_BASE}`));
+server.listen(PORT, "127.0.0.1", () => console.log(`Sample POS on http://localhost:${PORT}  ->  ${URL_BASE}`));

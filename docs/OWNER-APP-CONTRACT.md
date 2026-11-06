@@ -134,10 +134,10 @@ export type OfferTemplate = {
   when: string;               // one line: when an owner would use it
   text: string;               // the message with {key} placeholders, 200 characters or fewer AFTER filling the examples
   fields: OfferField[];       // every {key} used in text, in the order the owner fills them
-  demo?: boolean;             // true for the Big Boss Saud demo message
+  sample?: boolean;             // true for the Big Boss Saud sample message
 };
 export const OFFER_TEMPLATES: OfferTemplate[];
-export const DEFAULT_SIGNED_BY = "the Big Boss Saud";   // demo sender name
+export const DEFAULT_SIGNED_BY = "the Big Boss Saud";   // sample sender name
 export function fillTemplate(t: OfferTemplate, values: Record<string, string>): string;  // replaces {key}, trims, collapses spaces
 ```
 `fillTemplate` leaves an unfilled `{key}` as the field's example. Every template, filled with its examples, must be 200 characters or fewer; a unit test (`web/tests/offerTemplates.test.ts`, marketing agent writes it) enforces that, plus unique ids and that every placeholder has a field.

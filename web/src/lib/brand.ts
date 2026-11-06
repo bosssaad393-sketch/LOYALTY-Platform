@@ -36,7 +36,7 @@ export function brandName(env: Env = process.env): string {
 /** The venue (folder under public/venues and passes) used by the sign-in screens and the owner app. */
 export function brandVenue(env: Env = process.env): string {
   const v = env.BRAND_DEFAULT_VENUE?.trim().toLowerCase();
-  return v && SLUG.test(v) ? v : "demo";
+  return v && SLUG.test(v) ? v : "orbyn";
 }
 
 /** "Powered by Orbyn" by default. Set BRAND_POWERED_BY to your own words, or to nothing to hide it. */

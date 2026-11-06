@@ -64,6 +64,11 @@
       "tooMany": "Too many tries. Please wait a minute.",
       "server": "Something went wrong. Please try again."
     },
-    "sampleCredits": "Sample photos: credits"
+    "photoCredits": "Photo credits",
+    "items": "{count, plural, one {# item} other {# items}}",
+    "review": "Review order",
+    "yourOrder": "Your order",
+    "total": "Total",
+    "addMore": "Add more"
   }
 }

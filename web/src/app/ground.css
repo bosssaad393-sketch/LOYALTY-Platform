@@ -72,3 +72,9 @@
 .look-orbyn .ow-head { background: rgb(var(--shade-rgb) / 0.28); }
 .look-orbyn .tb-chips { background: rgb(4 25 29 / 0.92); }
 @media (min-width: 701px) { .look-orbyn .tb-chips { margin-inline: -10px; padding-inline: 10px; border-radius: 16px; } }
+
+/* Flat colour instead of metallic foil, one frame instead of a double line, and a sidebar that recedes. */
+.look-orbyn .pane::before { display: none; }
+.look-orbyn .foil { background: none; color: var(--gold2); -webkit-text-fill-color: currentColor; filter: none; }
+.look-orbyn .bc-plate { background: var(--gold2); box-shadow: none; }
+.look-orbyn .ow-side { background: transparent; }

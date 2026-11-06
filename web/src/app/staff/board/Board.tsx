@@ -106,7 +106,7 @@ export default function Board({ venue }: { venue: string }) {
                 <article key={c.id} className={`bd-card${m >= 5 ? " late" : ""}`}>
                   <div className="bd-row"><strong className="bd-table">Table {c.table}</strong><span className="bd-clock">{m} min</span></div>
                   <p className="bd-kind">{KIND[c.kind] ?? c.kind}</p>
-                  <button type="button" className="btn primary" onClick={() => act("request", { requestId: c.id })}>Done</button>
+                  <button type="button" className="btn bd-act" onClick={() => act("request", { requestId: c.id })}>Done</button>
                 </article>
               );
             })}
@@ -123,7 +123,7 @@ export default function Board({ venue }: { venue: string }) {
                   {lines(o)}
                   <p className="bd-ask">Ready in</p>
                   <div className="bd-two">
-                    {READY_MINUTES.map((min) => <button key={min} type="button" className="btn primary" onClick={() => act("order", { orderId: o.id, action: "accept", minutes: min })}>{min} min</button>)}
+                    {READY_MINUTES.map((min) => <button key={min} type="button" className="btn bd-act" onClick={() => act("order", { orderId: o.id, action: "accept", minutes: min })}>{min} min</button>)}
                   </div>
                   <button type="button" className="bd-quiet" onClick={() => act("order", { orderId: o.id, action: "cancel" })}>Cancel this round</button>
                 </article>
@@ -140,8 +140,9 @@ export default function Board({ venue }: { venue: string }) {
               return (
                 <article key={o.id} className={`bd-card${over ? " late" : ""}`}>
                   <div className="bd-row"><strong className="bd-table">Table {o.table}</strong><span className="bd-clock">{m} of {o.readyMinutes} min</span></div>
+                  {o.readyMinutes !== null && <div className="bd-prog" aria-hidden="true">{m > 0 && <i style={{ width: `${Math.min(100, Math.round((m / o.readyMinutes) * 100))}%` }} />}</div>}
                   {lines(o)}
-                  <button type="button" className="btn primary" onClick={() => act("order", { orderId: o.id, action: "ready" })}>Ready</button>
+                  <button type="button" className="btn bd-act" onClick={() => act("order", { orderId: o.id, action: "ready" })}>Ready</button>
                   <button type="button" className="bd-quiet" onClick={() => act("order", { orderId: o.id, action: "cancel" })}>Cancel this round</button>
                 </article>
               );
@@ -155,7 +156,7 @@ export default function Board({ venue }: { venue: string }) {
               <article key={o.id} className="bd-card">
                 <div className="bd-row"><strong className="bd-table">Table {o.table}</strong></div>
                 {lines(o)}
-                <button type="button" className="btn primary" onClick={() => act("order", { orderId: o.id, action: "serve" })}>Served</button>
+                <button type="button" className="btn bd-act" onClick={() => act("order", { orderId: o.id, action: "serve" })}>Served</button>
               </article>
             ))}
           </section>

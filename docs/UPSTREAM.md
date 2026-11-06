@@ -9,8 +9,8 @@ White-label copy made on 27 Oct 2026 from `Monaim-eng/loyalty`, branch `main`, c
 - Home-screen manifests (`owner.webmanifest`, `staff.webmanifest`) are generated from the settings.
 - New: `web/scripts/new-client.mjs` (makes a client's pictures, SQL row and settings), `docs/NEW-CLIENT.md`.
 - Removed: KAYA's pictures, Wallet artwork, logo, the KAYA venue row, meeting notes, quotations, the margin sheet, deck, and the Supabase/Google IDs that belonged to Monaim's accounts.
-- Database: `0001_init.sql` seeds a `demo` venue instead of KAYA. The other migrations are unchanged.
-- Tests: KAYA sample names became "Demo Venue"; `tests/brand.test.ts` added (265 tests pass).
+- Database: `0001_init.sql` seeds a `orbyn` venue instead of KAYA. The other migrations are unchanged.
+- Tests: KAYA sample names became "Orbyn"; `tests/brand.test.ts` added (265 tests pass).
 
 ## Using the same back end
 The code in `web/src/app/api`, `web/src/lib` (ledger, Wallet, auth) and `supabase/migrations` is the same as upstream, so a fix there is a fix everywhere. To bring upstream improvements in:

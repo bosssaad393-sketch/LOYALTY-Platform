@@ -87,16 +87,16 @@ describe("sending the text of a withdrawn offer again", () => {
 
 describe("Apple back field and the alert", () => {
   it("shows the message without changeMessage when alert is false", () => {
-    const f = appleOfferField("Demo Venue", "Double points on Friday", false);
-    expect(f).toEqual({ key: "offer", label: "From Demo Venue", value: "Double points on Friday" });
+    const f = appleOfferField("Orbyn", "Double points on Friday", false);
+    expect(f).toEqual({ key: "offer", label: "From Orbyn", value: "Double points on Friday" });
     expect("changeMessage" in f).toBe(false);
   });
   it("keeps the old behaviour by default (alert on)", () => {
-    expect(appleOfferField("Demo Venue", "Hi")).toEqual({ key: "offer", label: "From Demo Venue", value: "Hi", changeMessage: "%@" });
+    expect(appleOfferField("Orbyn", "Hi")).toEqual({ key: "offer", label: "From Orbyn", value: "Hi", changeMessage: "%@" });
   });
   it("without a message the alert flag changes nothing", () => {
-    expect(appleOfferField("Demo Venue", null, true)).toEqual({ key: "offer", label: "From Demo Venue", value: NO_OFFER_TEXT });
-    expect(appleOfferField("Demo Venue", null, false)).toEqual({ key: "offer", label: "From Demo Venue", value: NO_OFFER_TEXT });
+    expect(appleOfferField("Orbyn", null, true)).toEqual({ key: "offer", label: "From Orbyn", value: NO_OFFER_TEXT });
+    expect(appleOfferField("Orbyn", null, false)).toEqual({ key: "offer", label: "From Orbyn", value: NO_OFFER_TEXT });
   });
 });
 

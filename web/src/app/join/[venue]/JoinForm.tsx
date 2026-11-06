@@ -10,6 +10,7 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [who, setWho] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,10 +39,18 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
   }
 
   return (
+    <>
+    <div className="jp" aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
+      <img className="jp-crest" src={`/venues/${venue}/crest.png`} alt="" width={54} height={54} />
+      <span className="jp-code">••••</span>
+      <b className={`jp-name${who.trim() ? "" : " empty"}`}>{who.trim() || t("name")}</b>
+      <span className="jp-venue">{venueName}</span>
+    </div>
     <form className="pane" style={{ "--tex": `url(/venues/${venue}/texture.jpg)` } as CSSProperties} onSubmit={onSubmit}>
       <label className="field">
         <span className="lbl">{t("name")}</span>
-        <input className="in" name="name" autoComplete="name" placeholder={t("namePlaceholder")} required maxLength={80} />
+        <input className="in" name="name" autoComplete="name" placeholder={t("namePlaceholder")} required maxLength={80} onChange={(e) => setWho(e.target.value)} />
       </label>
       <label className="field">
         <span className="lbl">{t("mobile")}</span>
@@ -66,5 +75,6 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
       </button>
       <p className="note">{t("privacy", { venue: venueName })}</p>
     </form>
+    </>
   );
 }

@@ -29,7 +29,7 @@ A language model reads free wording and proposes the action (`web/src/lib/assist
 - Bad, out-of-range or hostile output, a slow model or no model: falls back to the rule-based reader.
 - Only the owner's own text is sent to the model (no guest data).
 - Tested live against local Ollama llama3.1:8b (0.2-1 s per message). A client's hosted site cannot reach a model on the PC: for production point `ASSISTANT_LLM_URL` at a hosted endpoint and check where the owner's text goes.
-- `/api/owner/assistant-preview` (development only, 404 in production) feeds the demo screen `/owner?mock=1`.
+- `/api/owner/assistant-preview` (development only, 404 in production) feeds the sample screen `/owner?mock=1`.
 
 ## PIN sign-in, staff rewards, dashboards (27 Oct 2026)
 
@@ -37,4 +37,4 @@ A language model reads free wording and proposes the action (`web/src/lib/assist
 - **Owner sets PINs:** Team tab, "New PIN" (random, shown once). The developer gives the first PIN (the owner's) in `/dev` > Access.
 - **Staff thank-you rewards** (migration `0007_staff_perks.sql`): owner gives a person or the whole team a reward in their own words (Team tab). Staff see it on End, at the end of the shift, and mark it used once. Owner can take back an unused one.
 - **Developer area** `/dev`: Overview (health tiles, set-up checklist), Till (POS), Requests, Access.
-- **Not verified:** migrations 0007 and 0008 have not run on a real Postgres; PIN lock-out and sessions were tested against the in-memory database only; the demo screens are `?mock=1` (development only).
+- **Not verified:** migrations 0007 and 0008 have not run on a real Postgres; PIN lock-out and sessions were tested against the in-memory database only; the sample screens are `?mock=1` (development only).

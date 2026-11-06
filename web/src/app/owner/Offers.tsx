@@ -18,10 +18,10 @@ function audienceText(a: Audience, o: OffersData): string {
   return count === undefined ? AUDIENCE_LABEL[a] : `${AUDIENCE_LABEL[a]} (${n(count)})`;
 }
 
-/** The sender name in the demo message. It comes ready filled, with a "Demo" tag next to it. */
-const isSender = (t: OfferTemplate, f: OfferField) => Boolean(t.demo) && /^(from|signed|sender)/i.test(f.key);
+/** The sender name in the sample message. It comes ready filled, with a "Sample" tag next to it. */
+const isSender = (t: OfferTemplate, f: OfferField) => Boolean(t.sample) && /^(from|signed|sender)/i.test(f.key);
 
-/** What a form starts with: empty boxes (the examples show as grey hints), except the demo sender name. */
+/** What a form starts with: empty boxes (the examples show as grey hints), except the sample sender name. */
 function startValues(t: OfferTemplate): Record<string, string> {
   const v: Record<string, string> = {};
   for (const f of t.fields) v[f.key] = isSender(t, f) ? DEFAULT_SIGNED_BY : "";
@@ -62,8 +62,8 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
   const missing = check ? [] : template.fields.filter((f) => !values[f.key]?.trim());
   const over = check ? check.over : message.length - LIMIT;
   const nobody = o !== null && o.eligible === 0;
-  // Only the demo message may go out with its examples. Every other message needs every box edited first.
-  const incomplete = !check && !template.demo && missing.length > 0;
+  // Only the sample message may go out with its examples. Every other message needs every box edited first.
+  const incomplete = !check && !template.sample && missing.length > 0;
   const ready = check ? check.ok : !incomplete && over <= 0 && message.length > 0;
   // The box "Withdraw the original" only makes sense while the original is still on the cards.
   const canDrop = live !== null && canWithdraw(live);
@@ -267,21 +267,19 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
 
                     {template.fields.map((f) => {
                       const fid = `${ids.hint}-${template.id}-${f.key}`;
-                      const sender = isSender(template, f);
                       return (
                         <div className="ow-field" key={f.key}>
                           <span className="ow-lblrow">
                             <label className="ow-lbl" htmlFor={fid}>{f.label}</label>
-                            {sender && <span className="ow-demo" id={`${fid}-demo`}>Demo<span className="ow-sr"> sender name, only for the demo</span></span>}
                           </span>
-                          <input className="ow-in" id={fid} value={values[f.key] ?? ""} maxLength={f.maxLength} placeholder={f.example} autoComplete="off" aria-describedby={sender ? `${fid}-demo ${ids.count}` : ids.count} onChange={(e) => setField(f.key, e.target.value)} />
+                          <input className="ow-in" id={fid} value={values[f.key] ?? ""} maxLength={f.maxLength} placeholder={f.example} autoComplete="off" aria-describedby={ids.count} onChange={(e) => setField(f.key, e.target.value)} />
                         </div>
                       );
                     })}
 
                     <p className={`ow-note ow-count${over > 0 ? " bad" : ""}`} id={ids.count}>
                       {message.length} of {LIMIT} characters.{" "}
-                      {over > 0 ? `Shorten it by ${over}.` : incomplete ? "Fill in every field before you send." : missing.length ? "The grey words are examples. This demo may be sent as it is." : "Keep it short and warm."}
+                      {over > 0 ? `Shorten it by ${over}.` : incomplete ? "Fill in every field before you send." : missing.length ? "The grey words are examples. This sample may be sent as it is." : "Keep it short and warm."}
                     </p>
                   </>
                 )}

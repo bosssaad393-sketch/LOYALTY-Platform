@@ -49,7 +49,7 @@ export async function bridgeVenue(request: Request): Promise<{ venueId: string }
   const given = /^Bearer\s+(\S+)$/.exec(request.headers.get("authorization") ?? "")?.[1] ?? "";
   if (!timingSafeEqual(sha(given), sha(token))) return Response.json({ error: "unauthorized" }, { status: 401 });
   if (!limiter.allow("bridge")) return Response.json({ error: "too many requests" }, { status: 429 });
-  const slug = (process.env.BRAND_DEFAULT_VENUE ?? "demo").trim().toLowerCase();
+  const slug = (process.env.BRAND_DEFAULT_VENUE ?? "orbyn").trim().toLowerCase();
   const { data, error } = await db().from("venues").select("id").eq("slug", slug).maybeSingle();
   if (error || !data) return Response.json({ error: "venue not found" }, { status: 500 });
   return { venueId: data.id as string };

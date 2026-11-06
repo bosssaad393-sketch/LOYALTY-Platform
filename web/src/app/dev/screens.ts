@@ -24,7 +24,7 @@ export type ScreenLinks = { join: string; terms: string; staff: string; owner: s
 /** Every surface of this deployment. The venue comes from the brand settings, never from a fixed name. */
 export function screenLinks(origin: string, slug: string): ScreenLinks {
   const o = cleanOrigin(origin);
-  const s = SLUG.test(slug) ? slug : "demo";
+  const s = SLUG.test(slug) ? slug : "orbyn";
   return { join: `${o}/join/${s}`, terms: `${o}/join/${s}/terms`, staff: `${o}/staff`, owner: `${o}/owner`, dev: `${o}/dev` };
 }
 

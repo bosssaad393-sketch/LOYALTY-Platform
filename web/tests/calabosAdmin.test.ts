@@ -32,7 +32,7 @@ beforeEach(() => {
   h.state = newState({
     venues: [{ id: VA, slug: "a", name: "Venue A", active: true }, { id: VB, slug: "b", name: "Venue B", active: true }],
     staff_users: [
-      { id: "u-owner", venue_id: VA, name: "Demo owner", role: "owner", active: true, pin_lookup: pinLookup("482915") },
+      { id: "u-owner", venue_id: VA, name: "Sample owner", role: "owner", active: true, pin_lookup: pinLookup("482915") },
       { id: "u-sara", venue_id: VA, name: "Sara", role: "staff", active: true, pin_lookup: null },
       { id: "u-sam", venue_id: VA, name: "Samir", role: "staff", active: true, pin_lookup: null },
       { id: "u-bob", venue_id: VB, name: "Bob", role: "staff", active: true, pin_lookup: null },

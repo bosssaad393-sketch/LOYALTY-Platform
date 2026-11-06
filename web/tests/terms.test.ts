@@ -35,15 +35,15 @@ describe("cleanTerms", () => {
 
 describe("default clauses", () => {
   it("name the venue and keep the six built-in clauses", () => {
-    const c = defaultClauses("Demo Venue");
+    const c = defaultClauses("Orbyn");
     expect(c.map(([t]) => t)).toEqual(["Your card", "Your details", "Notifications", "Rewards", "Deleting your data", "Powered by Orbyn"]);
-    expect(c[0][1]).toContain("Demo Venue Loyalty Rewards");
+    expect(c[0][1]).toContain("Orbyn Loyalty Rewards");
   });
   it("the editor text for the default terms passes validation", () => {
-    expect(TermsInput.safeParse({ text: defaultTermsText("Demo Venue") }).success).toBe(true);
+    expect(TermsInput.safeParse({ text: defaultTermsText("Orbyn") }).success).toBe(true);
   });
   it("round-trips: text made from the default clauses parses back to the same clauses", () => {
-    expect(parseTerms(defaultTermsText("Demo Venue"))).toEqual(defaultClauses("Demo Venue"));
+    expect(parseTerms(defaultTermsText("Orbyn"))).toEqual(defaultClauses("Orbyn"));
   });
 });
 

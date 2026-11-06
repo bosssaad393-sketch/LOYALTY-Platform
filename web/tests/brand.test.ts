@@ -5,7 +5,7 @@ describe("brand settings", () => {
   it("falls back to the template with no settings", () => {
     expect(brandColors({})).toEqual(DEFAULT_COLORS);
     expect(brandName({})).toBe("Rewards");
-    expect(brandVenue({})).toBe("demo");
+    expect(brandVenue({})).toBe("orbyn");
     expect(brandStyle({})).toEqual({});
   });
 
@@ -15,7 +15,7 @@ describe("brand settings", () => {
 
   it("only accepts a safe venue folder name", () => {
     expect(brandVenue({ BRAND_DEFAULT_VENUE: "Acme-Cafe" })).toBe("acme-cafe");
-    expect(brandVenue({ BRAND_DEFAULT_VENUE: "../secrets" })).toBe("demo");
+    expect(brandVenue({ BRAND_DEFAULT_VENUE: "../secrets" })).toBe("orbyn");
   });
 
   it("Wallet colours follow the default brand colours", () => {

@@ -26,59 +26,53 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
     <>
       <PageHead eyebrow={greeting()} title="Overview">{longDate()}. Live from the guests and staff at the till.</PageHead>
 
-      <div className={`ow-quick${isOwner ? "" : " one"}`} role="group" aria-label="Quick actions">
-        <Quick
-          title="Points given out"
-          lead={week.data ? `${n(week.data.issued)} in the last 7 days` : "Today, 7 days, 30 days or all time"}
-          onClick={() => setSheet("points")}
-        />
-        {isOwner && (
-          <Quick title="Send an update" lead="Today’s reward and bonus" onClick={onSendUpdate} />
-        )}
-        {isOwner && (
-          <Quick
-            title="Change the reward"
-            lead={rules.data ? `${rules.data.rewardText}, at ${n(rules.data.rewardGoal)} points` : "The reward, the goal and points per BHD"}
-            onClick={() => setSheet("reward")}
-          />
-        )}
-      </div>
-
       {summary.error && <LoadError text={summary.error} onRetry={summary.reload} />}
       {!s && !summary.error && <Loading />}
       {s && (
-        <>
-          <div className="ow-grid ow-k4">
-            <div className="ow-panel ow-kpi"><span className="ow-kpi-l">Members</span><b className="foil"><Count id="ov-members" value={s.members} /></b><em>+{n(s.newThisWeek)} this week</em></div>
-            <div className="ow-panel ow-kpi"><span className="ow-kpi-l">Visits in 7 days</span><b className="foil"><Count id="ov-visits" value={s.visits7d} /></b>{trend !== null && <em className={trend < 0 ? "down" : ""}>{trend >= 0 ? "+" : ""}{trend}% on last week</em>}</div>
-            <div className="ow-panel ow-kpi">
-              <span className="ow-kpi-l">Points held by guests</span><b className="foil"><Count id="ov-held" value={s.pointsHeld} /></b>
-              <button type="button" className="ow-link" onClick={() => setSheet("points")}>Points given out<Arrow /></button>
-            </div>
-            <div className="ow-panel ow-kpi"><span className="ow-kpi-l">Rewards given</span><b className="foil"><Count id="ov-rewards" value={s.rewards30d} /></b><em className="quiet">Last 30 days</em></div>
+        <section className="ow-lead" aria-label="This week">
+          <div className="ow-lead-main">
+            <span>Visits in 7 days</span>
+            <b><Count id="ov-visits" value={s.visits7d} /></b>
+            {trend !== null ? <em className={trend < 0 ? "down" : trend > 0 ? "up" : ""}>{trend > 0 ? "+" : ""}{trend}% on the 7 days before</em> : <em>No earlier week to compare yet</em>}
           </div>
-          <div className="ow-grid ow-c2 ow-gap-top">
-            <section className="ow-panel" aria-labelledby="ow-h-chart">
-              <h2 className="ow-h" id="ow-h-chart">Visits per day, last 14 days</h2>
-              <VisitsChart days={s.perDay14} />
-            </section>
-            {top.length > 0 && (
-              <section className="ow-panel" aria-labelledby="ow-h-top">
-                <h2 className="ow-h" id="ow-h-top">Top guests</h2>
-                <ol className="ow-list ow-ranked">
-                  {top.map((g, i) => (
-                    <li key={g.cardId} className="ow-item">
-                      <span className="ow-rank" aria-hidden="true">{i + 1}</span>
-                      <span className="ow-item-main"><b>{g.name}</b><small>{n(g.visits)} visits</small></span>
-                      <span className="ow-item-side ow-fig">{n(g.points)} pts</span>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
-          </div>
-        </>
+          <div><span>Members</span><b><Count id="ov-members" value={s.members} /></b><em>+{n(s.newThisWeek)} this week</em></div>
+          <div><span>Points held</span><b><Count id="ov-held" value={s.pointsHeld} /></b><em>By all guests</em></div>
+          <div><span>Rewards</span><b><Count id="ov-rewards" value={s.rewards30d} /></b><em>In 30 days</em></div>
+        </section>
       )}
+
+      <div className="ow-two">
+        {s ? (
+          <section className="ow-panel" aria-labelledby="ow-h-chart">
+            <h2 className="ow-h" id="ow-h-chart">Visits per day, last 14 days</h2>
+            <VisitsChart days={s.perDay14} />
+          </section>
+        ) : <div />}
+        <div className="ow-col">
+          <section className="ow-panel" aria-labelledby="ow-h-do">
+            <h2 className="ow-h" id="ow-h-do">Do next</h2>
+            <div className="ow-do">
+              {isOwner && <Quick title="Send an update" lead="Today’s reward and bonus" onClick={onSendUpdate} />}
+              {isOwner && <Quick title="Change the reward" lead={rules.data ? `${rules.data.rewardText}, at ${n(rules.data.rewardGoal)} points` : "The reward, the goal and points per BHD"} onClick={() => setSheet("reward")} />}
+              <Quick title="Points given out" lead={week.data ? `${n(week.data.issued)} in the last 7 days` : "Today, 7 days, 30 days or all time"} onClick={() => setSheet("points")} />
+            </div>
+          </section>
+          {top.length > 0 && (
+            <section className="ow-panel" aria-labelledby="ow-h-top">
+              <h2 className="ow-h" id="ow-h-top">Top guests</h2>
+              <ol className="ow-list ow-ranked">
+                {top.map((g, i) => (
+                  <li key={g.cardId} className="ow-item">
+                    <span className="ow-rank" aria-hidden="true">{i + 1}</span>
+                    <span className="ow-item-main"><b>{g.name}</b><small>{n(g.visits)} visits</small></span>
+                    <span className="ow-item-side ow-fig">{n(g.points)} pts</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+        </div>
+      </div>
 
       {sheet === "points" && <PointsSummary call={call} onClose={() => setSheet(null)} />}
       {sheet === "reward" && isOwner && <RewardSheet call={call} onSaved={rules.reload} onClose={() => setSheet(null)} />}
