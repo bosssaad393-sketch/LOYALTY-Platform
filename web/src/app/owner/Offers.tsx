@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { AUDIENCE_LABEL, n, stamp } from "./format";
-import { DEFAULT_SIGNED_BY, OFFER_TEMPLATES, fillTemplate, type OfferField, type OfferTemplate } from "./offerTemplates";
+import { OFFER_TEMPLATES, fillTemplate, type OfferField, type OfferTemplate } from "./offerTemplates";
 import { MESSAGE_LIMIT, WITHDRAW_DAYS, canWithdraw, checkResend, withdrawEffect } from "./offerRules";
 import { Arrow, Confirm, Loading, LoadError, Msg, PageHead, useGet } from "./ui";
 import type { Audience, Call, Note, Offer, Offers as OffersData } from "./types";
@@ -18,13 +18,13 @@ function audienceText(a: Audience, o: OffersData): string {
   return count === undefined ? AUDIENCE_LABEL[a] : `${AUDIENCE_LABEL[a]} (${n(count)})`;
 }
 
-/** The sender name in the sample message. It comes ready filled, with a "Sample" tag next to it. */
+/** The sender in the Today's update message. It is always the business name, so the owner never fills it in. */
 const isSender = (t: OfferTemplate, f: OfferField) => Boolean(t.sample) && /^(from|signed|sender)/i.test(f.key);
 
-/** What a form starts with: empty boxes (the examples show as grey hints), except the sample sender name. */
-function startValues(t: OfferTemplate): Record<string, string> {
+/** What a form starts with: empty boxes (the examples show as grey hints), with the business name as the sender. */
+function startValues(t: OfferTemplate, venue: string): Record<string, string> {
   const v: Record<string, string> = {};
-  for (const f of t.fields) v[f.key] = isSender(t, f) ? DEFAULT_SIGNED_BY : "";
+  for (const f of t.fields) v[f.key] = isSender(t, f) ? venue : "";
   return v;
 }
 
@@ -36,7 +36,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
   const template = OFFER_TEMPLATES.find((t) => t.id === templateId) ?? main;
   // What has been typed, kept per form, so going to another message and back loses nothing.
   const [typed, setTyped] = useState<Record<string, Record<string, string>>>({});
-  const values = typed[template.id] ?? startValues(template);
+  const values = typed[template.id] ?? startValues(template, venue);
   const [audience, setAudience] = useState<Audience>("all");
   const [review, setReview] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -80,7 +80,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
 
   function setField(key: string, value: string) {
     setNote(null);
-    setTyped((prev) => ({ ...prev, [template.id]: { ...(prev[template.id] ?? startValues(template)), [key]: value } }));
+    setTyped((prev) => ({ ...prev, [template.id]: { ...(prev[template.id] ?? startValues(template, venue)), [key]: value } }));
   }
 
   /** Bring the form into view and put the cursor in its first box. */
@@ -163,7 +163,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
       endResend();
       // The form changes back to Today's update, so the button that opened the dialog is a new element: put the cursor on it.
       requestAnimationFrame(() => compose.current?.querySelector<HTMLElement>(".ow-btn.primary")?.focus({ preventScroll: true }));
-    } else setTyped((prev) => ({ ...prev, [template.id]: startValues(template) }));
+    } else setTyped((prev) => ({ ...prev, [template.id]: startValues(template, venue) }));
     loaded.reload();
   }
 
@@ -265,7 +265,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
                       {template.id !== main.id && <button type="button" className="ow-link" onClick={() => choose(main.id)}>{main.title}<Arrow /></button>}
                     </div>
 
-                    {template.fields.map((f) => {
+                    {template.fields.filter((f) => !isSender(template, f)).map((f) => {
                       const fid = `${ids.hint}-${template.id}-${f.key}`;
                       return (
                         <div className="ow-field" key={f.key}>
