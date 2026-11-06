@@ -3,12 +3,14 @@ import { db } from "@/lib/supabase";
 import { fail } from "@/lib/staffApi";
 import { withOwner } from "@/lib/ownerApi";
 import { generatePin, pinProblem, setPin } from "@/lib/pin";
+import { waitingIds } from "@/lib/teamInvite";
 
 export async function GET() {
   return withOwner(async (staff) => {
     const { data, error } = await db().from("staff_users").select("id, name, role, active, pin_lookup").eq("venue_id", staff.venueId).neq("role", "developer").order("created_at");
     if (error) throw error;
-    const team = (data ?? []).map((s) => ({ id: s.id, name: s.name, role: s.role, active: s.active, hasPin: !!s.pin_lookup, me: s.id === staff.id }));
+    const waiting = await waitingIds(staff.venueId);
+    const team = (data ?? []).map((s) => ({ id: s.id, name: s.name, role: s.role, active: s.active, hasPin: !!s.pin_lookup, me: s.id === staff.id, waiting: waiting.has(s.id as string) }));
     return Response.json({ team });
   }, true);
 }
@@ -57,6 +59,21 @@ export async function PATCH(request: Request) {
     const { error } = await db().from("staff_users").update({ active: parsed.data.active }).eq("id", parsed.data.id).eq("venue_id", staff.venueId).neq("role", "owner");
     if (error) throw error;
     await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: parsed.data.active ? "staff_activated" : "staff_deactivated", detail: { staff: parsed.data.id } });
+    return Response.json({ ok: true });
+  }, true);
+}
+
+const Decline = z.object({ id: z.uuid() });
+
+/** Turns down someone waiting for approval and removes them. Only people who joined by link and were never approved. */
+export async function DELETE(request: Request) {
+  return withOwner(async (staff) => {
+    const parsed = Decline.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) return fail("Team member missing.");
+    if (!(await waitingIds(staff.venueId)).has(parsed.data.id)) return fail("This person is not waiting for approval.", 404);
+    const { error } = await db().from("staff_users").delete().eq("id", parsed.data.id).eq("venue_id", staff.venueId).eq("active", false);
+    if (error) throw error;
+    await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "staff_join_declined", detail: { staff: parsed.data.id } });
     return Response.json({ ok: true });
   }, true);
 }

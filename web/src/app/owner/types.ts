@@ -14,7 +14,7 @@ export type Summary = {
 
 export type Guest = { cardId: string; code: string; name: string; points: number; visits: number; lastVisit: string | null; joined: string };
 export type Rules = { pointsPerBhd: number; rewardGoal: number; rewardText: string };
-export type Member = { id: string; name: string; role: string; active: boolean; hasPin: boolean; me: boolean };
+export type Member = { id: string; name: string; role: string; active: boolean; hasPin: boolean; me: boolean; waiting?: boolean };
 
 export type Audience = "all" | "apple" | "google";
 // withdrawnAt is set once the owner has withdrawn the message from the cards (round 3).

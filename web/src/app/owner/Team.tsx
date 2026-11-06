@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import QRCode from "qrcode";
+import { qrPath } from "../dev/screens";
 import { Loading, LoadError, Msg, PageHead, useGet } from "./ui";
 import type { Call, Member, Note } from "./types";
 
@@ -44,7 +46,15 @@ export default function Team({ call }: { call: Call }) {
   async function toggle(m: Member) {
     setNote(null);
     const r = await call("/api/owner/team", "PATCH", { id: m.id, active: !m.active });
-    if (r.ok) team.setData((t) => (t ? { team: t.team.map((x) => (x.id === m.id ? { ...x, active: !x.active } : x)) } : t));
+    if (r.ok) team.setData((t) => (t ? { team: t.team.map((x) => (x.id === m.id ? { ...x, active: !x.active, waiting: false } : x)) } : t));
+    else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+  }
+
+  async function decline(m: Member) {
+    if (!window.confirm(`Turn down ${m.name}? They will be removed.`)) return;
+    setNote(null);
+    const r = await call("/api/owner/team", "DELETE", { id: m.id });
+    if (r.ok) team.setData((t) => (t ? { team: t.team.filter((x) => x.id !== m.id) } : t));
     else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
   }
 
@@ -86,29 +96,34 @@ export default function Team({ call }: { call: Call }) {
         {team.data && (
           <section className="ow-panel ow-flush" aria-label="Team members">
             <ul className="ow-list">
-              {team.data.team.map((m) => (
+              {[...team.data.team].sort((a, b) => Number(!!b.waiting) - Number(!!a.waiting)).map((m) => (
                 <li key={m.id} className="ow-item">
                   <span className="ow-item-main">
-                    <span className="ow-namerow"><b>{m.name}{m.me ? " (you)" : ""}</b><em className="ow-tag">{m.role}</em>{!m.active && <span className="ow-off">deactivated</span>}</span>
-                    <small>{m.hasPin ? "PIN set" : "No PIN yet"}</small>
+                    <span className="ow-namerow"><b>{m.name}{m.me ? " (you)" : ""}</b><em className="ow-tag">{m.role}</em>{!m.active && !m.waiting && <span className="ow-off">deactivated</span>}</span>
+                    <small>{m.waiting ? "Joined by link, waiting for you" : m.hasPin ? "PIN set" : "No PIN yet"}</small>
                   </span>
                   <span className="ow-item-side ow-rowbtns">
+                    {m.waiting && <button type="button" className="ow-btn small primary" onClick={() => toggle(m)} aria-label={`Approve ${m.name}`}>Approve</button>}
+                    {m.waiting && <button type="button" className="ow-btn small" onClick={() => decline(m)} aria-label={`Turn down ${m.name}`}>Turn down</button>}
                     {m.active && m.role !== "owner" && <button type="button" className="ow-btn small primary" onClick={() => { setRewardFor(m.id); setNote(null); }} aria-label={`Give ${m.name} a reward`}>Give a reward</button>}
-                    {m.role !== "owner" && <button type="button" className="ow-btn small" onClick={() => resetPin(m)} aria-label={`New PIN for ${m.name}`}>New PIN</button>}
-                    {!m.me && m.role !== "owner" && <button type="button" className="ow-btn small" onClick={() => toggle(m)} aria-label={`${m.active ? "Deactivate" : "Activate"} ${m.name}`}>{m.active ? "Deactivate" : "Activate"}</button>}
+                    {m.role !== "owner" && !m.waiting && <button type="button" className="ow-btn small" onClick={() => resetPin(m)} aria-label={`New PIN for ${m.name}`}>New PIN</button>}
+                    {!m.me && m.role !== "owner" && !m.waiting && <button type="button" className="ow-btn small" onClick={() => toggle(m)} aria-label={`${m.active ? "Deactivate" : "Activate"} ${m.name}`}>{m.active ? "Deactivate" : "Activate"}</button>}
                   </span>
                 </li>
               ))}
             </ul>
           </section>
         )}
+        <div className="ow-stack">
+        <JoinLink call={call} />
         <form className="ow-panel" onSubmit={invite} aria-labelledby="ow-h-add">
-          <h2 className="ow-h" id="ow-h-add">Add someone</h2>
+          <h2 className="ow-h" id="ow-h-add">Add someone yourself</h2>
           <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-name">Name</label><input className="ow-in" id="ow-t-name" name="name" required maxLength={60} autoComplete="off" /></div>
           <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-role">Role</label><select className="ow-in ow-select" id="ow-t-role" name="role" defaultValue="staff"><option value="staff">Staff (4-digit PIN)</option><option value="manager">Manager (6-digit PIN)</option></select></div>
           <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-pin">PIN (optional)</label><input className="ow-in" id="ow-t-pin" name="pin" inputMode="numeric" pattern="[0-9]{4,6}" maxLength={6} autoComplete="off" /><small>Staff 4 digits, manager 6. Leave empty for a random one. It stays the same until you press New PIN.</small></div>
           <div className="ow-actions"><button className="ow-btn primary" type="submit" disabled={busy}>{busy ? "Adding…" : "Add to team"}</button></div>
         </form>
+        </div>
       </div>
 
       <section className="ow-panel" aria-labelledby="ow-h-thanks">
@@ -146,5 +161,49 @@ export default function Team({ call }: { call: Call }) {
         )}
       </section>
     </>
+  );
+}
+
+/** One link or QR code for the whole team: people add themselves, then appear above for approval. */
+function JoinLink({ call }: { call: Call }) {
+  const [link, setLink] = useState<{ url: string; size: number; d: string; until: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<Note | null>(null);
+
+  async function make() {
+    setBusy(true); setNote(null);
+    const r = await call<{ path: string; expiresAt: string }>("/api/owner/team/invite", "GET");
+    setBusy(false);
+    if (!r.ok) { if (r.status !== 401) setNote({ kind: "bad", text: r.error }); return; }
+    const url = `${window.location.origin}${r.data.path}`;
+    const { modules } = QRCode.create(url, { errorCorrectionLevel: "M" });
+    setLink({ url, size: modules.size, d: qrPath(modules.size, modules.data), until: day(r.data.expiresAt) });
+  }
+
+  async function share(url: string) {
+    setNote(null);
+    if (navigator.share) { await navigator.share({ title: "Join the team", url }).catch(() => {}); return; }
+    const copied = await navigator.clipboard?.writeText(url).then(() => true, () => false);
+    setNote(copied ? { kind: "ok", text: "Link copied." } : { kind: "bad", text: "Could not copy. Press and hold the QR code instead." });
+  }
+
+  return (
+    <section className="ow-panel" aria-labelledby="ow-h-link">
+      <h2 className="ow-h" id="ow-h-link">Team join link</h2>
+      <p className="ow-sub">Share one link. People add themselves and get their own PIN, then you approve them with one tap.</p>
+      <Msg note={note} />
+      {link ? (
+        <div className="ow-joinlink">
+          <svg role="img" aria-label="QR code for the team join link" width={200} height={200} viewBox={`-4 -4 ${link.size + 8} ${link.size + 8}`}>
+            <rect x={-4} y={-4} width={link.size + 8} height={link.size + 8} fill="#fff" />
+            <path d={link.d} fill="#000" />
+          </svg>
+          <p className="ow-note">Works until {link.until}.</p>
+          <div className="ow-actions"><button type="button" className="ow-btn primary" onClick={() => share(link.url)}>Share link</button></div>
+        </div>
+      ) : (
+        <div className="ow-actions"><button type="button" className="ow-btn primary" disabled={busy} onClick={make}>{busy ? "Making…" : "Make join link"}</button></div>
+      )}
+    </section>
   );
 }

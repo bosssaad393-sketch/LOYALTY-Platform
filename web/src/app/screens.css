@@ -151,3 +151,13 @@
 @media (min-width: 1000px) { .ow-two { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; } }
 
 @media (prefers-reduced-motion: reduce) { .sc-line { display: none; } }
+
+/* Team join link: the owner's panel and the page a new person opens. */
+.ow-stack { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.ow-joinlink { margin-top: 16px; display: grid; gap: 12px; justify-items: start; }
+.ow-joinlink svg { border-radius: 8px; }
+.tj { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
+.tj-in { width: 100%; max-width: 440px; display: grid; gap: 20px; justify-items: center; }
+.tj-in > .ow-panel { width: 100%; }
+.tj-crest { display: block; width: 96px; height: 96px; object-fit: contain; }
+.tj-go { margin-top: 16px; }
