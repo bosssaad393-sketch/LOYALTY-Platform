@@ -53,9 +53,9 @@ export function readSession(value: string | undefined, area: Area = "staff"): st
   return staffId;
 }
 
-async function loadStaff(where: { id?: string; authUser?: string }): Promise<Staff | null> {
+async function loadStaff(where: { id?: string; authUser?: string; pinLookup?: string }): Promise<Staff | null> {
   let q = db().from("staff_users").select("id, name, role, active, venue_id, venues(slug, name)").eq("active", true);
-  q = where.id ? q.eq("id", where.id) : q.eq("auth_user", where.authUser!);
+  q = where.id ? q.eq("id", where.id) : where.pinLookup ? q.eq("pin_lookup", where.pinLookup) : q.eq("auth_user", where.authUser!);
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
   if (!data) return null;
@@ -64,7 +64,7 @@ async function loadStaff(where: { id?: string; authUser?: string }): Promise<Sta
   return { id: data.id, name: data.name, role: data.role, venueId: data.venue_id, venueSlug: venue.slug, venueName: venue.name };
 }
 
-export const loadStaffById = (id: string) => loadStaff({ id });
+export const loadStaffByPin = (pinLookup: string) => loadStaff({ pinLookup });
 
 /** Checks email + password with Supabase Auth, then finds the active staff record. */
 export async function signIn(email: string, password: string): Promise<Staff | null> {

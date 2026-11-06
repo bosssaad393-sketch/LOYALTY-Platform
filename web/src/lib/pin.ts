@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, randomInt } from "node:crypto";
 import { db } from "./supabase";
-import { loadStaffById, type Staff } from "./staffAuth";
+import { loadStaffByPin, type Staff } from "./staffAuth";
 
 /**
  * PIN sign-in. A PIN is a short secret, so it is protected by three things:
@@ -54,15 +54,16 @@ export type PinResult = { ok: true; staff: Staff } | { ok: false; reason: "locke
 export async function signInWithPin(pin: string, caller: string, now = Date.now()): Promise<PinResult> {
   const who = mac(`caller:${caller}`);
   const since = new Date(now - WINDOW_MS).toISOString();
-  const mine = await db().from("pin_attempts").select("id").eq("who", who).gte("at", since);
+  // Read together so sign-in waits for one trip to the database, not three. The lock is still judged first.
+  const [mine, all, staff] = await Promise.all([
+    db().from("pin_attempts").select("id").eq("who", who).gte("at", since),
+    db().from("pin_attempts").select("id").gte("at", since),
+    loadStaffByPin(pinLookup(pin)),
+  ]);
   if (mine.error) throw mine.error;
-  const all = await db().from("pin_attempts").select("id").gte("at", since);
   if (all.error) throw all.error;
   if ((mine.data ?? []).length >= PER_CALLER || (all.data ?? []).length >= OVERALL) return { ok: false, reason: "locked" };
 
-  const { data, error } = await db().from("staff_users").select("id").eq("pin_lookup", pinLookup(pin)).eq("active", true).maybeSingle();
-  if (error) throw error;
-  const staff = data ? await loadStaffById(data.id as string) : null;
   if (!staff) {
     await db().from("pin_attempts").insert({ who, at: new Date(now).toISOString() });
     return { ok: false, reason: "wrong" };

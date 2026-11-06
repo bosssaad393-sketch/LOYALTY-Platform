@@ -28,5 +28,5 @@ describe("go-live-orbyn.sql", () => {
     expect((await db.query<{ name: string }>("select name from members")).rows).toEqual([{ name: "Ann Hassan" }]);
     expect((await db.query<{ name: string }>("select name from staff_users where role = 'owner'")).rows).toEqual([{ name: "Owner" }]);
     expect((await db.query("select 1 from information_schema.tables where table_name = 'table_requests'")).rows.length).toBe(1);
-  });
+  }, 30_000); // builds a whole database, which can pass the default 5 s when the machine is busy
 });
