@@ -32,6 +32,7 @@ create table if not exists menu_items (
   note_en     text check (note_en is null or length(note_en) <= 200),
   note_ar     text check (note_ar is null or length(note_ar) <= 200),
   price_fils  integer not null check (price_fils between 0 and 10000000),
+  image_url   text,                          -- set only by the server, after checking the file
   available   boolean not null default true, -- false = sold out today
   active      boolean not null default true, -- false = removed from the menu (old orders keep their own copy of the name and price)
   sort        integer not null default 0,
@@ -101,6 +102,11 @@ create table if not exists table_requests (
 );
 create unique index if not exists table_requests_one_open on table_requests (tab_id, kind) where handled_at is null;
 create index if not exists table_requests_venue_idx on table_requests (venue_id, created_at desc);
+
+-- Menu photos are public pictures in their own storage folder. Only the server (service role) can add them.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('menu', 'menu', true, 614400, array['image/webp', 'image/jpeg'])
+on conflict (id) do nothing;
 
 -- Locked by default, like every other table: only the server (service role) reads and writes these.
 alter table venue_tables    enable row level security;

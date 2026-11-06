@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandColors, brandName, brandStyle, brandTokens, brandVenue, footerLine, mix, poweredBy, walletColors, DEFAULT_COLORS } from "../src/lib/brand";
+import { brandColors, brandName, brandStyle, brandTokens, brandVenue, footerLine, mix, poweredBy, rgbText, walletColors, DEFAULT_COLORS } from "../src/lib/brand";
 
 describe("brand settings", () => {
   it("falls back to the template with no settings", () => {
@@ -18,13 +18,13 @@ describe("brand settings", () => {
     expect(brandVenue({ BRAND_DEFAULT_VENUE: "../secrets" })).toBe("demo");
   });
 
-  it("keeps the template look byte for byte: Wallet colours equal the old fixed values", () => {
+  it("Wallet colours follow the default brand colours", () => {
     expect(walletColors({})).toEqual({
-      appleBackground: "rgb(8, 7, 6)",
-      applePreviewBackground: "rgb(14, 12, 10)",
-      appleForeground: "rgb(243, 233, 210)",
-      appleLabel: "rgb(205, 165, 91)",
-      googleBackground: "#141210",
+      appleBackground: rgbText(mix(DEFAULT_COLORS.bg, "#000000", 0.6)),
+      applePreviewBackground: rgbText(mix(DEFAULT_COLORS.bg, "#000000", 0.3)),
+      appleForeground: rgbText(DEFAULT_COLORS.text),
+      appleLabel: rgbText(DEFAULT_COLORS.accent),
+      googleBackground: DEFAULT_COLORS.bg,
     });
   });
 });

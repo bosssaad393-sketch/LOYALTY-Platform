@@ -1,7 +1,7 @@
 /**
  * White-label branding. One deployment = one client, and everything that is client-specific comes from
  * environment variables (see .env.example). With no variables set the app looks exactly like the template
- * (warm black and gold). Used by the layout, the pages, the manifests and both Wallet passes.
+ * (the Orbyn look: deep teal, cyan). Used by the layout, the pages, the manifests and both Wallet passes.
  *
  * Pure functions that take an `env` object, so they are easy to test.
  */
@@ -12,7 +12,7 @@ type Env = Record<string, string | undefined>;
 
 export type BrandColors = { bg: string; text: string; accent: string };
 
-export const DEFAULT_COLORS: BrandColors = { bg: "#141210", text: "#f3e9d2", accent: "#cda55b" };
+export const DEFAULT_COLORS: BrandColors = { bg: "#04191d", text: "#eaf7f5", accent: "#14f1e9" };
 
 const HEX = /^#[0-9a-f]{6}$/i;
 const SLUG = /^[a-z0-9-]+$/;
@@ -112,23 +112,36 @@ export function brandTokens(c: BrandColors): Record<string, string> {
     "--card-top": mix(c.bg, c.text, 0.14),
     "--card-mid": mix(c.bg, c.text, 0.07),
     "--on-gold": luminance(c.accent) > 0.4 ? "#1a1410" : "#ffffff",
+    "--deep": mix(c.bg, "#000000", 0.45),
+    "--shade-rgb": toRgb(mix(c.bg, "#000000", 0.6)).join(" "),
+    "--gold-hi-rgb": toRgb(mix(c.accent, "#ffffff", 0.6)).join(" "),
+    // A client's own look keeps its marble photo under a dark layer and the moving network; the Orbyn look has its own ground.
+    "--scrim-a": "0.93",
+    "--net": "block",
   };
 }
+
+/** BRAND_FONT=classic: serif headings and figures for a client who wants a traditional look instead of Outfit. */
+const CLASSIC_FONTS = {
+  "--serif": 'Georgia, "Times New Roman", serif',
+  "--sans": 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+  "--display": "var(--display-classic), var(--serif)",
+  "--display-arabic": "var(--display-classic-ar)",
+};
 
 /** Inline style for <html>: empty when the colours are the template's own, so nothing changes by default. */
 export function brandStyle(env: Env = process.env): Record<string, string> {
   const c = brandColors(env);
   const same = c.bg === DEFAULT_COLORS.bg && c.text === DEFAULT_COLORS.text && c.accent === DEFAULT_COLORS.accent;
-  return same ? {} : brandTokens(c);
+  return { ...(same ? {} : brandTokens(c)), ...(env.BRAND_FONT?.trim().toLowerCase() === "classic" ? CLASSIC_FONTS : {}) };
 }
 
 /** Wallet colours. With the template colours these are exactly the values the app always used. */
 export function walletColors(env: Env = process.env) {
   const c = brandColors(env);
-  const template = c.bg === DEFAULT_COLORS.bg;
   return {
     appleBackground: rgbText(mix(c.bg, "#000000", 0.6)),
-    applePreviewBackground: template ? "rgb(14, 12, 10)" : rgbText(mix(c.bg, "#000000", 0.3)),
+    applePreviewBackground: rgbText(mix(c.bg, "#000000", 0.3)),
     appleForeground: rgbText(c.text),
     appleLabel: rgbText(c.accent),
     googleBackground: c.bg,

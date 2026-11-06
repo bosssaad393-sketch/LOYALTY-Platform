@@ -126,6 +126,21 @@ function MenuEditor({ call }: { call: Call }) {
     return false;
   }, [call, menu]);
 
+  async function photo(id: string, file: File | undefined) {
+    if (!file) return;
+    setNote(null);
+    const image = await shrinkPhoto(file).catch(() => null);
+    if (!image) { setNote({ kind: "bad", text: "That file could not be read. Please choose a JPEG, PNG or WebP photo." }); return; }
+    const r = await call<{ menu: MenuView }>("/api/owner/menu/photo", "POST", { id, image });
+    if (r.ok) { menu.setData(r.data); setNote({ kind: "ok", text: "Photo saved." }); } else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+  }
+
+  async function dropPhoto(id: string) {
+    setNote(null);
+    const r = await call<{ menu: MenuView }>("/api/owner/menu/photo", "DELETE", { id });
+    if (r.ok) { menu.setData(r.data); setNote({ kind: "ok", text: "Photo removed." }); } else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+  }
+
   async function addCategory(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -165,6 +180,20 @@ function MenuEditor({ call }: { call: Call }) {
                     <Field label="Note (English, optional)" name="noteEn" value={i.noteEn ?? ""} />
                     <Field label="Note (Arabic, optional)" name="noteAr" value={i.noteAr ?? ""} dir="rtl" />
                     <Field label="Price in BHD" name="price" value={filsText(i.priceFils)} required inputMode="decimal" />
+                    <div className="ow-field">
+                      <span className="ow-lbl">Photo</span>
+                      {i.imageUrl && (
+                        /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
+                        <img src={i.imageUrl} alt={`Current photo of ${i.nameEn}`} width={120} height={120} style={{ borderRadius: 8, objectFit: "cover" }} />
+                      )}
+                      <div className="ow-actions">
+                        <label className="ow-btn small">
+                          {i.imageUrl ? "Change photo" : "Add photo"}
+                          <input className="ow-sr" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { void photo(i.id, e.target.files?.[0]); e.target.value = ""; }} />
+                        </label>
+                        {i.imageUrl && <button className="ow-btn small" type="button" onClick={() => dropPhoto(i.id)}>Remove photo</button>}
+                      </div>
+                    </div>
                     <div className="ow-actions">
                       <button className="ow-btn small primary" type="submit">Save</button>
                       <button className="ow-btn small" type="button" onClick={() => setEditing(null)}>Cancel</button>
@@ -173,6 +202,10 @@ function MenuEditor({ call }: { call: Call }) {
                   </form>
                 ) : (
                   <>
+                    {i.imageUrl && (
+                      /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
+                      <img src={i.imageUrl} alt="" width={56} height={56} loading="lazy" style={{ flex: "none", borderRadius: 8, objectFit: "cover" }} />
+                    )}
                     <span className="ow-item-main"><b>{i.nameEn}</b>{!i.nameAr && <small> · no Arabic name yet</small>}{i.nameAr && <small> · {i.nameAr}</small>}{!i.available && <small> · sold out</small>}</span>
                     <span className="ow-item-side ow-rowbtns"><span className="ow-fig">{filsText(i.priceFils)}</span><button type="button" className="ow-btn small" aria-label={`Edit ${i.nameEn}`} onClick={() => setEditing(i.id)}>Edit</button></span>
                   </>
@@ -196,6 +229,18 @@ function MenuEditor({ call }: { call: Call }) {
       </form>
     </div>
   );
+}
+
+/** Square crop from the centre, 640 px, WebP where the browser can make it (JPEG otherwise). Keeps uploads small on venue wifi. */
+async function shrinkPhoto(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const side = Math.min(bitmap.width, bitmap.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = Math.min(640, side);
+  canvas.getContext("2d")!.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const webp = canvas.toDataURL("image/webp", 0.8);
+  return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.82);
 }
 
 function Field({ label, name, value, required, dir, inputMode }: { label: string; name: string; value?: string; required?: boolean; dir?: string; inputMode?: "decimal" }) {

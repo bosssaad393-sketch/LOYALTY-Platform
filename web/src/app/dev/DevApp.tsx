@@ -77,7 +77,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
     if (r.ok) setMe(r.data); else setError(r.error);
   }
 
-  if (!me) return <SignIn role="owner" look={look} busy={busy} error={error} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} roleLabel="Developer" />;
+  if (!me) return <SignIn role="owner" look={look} busy={busy} error={error} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} roleLabel="Developer" crestSrc="/orbyn-mark.svg" />;
 
   const open = reqs?.filter((r) => r.status !== "done").length ?? 0;
   const NAV: { id: Section; label: string; badge?: number }[] = [
@@ -94,7 +94,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
       <NetworkBackdrop fixed />
       <div className="dv-shell">
         <aside className="dv-side">
-          <div className="dv-brand"><img src="/orbyn-mark.png" alt="Orbyn, developer" width={72} height={72} /></div>
+          <div className="dv-brand"><img src="/orbyn-mark.svg" alt="Orbyn, developer" width={64} height={75} /></div>
           <nav className="dv-nav" aria-label="Developer sections">
             {NAV.map((n) => (
               <button key={n.id} type="button" className="dv-navbtn" aria-current={section === n.id ? "page" : undefined} onClick={() => setSection(n.id)}>

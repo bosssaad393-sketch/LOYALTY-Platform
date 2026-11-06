@@ -1,0 +1,14 @@
+Sample menu photos, for the demo only. A real venue uses its own photos.
+Each is resized and cropped square.
+
+karak-tea.webp: "Karak Tea" by Gaurav Dhwaj Khadka, CC BY-SA 4.0, via Wikimedia Commons https://creativecommons.org/licenses/by-sa/4.0/ https://commons.wikimedia.org/w/index.php?curid=133910840
+espresso.webp: "Espresso and napolitains" by Sandstein, CC BY 3.0, via Wikimedia Commons https://creativecommons.org/licenses/by/3.0/ https://commons.wikimedia.org/w/index.php?curid=5581571
+cappuccino.webp: "Cappuccino PeB" by Chris Brown, CC BY 2.0, via Wikimedia Commons https://creativecommons.org/licenses/by/2.0/ https://commons.wikimedia.org/w/index.php?curid=3846386
+mint-tea.webp: "Tangier Mint Tea" by Andy Dincher, CC BY-SA 3.0, via Wikimedia Commons https://creativecommons.org/licenses/by-sa/3.0/ https://commons.wikimedia.org/w/index.php?curid=5066268
+lemon-mint.webp: "Two glasses of green mint lemonade, topped with lemon and mint—one with a pink straw, the…" by Alina Kakshapati, CC0, via WordPress Photo Directory https://creativecommons.org/publicdomain/zero/1.0/ https://wordpress.org/photos/photo/58168b1383/
+blood-orange.webp: "Bloodorange1" by No machine-readable author provided. Northgrove assumed (ba…, CC BY-SA 3.0, via Wikimedia Commons https://creativecommons.org/licenses/by-sa/3.0/ https://commons.wikimedia.org/w/index.php?curid=1694610
+hummus.webp: "Lebanon, Baalbek, Lebanese Hummus" by Vyacheslav Argenberg, CC BY 4.0, via Wikimedia Commons https://creativecommons.org/licenses/by/4.0/ https://commons.wikimedia.org/w/index.php?curid=93337507
+halloumi.webp: "Grilled Halloumi" by Hmioannou, CC BY 3.0, via Wikimedia Commons https://creativecommons.org/licenses/by/3.0/ https://commons.wikimedia.org/w/index.php?curid=12727589
+club-sandwich.webp: "Club sandwich" by Jessica from Hove, United Kingdom, CC BY 2.0, via Wikimedia Commons https://creativecommons.org/licenses/by/2.0/ https://commons.wikimedia.org/w/index.php?curid=2243828
+cheesecake.webp: "Free strawberry cheesecake slice image", CC0, via rawpixel https://creativecommons.org/publicdomain/zero/1.0/ https://www.rawpixel.com/image/5924639/photo-image-public-domain-illustration-fruit
+fattoush.webp: "Grilled Chicken Fattoush Salad" by TheCulinaryGeek, CC BY 2.0, via Wikimedia Commons https://creativecommons.org/licenses/by/2.0/ https://commons.wikimedia.org/w/index.php?curid=83079672

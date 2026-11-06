@@ -28,15 +28,15 @@ export async function findTable(token: string): Promise<TableRef | null> {
 // ---- menu ---------------------------------------------------------------------------------------------------------
 
 type CategoryRow = { id: string; name_en: string; name_ar: string | null; sort: number };
-type ItemRow = MenuRow & { category_id: string; note_en: string | null; note_ar: string | null; sort: number };
+type ItemRow = MenuRow & { category_id: string; note_en: string | null; note_ar: string | null; image_url: string | null; sort: number };
 
 async function menuRows(venueId: string) {
   const categories = must(await db().from("menu_categories").select("id, name_en, name_ar, sort").eq("venue_id", venueId).eq("active", true).order("sort")) as CategoryRow[];
-  const items = must(await db().from("menu_items").select("id, category_id, name_en, name_ar, note_en, note_ar, price_fils, available, active, sort").eq("venue_id", venueId).eq("active", true).order("sort")) as ItemRow[];
+  const items = must(await db().from("menu_items").select("id, category_id, name_en, name_ar, note_en, note_ar, image_url, price_fils, available, active, sort").eq("venue_id", venueId).eq("active", true).order("sort")) as ItemRow[];
   return { categories, items };
 }
 
-export type MenuView = { id: string; nameEn: string; nameAr: string | null; items: { id: string; nameEn: string; nameAr: string | null; noteEn: string | null; noteAr: string | null; priceFils: number; available: boolean }[] }[];
+export type MenuView = { id: string; nameEn: string; nameAr: string | null; items: { id: string; nameEn: string; nameAr: string | null; noteEn: string | null; noteAr: string | null; imageUrl: string | null; priceFils: number; available: boolean }[] }[];
 
 export async function readMenu(venueId: string): Promise<MenuView> {
   const { categories, items } = await menuRows(venueId);
@@ -44,7 +44,7 @@ export async function readMenu(venueId: string): Promise<MenuView> {
     id: c.id,
     nameEn: c.name_en,
     nameAr: c.name_ar,
-    items: items.filter((i) => i.category_id === c.id).map((i) => ({ id: i.id, nameEn: i.name_en, nameAr: i.name_ar, noteEn: i.note_en, noteAr: i.note_ar, priceFils: i.price_fils, available: i.available })),
+    items: items.filter((i) => i.category_id === c.id).map((i) => ({ id: i.id, nameEn: i.name_en, nameAr: i.name_ar, noteEn: i.note_en, noteAr: i.note_ar, imageUrl: i.image_url, priceFils: i.price_fils, available: i.available })),
   }));
 }
 
@@ -256,6 +256,15 @@ export async function addItem(venueId: string, categoryId: string, fields: ItemF
 
 export async function editItem(venueId: string, itemId: string, fields: ItemFields): Promise<boolean> {
   const done = must(await db().from("menu_items").update(itemColumns(fields)).eq("id", itemId).eq("venue_id", venueId).eq("active", true).select("id")) as unknown[];
+  return done.length > 0;
+}
+
+export async function venueItem(venueId: string, itemId: string): Promise<boolean> {
+  return Boolean(must(await db().from("menu_items").select("id").eq("id", itemId).eq("venue_id", venueId).eq("active", true).maybeSingle()));
+}
+
+export async function setItemPhoto(venueId: string, itemId: string, imageUrl: string | null): Promise<boolean> {
+  const done = must(await db().from("menu_items").update({ image_url: imageUrl }).eq("id", itemId).eq("venue_id", venueId).eq("active", true).select("id")) as unknown[];
   return done.length > 0;
 }
 

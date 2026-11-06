@@ -1,4 +1,4 @@
-.netbg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+.netbg { display: var(--net, block); position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 .netbg-fixed { position: fixed; }
 .pp > .pp-stage, .si > .si-col { position: relative; z-index: 1; }
 .dv > .dv-shell { position: relative; z-index: 1; }

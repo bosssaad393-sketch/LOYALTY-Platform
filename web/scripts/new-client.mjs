@@ -35,8 +35,8 @@ const HEX = /^#[0-9a-f]{6}$/i;
 
 const name = typeof args.name === "string" ? args.name.trim() : "";
 const slug = typeof args.slug === "string" ? args.slug.trim().toLowerCase() : "";
-const accent = (typeof args.accent === "string" ? args.accent : "#cda55b").toLowerCase();
-const bg = (typeof args.bg === "string" ? args.bg : "#141210").toLowerCase();
+const accent = (typeof args.accent === "string" ? args.accent : "#14f1e9").toLowerCase();
+const bg = (typeof args.bg === "string" ? args.bg : "#04191d").toLowerCase();
 const text = (typeof args.text === "string" ? args.text : "#f3e9d2").toLowerCase();
 if (!name) fail('Missing --name "Client name"');
 if (!/^[a-z0-9-]+$/.test(slug)) fail('Missing or bad --slug (letters, digits and dashes only, e.g. "acme-cafe")');

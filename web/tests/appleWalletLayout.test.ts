@@ -93,11 +93,11 @@ describe("store card layout (the default)", () => {
     expect(before.files.get("pass.json")!.equals(after.files.get("pass.json")!)).toBe(false);
   });
 
-  it("uses a tinted black background, cream text and gold labels", async () => {
+  it("uses the brand's dark ground, light text and accent labels", async () => {
     const { json } = await pass(320);
-    expect(json.backgroundColor).toBe("rgb(8, 7, 6)");
-    expect(json.foregroundColor).toBe("rgb(243, 233, 210)");
-    expect(json.labelColor).toBe("rgb(205, 165, 91)");
+    expect(json.backgroundColor).toBe("rgb(2, 10, 12)");
+    expect(json.foregroundColor).toBe("rgb(234, 247, 245)");
+    expect(json.labelColor).toBe("rgb(20, 241, 233)");
   });
 
   it("keeps the QR (card code inside) and its alt text", async () => {

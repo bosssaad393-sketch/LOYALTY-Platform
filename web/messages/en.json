@@ -63,6 +63,7 @@
       "soldOut": "Something in your order just sold out. Please check it.",
       "tooMany": "Too many tries. Please wait a minute.",
       "server": "Something went wrong. Please try again."
-    }
+    },
+    "sampleCredits": "Sample photos: credits"
   }
 }

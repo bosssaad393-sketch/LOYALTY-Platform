@@ -14,19 +14,25 @@ const uuid = () => crypto.randomUUID();
 const VENUE = "00000000-0000-4000-8000-000000000001";
 const fakeId = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
+// Sample photos are open-licence pictures, for the demo only: public/samples/menu/CREDITS.txt
 const sampleCategories = [
-  { n: 101, en: "Hot drinks", ar: "مشروبات ساخنة" },
+  { n: 101, en: "Coffee and tea", ar: "قهوة وشاي" },
   { n: 102, en: "Cold drinks", ar: "مشروبات باردة" },
-  { n: 103, en: "Small plates", ar: "أطباق صغيرة" },
+  { n: 103, en: "Food", ar: "طعام" },
+  { n: 104, en: "Dessert", ar: "حلويات" },
 ];
-const sampleItems: [number, number, string, string, number][] = [
-  [201, 101, "Karak tea", "شاي كرك", 800],
-  [202, 101, "Espresso", "إسبريسو", 1200],
-  [203, 101, "Mint tea pot", "إبريق شاي بالنعناع", 2500],
-  [204, 102, "Fresh lemon mint", "ليمون بالنعناع", 1800],
-  [205, 102, "Sparkling water", "مياه غازية", 1000],
-  [206, 103, "Hummus", "حمص", 2200],
-  [207, 103, "Halloumi fries", "حلوم مقلي", 3200],
+const sampleItems: [number, number, string, string, number, string][] = [
+  [201, 101, "Karak tea", "شاي كرك", 800, "karak-tea"],
+  [202, 101, "Espresso", "إسبريسو", 1200, "espresso"],
+  [203, 101, "Cappuccino", "كابتشينو", 1600, "cappuccino"],
+  [204, 101, "Mint tea pot", "إبريق شاي بالنعناع", 2500, "mint-tea"],
+  [205, 102, "Fresh lemon mint", "ليمون بالنعناع", 1800, "lemon-mint"],
+  [206, 102, "Blood orange juice", "عصير البرتقال الأحمر", 2000, "blood-orange"],
+  [207, 103, "Hummus", "حمص", 2200, "hummus"],
+  [208, 103, "Grilled halloumi", "حلوم مشوي", 3200, "halloumi"],
+  [209, 103, "Chicken fattoush", "فتوش بالدجاج", 3800, "fattoush"],
+  [210, 103, "Club sandwich", "كلوب ساندويتش", 4200, "club-sandwich"],
+  [211, 104, "Strawberry cheesecake", "تشيز كيك بالفراولة", 2800, "cheesecake"],
 ];
 
 const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, Row[]> }).__fakeDb ??= {
@@ -46,7 +52,7 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   staff_users: [{ id: fakeId(900), venue_id: VENUE, name: "Sample Staff", role: "owner", active: true }],
   venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `sample-table-token-${n}`, active: true })),
   menu_categories: sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
-  menu_items: sampleItems.map(([n, cat, en, ar, fils], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, price_fils: fils, available: true, active: true, sort: i })),
+  menu_items: sampleItems.map(([n, cat, en, ar, fils, photo], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, image_url: `/samples/menu/${photo}.webp`, price_fils: fils, available: true, active: true, sort: i })),
   tabs: [],
   orders: [],
   order_items: [],

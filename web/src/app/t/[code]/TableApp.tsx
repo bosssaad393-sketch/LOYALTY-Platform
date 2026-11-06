@@ -40,6 +40,27 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     return () => clearInterval(id);
   }, [token]);
 
+  // The chip follows the section on screen, and stays in view in its own sideways strip.
+  useEffect(() => {
+    const seen = new Map<string, boolean>();
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) seen.set(e.target.id.slice(2), e.isIntersecting);
+      const first = initialMenu.find((c) => seen.get(c.id));
+      if (first) setSection(first.id);
+    }, { rootMargin: "-80px 0px -60% 0px" });
+    for (const c of initialMenu) {
+      const el = document.getElementById(`c-${c.id}`);
+      if (el) io.observe(el);
+    }
+    return () => io.disconnect();
+  }, [initialMenu]);
+
+  useEffect(() => {
+    const chip = document.querySelector<HTMLElement>(".tb-chip.on");
+    const bar = chip?.parentElement;
+    if (chip && bar) bar.scrollTo({ left: chip.offsetLeft - bar.clientWidth / 2 + chip.clientWidth / 2, behavior: "smooth" });
+  }, [section]);
+
   const allItems = useMemo(() => menu.flatMap((c) => c.items), [menu]);
   const picked = allItems.filter((i) => i.available && (qty[i.id] ?? 0) > 0);
   const count = picked.reduce((n, i) => n + qty[i.id], 0);
@@ -138,7 +159,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       {menu.length > 1 && (
         <nav className="tb-chips" aria-label={t("menu")}>
           {menu.map((c) => (
-            <a key={c.id} href={`#c-${c.id}`} className={`tb-chip${section === c.id ? " on" : ""}`} onClick={() => setSection(c.id)}>{name(c)}</a>
+            <a key={c.id} href={`#c-${c.id}`} className={`tb-chip${section === c.id ? " on" : ""}`} aria-current={section === c.id ? "true" : undefined}>{name(c)}</a>
           ))}
         </nav>
       )}
@@ -154,6 +175,10 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
               const note = (ar && i.noteAr) || i.noteEn;
               return (
                 <li key={i.id} className={`tb-item${i.available ? "" : " off"}`}>
+                  {i.imageUrl && (
+                    /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
+                    <img className="tb-photo" src={i.imageUrl} alt="" width={88} height={88} loading="lazy" decoding="async" />
+                  )}
                   <div className="tb-item-main">
                     <b>{name(i)}</b>
                     {note && <small>{note}</small>}
@@ -174,6 +199,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       ))}
 
       {poweredBy && <p className="foot">{poweredBy}</p>}
+      {allItems.some((i) => i.imageUrl?.startsWith("/samples/")) && <p className="foot"><a href="/samples/menu/CREDITS.txt">{t("sampleCredits")}</a></p>}
 
       <div role="alert">{error && <p className="tb-error">{error}</p>}</div>
 

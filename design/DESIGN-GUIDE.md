@@ -1,5 +1,7 @@
 # Loyalty / {{CLIENT}} Rewards — design guide
 
+> **Update, 6 Nov 2026:** the default look is now Orbyn: deep teal `#04191D`, light text `#EAF7F5`, cyan accent `#14F1E9`, success green `#2BE39A`, font Outfit with Tajawal for Arabic. The token names (`--gold` and friends) stayed, so read them as "accent". The gold, serif look below remains possible for a client through `BRAND_BG`, `BRAND_TEXT`, `BRAND_ACCENT` and `BRAND_FONT=classic`. Logo files: `web/public/orbyn-mark.svg`, `web/public/orbyn-logo-horizontal.svg`.
+
 **Decision (Sir, 12 Oct 2026):** the real product copies the look and feel of the template demo exactly: colours, fonts, feel, UI. This applies to the guest page, the Apple / Google Wallet card, and the staff and owner app.
 
 **Reference source:** `design/templates/` (the original template demo, kept as clickable HTML prototypes). When in doubt, open those pages and match them.

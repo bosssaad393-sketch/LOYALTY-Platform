@@ -27,6 +27,7 @@ import { POST as closePOST } from "../src/app/api/staff/board/close/route";
 import { POST as itemPOST } from "../src/app/api/staff/board/item/route";
 import { POST as addPOST } from "../src/app/api/staff/board/add/route";
 import { GET as menuGET, PATCH as menuPATCH, DELETE as menuDELETE, POST as menuPOST } from "../src/app/api/owner/menu/route";
+import { POST as photoPOST, DELETE as photoDELETE } from "../src/app/api/owner/menu/photo/route";
 import { GET as tablesGET, DELETE as tablesDELETE } from "../src/app/api/owner/tables/route";
 import { GET as serviceGET } from "../src/app/api/owner/service/route";
 
@@ -171,6 +172,23 @@ describe("owner screens", () => {
   it("cannot add an item to another venue's section", async () => {
     expect((await menuPOST(json({ kind: "item", categoryId: CA, nameEn: "New", price: "1" }))).status).toBe(200);
     expect((await menuPOST(json({ kind: "item", categoryId: CB, nameEn: "New", price: "1" }))).status).toBe(404);
+  });
+  it("a photo goes only on its own venue's item, and only a real image is accepted", async () => {
+    process.env.LOYALTY_FAKE_DB = "1";
+    const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBPVP8 "), Buffer.alloc(20)]);
+    const good = `data:image/webp;base64,${webp.toString("base64")}`;
+    expect((await photoPOST(json({ id: IA, image: good }))).status).toBe(200);
+    expect(row("menu_items", IA).image_url).toBe(good);
+    expect((await photoPOST(json({ id: IB, image: good }))).status).toBe(404);
+    expect(row("menu_items", IB).image_url).toBeUndefined();
+    expect((await photoDELETE(del({ id: IB }))).status).toBe(404);
+    const fakeImage = `data:image/webp;base64,${Buffer.from("<script>alert(1)</script>").toString("base64")}`;
+    expect((await photoPOST(json({ id: IA, image: fakeImage }))).status).toBe(400);
+    expect((await photoPOST(json({ id: IA, image: "https://evil.example/x.webp" }))).status).toBe(400);
+    expect(row("menu_items", IA).image_url).toBe(good);
+    expect((await photoDELETE(del({ id: IA }))).status).toBe(200);
+    expect(row("menu_items", IA).image_url).toBeNull();
+    delete process.env.LOYALTY_FAKE_DB;
   });
   it("refuses a bad price", async () => {
     expect((await menuPOST(json({ kind: "item", categoryId: CA, nameEn: "New", price: "cheap" }))).status).toBe(400);

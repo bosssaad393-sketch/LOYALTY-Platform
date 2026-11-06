@@ -21,6 +21,7 @@ const bal = async (card: string) => (await rows<{ points: number }>("select poin
 
 beforeAll(async () => {
   db = new PGlite();
+  await db.exec(`create schema storage; create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);`);
   await db.exec(`create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users (id uuid primary key);`);
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()) {
     try {
@@ -48,6 +49,7 @@ describe("migrations 0001..latest", () => {
 describe("showcase seed (supabase/seeds/showcase.sql)", () => {
   it("runs twice on top of the migrations and gives three guests and a team", async () => {
     const fresh = new PGlite();
+    await fresh.exec(`create schema storage; create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);`);
     await fresh.exec(`create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users (id uuid primary key);`);
     for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()) await fresh.exec(readFileSync(join(dir, f), "utf8").replace(/create extension if not exists pgcrypto;/i, ""));
     const seed = readFileSync(join(dir, "../seeds/showcase.sql"), "utf8");
@@ -118,5 +120,44 @@ describe("POS functions (0006)", () => {
     await db.query("select * from ledger_pos_sale($1,$2,$3,$4)", [VA, "1111", 10, "R-3"]);
     await db.query("select * from ledger_adjust($1,$2,$3,$4)", [CARD_A, OWNER_A, -45, "spent"]);
     await expect(db.query("select * from ledger_pos_refund($1,$2)", [VA, "R-3"])).rejects.toThrow(/below zero/);
+  });
+});
+
+describe("table service tables (0010)", () => {
+  const V = "cccccccc-0000-4000-8000-000000000001";
+  const T = "cccccccc-0000-4000-8000-000000000002";
+
+  beforeAll(async () => {
+    await db.query("insert into venues (id, slug, name) values ($1, 'table-test', 'Table Test')", [V]);
+    await db.query("insert into venue_tables (id, venue_id, label, token) values ($1, $2, '1', 'a-long-random-table-code')", [T, V]);
+  });
+
+  it("allows one open tab per table, and a new one after it is paid", async () => {
+    const [tab] = await rows<{ id: string }>("insert into tabs (venue_id, table_id) values ($1, $2) returning id", [V, T]);
+    await expect(db.query("insert into tabs (venue_id, table_id) values ($1, $2)", [V, T])).rejects.toThrow(/tabs_one_open_per_table/);
+    await db.query("update tabs set status = 'paid', paid_method = 'cash' where id = $1", [tab.id]);
+    await db.query("insert into tabs (venue_id, table_id) values ($1, $2)", [V, T]);
+  });
+
+  it("keeps one open call of each kind on a tab, so the clock keeps the first tap", async () => {
+    const [tab] = await rows<{ id: string }>("select id from tabs where table_id = $1 and status = 'open'", [T]);
+    const add = (kind: string) => db.query("insert into table_requests (venue_id, tab_id, table_id, kind) values ($1, $2, $3, $4)", [V, tab.id, T, kind]);
+    await add("coal");
+    await expect(add("coal")).rejects.toThrow(/table_requests_one_open/);
+    await add("bill");
+    await db.query("update table_requests set handled_at = now() where tab_id = $1 and kind = 'coal'", [tab.id]);
+    await add("coal");
+  });
+
+  it("refuses a ready time other than 10 or 20 minutes, and a negative price", async () => {
+    const [tab] = await rows<{ id: string }>("select id from tabs where table_id = $1 and status = 'open'", [T]);
+    await expect(db.query("insert into orders (venue_id, tab_id, table_id, ready_minutes) values ($1, $2, $3, 15)", [V, tab.id, T])).rejects.toThrow(/check/);
+    const [c] = await rows<{ id: string }>("insert into menu_categories (venue_id, name_en) values ($1, 'Drinks') returning id", [V]);
+    await expect(db.query("insert into menu_items (venue_id, category_id, name_en, price_fils) values ($1, $2, 'Tea', -1)", [V, c.id])).rejects.toThrow(/check/);
+  });
+
+  it("creates a public photo folder that takes only WebP and JPEG", async () => {
+    const [b] = await rows<{ public: boolean; allowed_mime_types: string[] }>("select public, allowed_mime_types from storage.buckets where id = 'menu'");
+    expect(b).toEqual({ public: true, allowed_mime_types: ["image/webp", "image/jpeg"] });
   });
 });
