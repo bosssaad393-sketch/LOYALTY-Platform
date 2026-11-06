@@ -8,7 +8,7 @@ vi.mock("@/lib/staffApi", () => ({ fail: (error: string, status = 400) => Respon
 vi.mock("@/lib/table/db", () => ({ listTables: tables }));
 
 const { GET } = await import("@/app/dev/menu/route");
-const call = () => GET(new Request("https://app.example/dev/menu"));
+const call = () => GET();
 
 describe("developer Menu button", () => {
   beforeEach(() => { staff.mockReset(); tables.mockReset(); });
@@ -31,7 +31,7 @@ describe("developer Menu button", () => {
     const r = await call();
     expect(tables).toHaveBeenCalledWith("v1");
     expect(r.status).toBe(303);
-    expect(r.headers.get("location")).toBe("https://app.example/t/first-table-code");
+    expect(r.headers.get("location")).toBe("/t/first-table-code");
   });
 
   it("says so plainly when the venue has no tables", async () => {
