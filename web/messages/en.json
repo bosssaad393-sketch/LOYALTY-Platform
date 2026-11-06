@@ -1,5 +1,7 @@
 {
-  "language": { "label": "Language" },
+  "language": {
+    "label": "Language"
+  },
   "join": {
     "eyebrow": "Membership",
     "title": "Join {venue} Rewards",
@@ -24,5 +26,43 @@
     "venue_unavailable": "This venue isn't available.",
     "server": "Something went wrong. Please try again.",
     "offline": "No connection. Please try again."
+  },
+  "table": {
+    "money": "BHD {amount}",
+    "tableLabel": "Table {label}",
+    "callsLabel": "Call the team",
+    "calls": {
+      "coal": "Coal",
+      "waiter": "Waiter",
+      "bill": "Bill",
+      "tap": "Tap to call",
+      "onTheWay": "We know"
+    },
+    "yourTab": "Your tab",
+    "sent": "Sent. Staff will confirm the time.",
+    "round": "Round {n}",
+    "status": {
+      "new": "Waiting for staff",
+      "accepted": "Being made",
+      "acceptedIn": "Being made, about {minutes} min",
+      "ready": "Ready",
+      "served": "Served",
+      "cancelled": "Cancelled"
+    },
+    "cardOffer": "Get your {venue} card",
+    "cardOfferSub": "Collect points in your phone's Wallet. Nothing to download.",
+    "menu": "Menu",
+    "noMenu": "The menu is not ready yet. Please ask the team.",
+    "soldOut": "Sold out",
+    "less": "One less {item}",
+    "more": "One more {item}",
+    "send": "Send {count, plural, one {# item} other {# items}}",
+    "sending": "Sending…",
+    "errors": {
+      "offline": "No connection. Please try again.",
+      "soldOut": "Something in your order just sold out. Please check it.",
+      "tooMany": "Too many tries. Please wait a minute.",
+      "server": "Something went wrong. Please try again."
+    }
   }
 }

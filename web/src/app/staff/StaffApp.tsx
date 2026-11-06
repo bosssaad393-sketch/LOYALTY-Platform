@@ -137,6 +137,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
       {tab === "guest" ? (
         !guest ? (
           <>
+            <a className="btn" href="/staff/board" style={{ marginBottom: 16 }}>Open the table board</a>
             <div className="eyebrow">Hello {first}</div>
             <h1 className="st-title">Find the guest</h1>
             <p className="sub">Scan the QR on the guest&apos;s Wallet card, or type the 4-digit code under it.</p>

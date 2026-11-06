@@ -12,11 +12,13 @@ import Offers from "./Offers";
 import Overview from "./Overview";
 import Privacy from "./Privacy";
 import Rules from "./Rules";
+import Service from "./Service";
 import Team from "./Team";
 import type { Call, Me, Tab } from "./types";
 
 const TABS: { id: Tab; label: string; ownerOnly?: boolean }[] = [
   { id: "overview", label: "Overview" },
+  { id: "service", label: "Tables and menu" },
   { id: "guests", label: "Guests" },
   { id: "rules", label: "Rules" },
   { id: "offers", label: "Offers" },
@@ -130,6 +132,7 @@ export default function OwnerApp({ initialMe, initialTab = "overview", look = "a
           ) : (
             <>
               {current === "overview" && <Overview call={call} isOwner={isOwner} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
+              {current === "service" && <Service call={call} />}
               {current === "guests" && <Guests call={call} isOwner={isOwner} />}
               {current === "rules" && <Rules call={call} isOwner={isOwner} />}
               {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} />}

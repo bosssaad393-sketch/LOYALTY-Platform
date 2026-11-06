@@ -1,9 +1,9 @@
 import "server-only";
 
 /**
- * Design-time stand-in for Supabase. Used only when LOYALTY_FAKE_DB=1.
- * It keeps venues, members and cards in memory (lost on restart) and understands just the
- * query shapes the app uses today. It is NOT a database: production always uses Supabase.
+ * Design-time stand-in for Supabase. Used only when LOYALTY_FAKE_DB=1, never in production (see supabase.ts).
+ * It keeps a little invented data in memory (lost on restart) and understands just the query shapes the app uses.
+ * It is NOT a database. The menu, tables and staff member below are sample data so the screens can be seen.
  */
 
 type Row = Record<string, unknown>;
@@ -11,10 +11,28 @@ type Result = { data: unknown; error: { code: string; message: string } | null }
 
 const uuid = () => crypto.randomUUID();
 
+const VENUE = "00000000-0000-4000-8000-000000000001";
+const fakeId = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+
+const sampleCategories = [
+  { n: 101, en: "Hot drinks", ar: "مشروبات ساخنة" },
+  { n: 102, en: "Cold drinks", ar: "مشروبات باردة" },
+  { n: 103, en: "Small plates", ar: "أطباق صغيرة" },
+];
+const sampleItems: [number, number, string, string, number][] = [
+  [201, 101, "Karak tea", "شاي كرك", 800],
+  [202, 101, "Espresso", "إسبريسو", 1200],
+  [203, 101, "Mint tea pot", "إبريق شاي بالنعناع", 2500],
+  [204, 102, "Fresh lemon mint", "ليمون بالنعناع", 1800],
+  [205, 102, "Sparkling water", "مياه غازية", 1000],
+  [206, 103, "Hummus", "حمص", 2200],
+  [207, 103, "Halloumi fries", "حلوم مقلي", 3200],
+];
+
 const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, Row[]> }).__fakeDb ??= {
   venues: [
     {
-      id: "00000000-0000-4000-8000-000000000001",
+      id: VENUE,
       slug: "demo",
       name: "Demo Venue",
       points_per_bhd: 2,
@@ -25,12 +43,34 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   ],
   members: [],
   cards: [],
+  staff_users: [{ id: fakeId(900), venue_id: VENUE, name: "Sample Staff", role: "owner", active: true }],
+  venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `sample-table-token-${n}`, active: true })),
+  menu_categories: sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
+  menu_items: sampleItems.map(([n, cat, en, ar, fils], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, price_fils: fils, available: true, active: true, sort: i })),
+  tabs: [],
+  orders: [],
+  order_items: [],
+  table_requests: [],
+};
+
+const DEFAULTS: Record<string, () => Row> = {
+  tabs: () => ({ status: "open", opened_at: new Date().toISOString() }),
+  orders: () => ({ status: "new", source: "guest", ready_minutes: null, accepted_at: null, ready_at: null }),
+  table_requests: () => ({ handled_at: null }),
+  venue_tables: () => ({ active: true }),
+  menu_categories: () => ({ active: true }),
+  menu_items: () => ({ active: true, available: true }),
 };
 
 class Query implements PromiseLike<Result> {
-  private filters: Array<[string, unknown]> = [];
-  private insertRow: Row | null = null;
+  private filters: ((r: Row) => boolean)[] = [];
+  private insertRows: Row[] | null = null;
+  private patch: Row | null = null;
+  private removing = false;
   private columns = "*";
+  private sort: { col: string; asc: boolean } | null = null;
+  private window: [number, number] | null = null;
+  private max: number | null = null;
 
   constructor(private table: string) {}
 
@@ -38,12 +78,44 @@ class Query implements PromiseLike<Result> {
     this.columns = columns;
     return this;
   }
-  insert(row: Row) {
-    this.insertRow = row;
+  insert(rows: Row | Row[]) {
+    this.insertRows = Array.isArray(rows) ? rows : [rows];
+    return this;
+  }
+  update(patch: Row) {
+    this.patch = patch;
+    return this;
+  }
+  delete() {
+    this.removing = true;
     return this;
   }
   eq(column: string, value: unknown) {
-    this.filters.push([column, value]);
+    this.filters.push((r) => r[column] === value);
+    return this;
+  }
+  is(column: string, value: null) {
+    this.filters.push((r) => (r[column] ?? null) === value);
+    return this;
+  }
+  in(column: string, values: unknown[]) {
+    this.filters.push((r) => values.includes(r[column]));
+    return this;
+  }
+  gte(column: string, value: string) {
+    this.filters.push((r) => String(r[column]) >= value);
+    return this;
+  }
+  order(col: string, o?: { ascending?: boolean }) {
+    this.sort = { col, asc: o?.ascending !== false };
+    return this;
+  }
+  range(from: number, to: number) {
+    this.window = [from, to];
+    return this;
+  }
+  limit(n: number) {
+    this.max = n;
     return this;
   }
   single() {
@@ -57,18 +129,45 @@ class Query implements PromiseLike<Result> {
   }
 
   private async run(one: boolean, mustExist: boolean): Promise<Result> {
-    const rows = store[this.table];
-    if (this.insertRow) {
+    const rows = (store[this.table] ??= []);
+    if (this.insertRows) {
       // LOYALTY_FAKE_POINTS lets a designer see a card with points on it (design only).
       const start = this.table === "cards" ? Number(process.env.LOYALTY_FAKE_POINTS ?? 0) || 0 : 0;
-      const row: Row = { id: uuid(), points: start, visits: 0, created_at: new Date().toISOString(), ...this.insertRow };
-      if (this.table === "cards" && rows.some((r) => r.venue_id === row.venue_id && r.code === row.code)) {
-        return { data: null, error: { code: "23505", message: "duplicate code" } };
+      const added: Row[] = [];
+      for (const input of this.insertRows) {
+        const row: Row = { id: uuid(), points: start, visits: 0, created_at: new Date().toISOString(), ...DEFAULTS[this.table]?.(), ...input };
+        if (this.table === "cards" && rows.some((r) => r.venue_id === row.venue_id && r.code === row.code)) {
+          return { data: null, error: { code: "23505", message: "duplicate code" } };
+        }
+        if (this.table === "venue_tables" && rows.some((r) => r.venue_id === row.venue_id && r.label === row.label)) {
+          return { data: null, error: { code: "23505", message: "duplicate label" } };
+        }
+        rows.push(row);
+        added.push(row);
       }
-      rows.push(row);
-      return { data: one ? this.project(row) : [this.project(row)], error: null };
+      return { data: one ? this.project(added[0]) : added.map((r) => this.project(r)), error: null };
     }
-    const hits = rows.filter((r) => this.filters.every(([c, v]) => r[c] === v)).map((r) => this.project(r));
+    const matched = rows.filter((r) => this.filters.every((f) => f(r)));
+    if (this.patch) {
+      for (const r of matched) Object.assign(r, this.patch);
+      return { data: matched.map((r) => this.project(r)), error: null };
+    }
+    if (this.removing) {
+      store[this.table] = rows.filter((r) => !matched.includes(r));
+      return { data: null, error: null };
+    }
+    let hits = matched.map((r) => this.project(r));
+    if (this.sort) {
+      const { col, asc } = this.sort;
+      const value = (r: Row) => r[col];
+      hits = hits.sort((a, b) => {
+        const x = value(a), y = value(b);
+        const c = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true });
+        return asc ? c : -c;
+      });
+    }
+    if (this.window) hits = hits.slice(this.window[0], this.window[1] + 1);
+    if (this.max !== null) hits = hits.slice(0, this.max);
     if (one) {
       if (hits.length === 0 && mustExist) return { data: null, error: { code: "PGRST116", message: "no rows" } };
       return { data: hits[0] ?? null, error: null };
@@ -76,13 +175,11 @@ class Query implements PromiseLike<Result> {
     return { data: hits, error: null };
   }
 
-  /** Copies the row and resolves the two joins the app asks for: members(...) and venues(...). */
+  /** Copies the row and resolves the joins the app asks for: members(...) and venues(...). */
   private project(row: Row): Row {
     const out: Row = { ...row };
-    if (this.table === "cards") {
-      if (this.columns.includes("members(")) out.members = store.members.find((m) => m.id === row.member_id) ?? null;
-      if (this.columns.includes("venues(")) out.venues = store.venues.find((v) => v.id === row.venue_id) ?? null;
-    }
+    if (this.columns.includes("venues(")) out.venues = store.venues.find((v) => v.id === row.venue_id) ?? null;
+    if (this.table === "cards" && this.columns.includes("members(")) out.members = store.members.find((m) => m.id === row.member_id) ?? null;
     return out;
   }
 }

@@ -42,7 +42,7 @@ export type Points = {
   perDay: PointsDay[];
 };
 
-export type Tab = "overview" | "guests" | "rules" | "offers" | "assistant" | "team" | "privacy";
+export type Tab = "overview" | "service" | "guests" | "rules" | "offers" | "assistant" | "team" | "privacy";
 
 export type Res<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 export type Call = <T>(path: string, method?: string, body?: unknown) => Promise<Res<T>>;
