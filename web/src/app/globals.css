@@ -323,12 +323,12 @@ button.ow-chip:hover { border-color: var(--gold); }
 
 /* rows */
 .ow-list { list-style: none; }
-.ow-item { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 16px 0; border-top: 1px solid var(--ow-rule); }
+.ow-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 16px 0; border-top: 1px solid var(--ow-rule); }
 .ow-item:first-child { border-top: 0; }
-.ow-item-main { flex: 1 1 0; min-width: 0; }
+.ow-item-main { flex: 1 1 140px; min-width: 0; }
 .ow-item-main b { display: block; font-weight: 400; overflow-wrap: anywhere; }
 .ow-item-main small { display: block; margin-top: 2px; color: var(--dim); font-size: 13px; line-height: 1.4; }
-.ow-item-side { flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 16px; color: var(--muted); white-space: nowrap; }
+.ow-item-side { flex: none; max-width: 100%; display: flex; align-items: center; justify-content: flex-end; gap: 16px; color: var(--muted); white-space: nowrap; }
 .ow-item-side.ow-wrap { flex: 0 1 55%; }
 .ow-fig { font-family: var(--ow-fig); font-size: 18px; color: var(--gold2); }
 .ow-ranked .ow-item { justify-content: flex-start; }
@@ -598,6 +598,13 @@ textarea.ow-terms { min-height: 240px; font-size: 15px; line-height: 1.6; resize
 .st-dot { position: absolute; top: 7px; right: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--gold2); }
 .ow-pin { margin: 6px 0; font: 600 40px/1 var(--serif); letter-spacing: 0.3em; }
 .ow-rowbtns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.ow-rowbtns:empty { display: none; }
+.ow-namerow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+@media (max-width: 899px) {
+  .ow-rowbtns { flex: 1 1 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); }
+  .ow-rowbtns .ow-btn { width: 100%; }
+  .ow-rowbtns .ow-btn.primary { grid-column: 1 / -1; }
+}
 .ow-panel form .ow-field, .ow-panel form .ow-chips { margin-top: 14px; }
 .ow-panel form .ow-actions { margin-top: 16px; }
 

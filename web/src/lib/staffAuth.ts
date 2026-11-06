@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { db } from "./supabase";
 
@@ -79,6 +80,7 @@ export async function signIn(email: string, password: string): Promise<Staff | n
 
 /** The signed-in person for THIS screen (staff till, owner, or developer), or null. Each screen has its own cookie. */
 export async function currentStaff(area: Area = "staff"): Promise<Staff | null> {
+  await connection(); // the expiry check reads the clock, so this always runs per request
   const staffId = readSession((await cookies()).get(COOKIE_NAMES[area])?.value, area);
   return staffId ? loadStaff({ id: staffId }) : null;
 }

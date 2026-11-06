@@ -8,6 +8,7 @@ const h = vi.hoisted(() => ({ state: undefined as unknown as FakeState, jar: {} 
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: (n: string) => (h.jar[n] ? { value: h.jar[n] } : undefined) }) }));
+vi.mock("next/server", async (actual) => ({ ...(await actual<typeof import("next/server")>()), connection: async () => {} }));
 vi.mock("@supabase/supabase-js", () => ({ createClient: () => ({}) }));
 vi.mock("../src/lib/supabase", async () => {
   const { makeDb } = await import("./helpers/fakeDb");
