@@ -43,6 +43,9 @@ body {
 body:has(main.app), body:has(.ow) { background: var(--bg); }
 body:has(main.app)::before, body:has(.ow)::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(rgb(var(--shade-rgb) / var(--scrim-a)), rgb(var(--shade-rgb) / var(--scrim-a))), var(--brand-marble) center / cover no-repeat; }
 button, input, select, textarea { font: inherit; color: inherit; }
+/* The browser draws the open list itself, on white unless told otherwise, and options inherit our pale text. */
+select option, select optgroup { background-color: var(--surface); color: var(--text); }
+select option:disabled { color: var(--dim); }
 a { color: var(--gold2); }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 [hidden] { display: none !important; }
