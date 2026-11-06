@@ -2,8 +2,11 @@
 
 import { useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function JoinForm({ venue, venueName }: { venue: string; venueName: string }) {
+  const t = useTranslations("join");
+  const errors = useTranslations("joinErrors");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -30,38 +33,38 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
       router.push(`/card/${body.cardId}`);
       return;
     }
-    setError(body.error ?? "No connection. Please try again.");
+    setError(errors.has(body.code) ? errors(body.code) : body.error ?? errors("offline"));
     setBusy(false);
   }
 
   return (
     <form className="pane" style={{ "--tex": `url(/venues/${venue}/texture.jpg)` } as CSSProperties} onSubmit={onSubmit}>
       <label className="field">
-        <span className="lbl">Your name</span>
-        <input className="in" name="name" autoComplete="name" placeholder="e.g. Sara" required maxLength={80} />
+        <span className="lbl">{t("name")}</span>
+        <input className="in" name="name" autoComplete="name" placeholder={t("namePlaceholder")} required maxLength={80} />
       </label>
       <label className="field">
-        <span className="lbl">Mobile number</span>
-        <input className="in" name="mobile" type="tel" inputMode="tel" autoComplete="tel" placeholder="+973 …" maxLength={30} />
+        <span className="lbl">{t("mobile")}</span>
+        <input className="in" name="mobile" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="+973 …" maxLength={30} />
       </label>
       <label className="field">
-        <span className="lbl">Email</span>
-        <input className="in" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="off" placeholder="name@email.com" maxLength={120} />
+        <span className="lbl">{t("email")}</span>
+        <input className="in" name="email" type="email" dir="ltr" inputMode="email" autoComplete="email" autoCapitalize="off" placeholder="name@email.com" maxLength={120} />
       </label>
-      <p className="note" style={{ textAlign: "left", marginTop: -6 }}>Please add at least one, so we can reach you about your card.</p>
+      <p className="note" style={{ textAlign: "start", marginTop: -6 }}>{t("atLeastOne")}</p>
       <label className="check">
         <input type="checkbox" name="news" />
-        <span>Send me {venueName} news and offers as notifications on my Wallet card. (optional)</span>
+        <span>{t("news", { venue: venueName })}</span>
       </label>
       <label className="check">
         <input type="checkbox" name="terms" required />
-        <span>I agree to the <a href={`/join/${venue}/terms`}>Terms &amp; Conditions</a>.</span>
+        <span>{t.rich("terms", { link: (chunks) => <a href={`/join/${venue}/terms`}>{chunks}</a> })}</span>
       </label>
       <p className="err" role="alert">{error}</p>
       <button className="btn primary" type="submit" disabled={busy}>
-        {busy ? "Creating your card…" : "Receive my card"}
+        {busy ? t("busy") : t("submit")}
       </button>
-      <p className="note">Your details are used only to run your {venueName} rewards. You can ask for them to be deleted at any time.</p>
+      <p className="note">{t("privacy", { venue: venueName })}</p>
     </form>
   );
 }

@@ -168,5 +168,6 @@ console.log(`BRAND_BG=${bg}`);
 console.log(`BRAND_TEXT=${text}`);
 console.log(`BRAND_ACCENT=${accent}`);
 console.log(`# BRAND_POWERED_BY=            (empty = hide "Powered by LOYALTY"; remove the line to keep it)`);
+console.log(`# BRAND_LANGUAGES=en,ar        (guest page languages, default first; one language hides the switch)`);
 console.log(`\nThen run supabase/seeds/${slug}.sql in the client's own Supabase project. Guests join at /join/${slug}.`);
 console.log(`Swap the placeholder pictures for the client's real logo and photos before launch (see docs/NEW-CLIENT.md).\n`);

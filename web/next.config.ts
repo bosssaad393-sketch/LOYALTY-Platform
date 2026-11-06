@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -8,4 +9,4 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: { "/api/wallet/apple/**": ["./passes/**/*"], "/api/applewallet/**": ["./passes/**/*"] },
 };
 
-export default nextConfig;
+export default createNextIntlPlugin()(nextConfig);

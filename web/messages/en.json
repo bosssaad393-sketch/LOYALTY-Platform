@@ -1,0 +1,28 @@
+{
+  "language": { "label": "Language" },
+  "join": {
+    "eyebrow": "Membership",
+    "title": "Join {venue} Rewards",
+    "sub": "Your personal card, kept in your phone's Wallet. Nothing to download.",
+    "name": "Your name",
+    "namePlaceholder": "e.g. Sara",
+    "mobile": "Mobile number",
+    "email": "Email",
+    "atLeastOne": "Please add at least one, so we can reach you about your card.",
+    "news": "Send me {venue} news and offers as notifications on my Wallet card. (optional)",
+    "terms": "I agree to the <link>Terms & Conditions</link>.",
+    "busy": "Creating your card…",
+    "submit": "Receive my card",
+    "privacy": "Your details are used only to run your {venue} rewards. You can ask for them to be deleted at any time.",
+    "footer": "{venue} Loyalty Rewards"
+  },
+  "joinErrors": {
+    "incomplete": "Please fill in your name, add a mobile number or an email, and accept the terms.",
+    "contact_required": "Please add at least one: your mobile number or your email.",
+    "bad_email": "That email address doesn't look right.",
+    "bad_mobile": "That mobile number doesn't look right.",
+    "venue_unavailable": "This venue isn't available.",
+    "server": "Something went wrong. Please try again.",
+    "offline": "No connection. Please try again."
+  }
+}

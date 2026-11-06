@@ -6,6 +6,8 @@
  * Pure functions that take an `env` object, so they are easy to test.
  */
 
+import { isLocale, type Locale } from "@/i18n/locale";
+
 type Env = Record<string, string | undefined>;
 
 export type BrandColors = { bg: string; text: string; accent: string };
@@ -42,7 +44,13 @@ export function poweredBy(env: Env = process.env): string {
   return env.BRAND_POWERED_BY === undefined ? "Powered by LOYALTY" : env.BRAND_POWERED_BY.trim();
 }
 
-/** The line under the pages: "<venue> Loyalty Rewards · Powered by LOYALTY". */
+/** The languages this client offers, default first: "en,ar", "ar,en" or just "en". Codes without text are ignored. */
+export function brandLanguages(env: Env = process.env): Locale[] {
+  const codes = (env.BRAND_LANGUAGES ?? "").split(",").map((c) => c.trim().toLowerCase()).filter(isLocale);
+  return codes.length ? [...new Set(codes)] : ["en", "ar"];
+}
+
+/** The line under the pages:"<venue> Loyalty Rewards · Powered by LOYALTY". */
 export function footerLine(venueName: string, env: Env = process.env): string {
   return [`${venueName} Loyalty Rewards`, poweredBy(env)].filter(Boolean).join(" · ");
 }

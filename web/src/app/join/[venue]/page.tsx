@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getVenue } from "@/lib/supabase";
 import NetworkBackdrop from "@/components/NetworkBackdrop";
 import VenueHeader from "@/components/VenueHeader";
-import { footerLine } from "@/lib/brand";
+import LanguageSwitch from "@/components/LanguageSwitch";
+import { directionOf } from "@/i18n/locale";
+import { brandLanguages, poweredBy } from "@/lib/brand";
 import JoinForm from "./JoinForm";
 
 // Live data on every request: allow this page to block instead of prerendering.
@@ -12,21 +16,25 @@ export default async function JoinPage({ params }: PageProps<"/join/[venue]">) {
   const { venue: slug } = await params;
   const venue = await getVenue(slug);
   if (!venue) notFound();
+  const locale = await getLocale();
+  const t = await getTranslations("join");
+  const foot = [t("footer", { venue: venue.name }), poweredBy()].filter(Boolean).join(" · ");
 
   return (
-    <>
+    <NextIntlClientProvider>
     <NetworkBackdrop fixed />
-    <main className="app">
+    <main className="app" lang={locale} dir={directionOf(locale)}>
+      <LanguageSwitch languages={brandLanguages()} />
       <VenueHeader
         venueName={venue.name}
         venueSlug={venue.slug}
-        eyebrow="Membership"
-        title={`Join ${venue.name} Rewards`}
-        sub="Your personal card, kept in your phone's Wallet. Nothing to download."
+        eyebrow={t("eyebrow")}
+        title={t("title", { venue: venue.name })}
+        sub={t("sub")}
       />
       <JoinForm venue={venue.slug} venueName={venue.name} />
-      <p className="foot">{footerLine(venue.name)}</p>
+      <p className="foot">{foot}</p>
     </main>
-    </>
+    </NextIntlClientProvider>
   );
 }

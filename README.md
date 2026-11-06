@@ -19,6 +19,7 @@ One deployment = one client. The client's identity comes from environment variab
 | What | Where |
 |---|---|
 | Name, colours, "Powered by" line | `BRAND_NAME`, `BRAND_BG`, `BRAND_TEXT`, `BRAND_ACCENT`, `BRAND_POWERED_BY` |
+| Guest page languages, default first (`en,ar`, `ar,en` or `en`; unset = English, then Arabic) | `BRAND_LANGUAGES` |
 | Logo mark, card textures, Apple Wallet images | `web/public/venues/<slug>/` and `web/passes/<slug>/` |
 | The venue row (name, points rule, reward) | `supabase/seeds/<slug>.sql` |
 
