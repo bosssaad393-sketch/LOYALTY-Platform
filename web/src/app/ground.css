@@ -1,0 +1,74 @@
+/*
+ * The Orbyn ground, used only when a deployment has no client colours (html.look-orbyn).
+ * Still lines on the logo's own slope, and two slow pools of light that pass behind them and light them up as they go.
+ * Each pool moves one way and its copy of the lines moves exactly the other way, so the lines appear to stay put.
+ * Only transform is animated, so the phone's graphics chip does the work and nothing repaints.
+ * Reduced motion: the global rule in globals.css stops the animations and this becomes a still picture.
+ */
+.look-orbyn {
+  --og-line-cyan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 336'%3E%3Cpath d='M0 56 100 0 200 56M0 56V168M200 56V168M0 168 100 224 200 168M100 224V336' fill='none' stroke='%2314f1e9' stroke-width='.7'/%3E%3C/svg%3E");
+  --og-line-green: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 336'%3E%3Cpath d='M0 56 100 0 200 56M0 56V168M200 56V168M0 168 100 224 200 168M100 224V336' fill='none' stroke='%232be39a' stroke-width='.7'/%3E%3C/svg%3E");
+  --og-tile: 460px 773px;
+}
+@media (max-width: 700px) { .look-orbyn { --og-tile: 280px 470px; } }
+
+.og { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; contain: strict; background: linear-gradient(165deg, #06262c 0%, #04191d 42%, #020f12 100%); }
+.og i { display: block; position: absolute; }
+
+.og-lines { inset: 0; background: var(--og-line-cyan) 0 0 / var(--og-tile); opacity: 0.055; }
+
+/* The logo itself, very large and barely there, drifting in a corner. */
+.og-mark {
+  right: -20vmin; bottom: -16vmin; width: min(112vmin, 980px); aspect-ratio: 485 / 566;
+  background: url("/orbyn-mark.svg") center / contain no-repeat; opacity: 0.035; will-change: transform;
+  animation: og-mark 110s ease-in-out infinite alternate;
+}
+
+.og-spot {
+  left: 0; top: 0; width: 100vmax; height: 100vmax; will-change: transform;
+  -webkit-mask-image: radial-gradient(closest-side, #000 0%, rgb(0 0 0 / 0.6) 42%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 0%, rgb(0 0 0 / 0.6) 42%, transparent 100%);
+}
+.og-lit { left: 0; top: 0; width: 100vw; height: 100lvh; background: var(--og-line-cyan) 0 0 / var(--og-tile); will-change: transform; }
+
+.og-a { background: rgb(20 241 233 / 0.075); transform: translate3d(calc(15vw - 50vmax), calc(18vh - 50vmax), 0); animation: og-a 84s ease-in-out infinite alternate; }
+.og-a .og-lit { opacity: 0.3; transform: translate3d(calc(50vmax - 15vw), calc(50vmax - 18vh), 0); animation: og-a-lit 84s ease-in-out infinite alternate; }
+.og-b { display: none; background: rgb(43 227 154 / 0.05); transform: translate3d(calc(86vw - 50vmax), calc(78vh - 50vmax), 0); animation: og-b 118s ease-in-out infinite alternate; }
+.og-b .og-lit { background-image: var(--og-line-green); opacity: 0.22; transform: translate3d(calc(50vmax - 86vw), calc(50vmax - 78vh), 0); animation: og-b-lit 118s ease-in-out infinite alternate; }
+@media (min-width: 701px) { .og-b { display: block; } }
+
+@keyframes og-mark {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); }
+  to { transform: translate3d(-3vmin, -4vmin, 0) rotate(-5deg); }
+}
+@keyframes og-a {
+  0% { transform: translate3d(calc(15vw - 50vmax), calc(18vh - 50vmax), 0); }
+  35% { transform: translate3d(calc(82vw - 50vmax), calc(34vh - 50vmax), 0); }
+  70% { transform: translate3d(calc(32vw - 50vmax), calc(82vh - 50vmax), 0); }
+  100% { transform: translate3d(calc(88vw - 50vmax), calc(92vh - 50vmax), 0); }
+}
+@keyframes og-a-lit {
+  0% { transform: translate3d(calc(50vmax - 15vw), calc(50vmax - 18vh), 0); }
+  35% { transform: translate3d(calc(50vmax - 82vw), calc(50vmax - 34vh), 0); }
+  70% { transform: translate3d(calc(50vmax - 32vw), calc(50vmax - 82vh), 0); }
+  100% { transform: translate3d(calc(50vmax - 88vw), calc(50vmax - 92vh), 0); }
+}
+@keyframes og-b {
+  0% { transform: translate3d(calc(86vw - 50vmax), calc(78vh - 50vmax), 0); }
+  40% { transform: translate3d(calc(22vw - 50vmax), calc(58vh - 50vmax), 0); }
+  75% { transform: translate3d(calc(62vw - 50vmax), calc(10vh - 50vmax), 0); }
+  100% { transform: translate3d(calc(10vw - 50vmax), calc(24vh - 50vmax), 0); }
+}
+@keyframes og-b-lit {
+  0% { transform: translate3d(calc(50vmax - 86vw), calc(50vmax - 78vh), 0); }
+  40% { transform: translate3d(calc(50vmax - 22vw), calc(50vmax - 58vh), 0); }
+  75% { transform: translate3d(calc(50vmax - 62vw), calc(50vmax - 10vh), 0); }
+  100% { transform: translate3d(calc(50vmax - 10vw), calc(50vmax - 24vh), 0); }
+}
+
+/* Screens that used to paint their own full ground now let this one show through. */
+.look-orbyn body::before { display: none; }
+.look-orbyn .pp, .look-orbyn .si-owner-a, .look-orbyn .si-owner-b, .look-orbyn .si-staff-a, .look-orbyn .si-staff-b, .look-orbyn .ow, .look-orbyn .dv { background: transparent; }
+.look-orbyn .ow-head { background: rgb(var(--shade-rgb) / 0.28); }
+.look-orbyn .tb-chips { background: rgb(4 25 29 / 0.92); }
+@media (min-width: 701px) { .look-orbyn .tb-chips { margin-inline: -10px; padding-inline: 10px; border-radius: 16px; } }

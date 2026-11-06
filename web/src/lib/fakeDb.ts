@@ -49,7 +49,10 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   ],
   members: [],
   cards: [],
-  staff_users: [{ id: fakeId(900), venue_id: VENUE, name: "Sample Staff", role: "owner", active: true }],
+  staff_users: [
+    { id: fakeId(900), venue_id: VENUE, name: "Sample Staff", role: "owner", active: true },
+    { id: fakeId(901), venue_id: VENUE, name: "Sample Developer", role: "developer", active: true },
+  ],
   venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `sample-table-token-${n}`, active: true })),
   menu_categories: sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
   menu_items: sampleItems.map(([n, cat, en, ar, fils, photo], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, image_url: `/samples/menu/${photo}.webp`, price_fils: fils, available: true, active: true, sort: i })),
@@ -98,6 +101,10 @@ class Query implements PromiseLike<Result> {
   }
   eq(column: string, value: unknown) {
     this.filters.push((r) => r[column] === value);
+    return this;
+  }
+  neq(column: string, value: unknown) {
+    this.filters.push((r) => r[column] !== value);
     return this;
   }
   is(column: string, value: null) {

@@ -129,6 +129,12 @@ const CLASSIC_FONTS = {
   "--display-arabic": "var(--display-classic-ar)",
 };
 
+/** True when a deployment has no client colours: it gets the Orbyn look, including the moving ground. */
+export function usesOrbynLook(env: Env = process.env): boolean {
+  const c = brandColors(env);
+  return c.bg === DEFAULT_COLORS.bg && c.text === DEFAULT_COLORS.text && c.accent === DEFAULT_COLORS.accent;
+}
+
 /** Inline style for <html>: empty when the colours are the template's own, so nothing changes by default. */
 export function brandStyle(env: Env = process.env): Record<string, string> {
   const c = brandColors(env);

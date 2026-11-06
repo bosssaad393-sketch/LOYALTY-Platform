@@ -66,3 +66,11 @@ describe("custom colours", () => {
     expect(mix("#102030", "#102030", 0.7)).toBe("#102030");
   });
 });
+
+describe("the moving Orbyn ground", () => {
+  it("is on with no client colours, and off as soon as a client sets its own", async () => {
+    const { usesOrbynLook } = await import("@/lib/brand");
+    expect(usesOrbynLook({})).toBe(true);
+    expect(usesOrbynLook({ BRAND_BG: "#141210", BRAND_TEXT: "#f3e9d2", BRAND_ACCENT: "#cda55b" })).toBe(false);
+  });
+});

@@ -101,6 +101,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
                 {n.label}{!!n.badge && <i className="dv-badge" aria-label={`${n.badge} open`}>{n.badge}</i>}
               </button>
             ))}
+            <a className="dv-navbtn" href="/dev/menu" target="_blank" rel="noopener">Menu <span aria-hidden="true">↗</span><span className="sr-only"> (opens in a new tab)</span></a>
           </nav>
           <button className="ow-chip dv-lock" type="button" onClick={async () => { await api("/api/staff/logout", "POST", {}); setMe(null); }}>Lock</button>
           {brand.poweredBy && <p className="dv-powered">{brand.poweredBy}</p>}
