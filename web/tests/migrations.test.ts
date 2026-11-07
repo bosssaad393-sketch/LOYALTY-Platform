@@ -201,3 +201,20 @@ describe("Tap payments (0012)", () => {
     await db.exec(readFileSync(join(dir, "0012_tap_payments.sql"), "utf8"));
   });
 });
+
+describe("points for a table's bill (0013)", () => {
+  it("links a tab to a card, lets the card go without losing the tab, and refuses negative points", async () => {
+    const V = "eeeeeeee-0000-4000-8000-000000000001";
+    const T = "eeeeeeee-0000-4000-8000-000000000002";
+    await db.query("insert into venues (id, slug, name) values ($1, 'points-test', 'Points Test')", [V]);
+    await db.query("insert into venue_tables (id, venue_id, label, token) values ($1, $2, '1', 'a-long-random-points-code')", [T, V]);
+    const [m] = await rows<{ id: string }>("insert into members (name, phone, consent_terms) values ('Pat', '+97300000009', now()) returning id");
+    const [c] = await rows<{ id: string }>("insert into cards (venue_id, member_id, code) values ($1, $2, '4321') returning id", [V, m.id]);
+    const [t] = await rows<{ id: string }>("insert into tabs (venue_id, table_id, card_id) values ($1, $2, $3) returning id", [V, T, c.id]);
+    await expect(db.query("update tabs set points_added = -1 where id = $1", [t.id])).rejects.toThrow(/check/);
+    await db.query("update tabs set points_added = 8 where id = $1", [t.id]);
+    await db.query("delete from cards where id = $1", [c.id]);
+    const [after] = await rows<{ card_id: string | null; points_added: number }>("select card_id, points_added from tabs where id = $1", [t.id]);
+    expect(after).toEqual({ card_id: null, points_added: 8 });
+  });
+});

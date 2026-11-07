@@ -7,7 +7,7 @@ import "./board.css";
 type Line = { name: string; qty: number; note: string | null };
 type Order = { id: string; table: string; status: "new" | "accepted" | "ready"; source: string; at: string; acceptedAt: string | null; readyMinutes: number | null; lines: Line[] };
 type Call = { id: string; table: string; kind: string; at: string };
-type TabRow = { id: string; table: string; openedAt: string; totalFils: number; paidFils: number; balanceFils: number; paying: boolean; canClose: boolean };
+type TabRow = { id: string; table: string; openedAt: string; totalFils: number; paidFils: number; balanceFils: number; paying: boolean; pointsTo: string | null; canClose: boolean };
 type CardPaid = { id: string; table: string; amountFils: number; method: string | null; at: string; closed: boolean };
 type MenuCat = { id: string; name: string; items: { id: string; name: string; priceFils: number; available: boolean }[] };
 type BoardData = { now: string; tables: { id: string; label: string }[]; calls: Call[]; orders: Order[]; tabs: TabRow[]; cardPaid: CardPaid[]; menu: MenuCat[] };
@@ -245,6 +245,7 @@ export default function Board({ venue }: { venue: string }) {
               <div className="bd-row"><strong className="bd-table">Table {t.table}</strong><b className="bd-total">{money(t.totalFils)}</b></div>
               {t.paidFils > 0 && <p className="bd-due">Paid by card {money(t.paidFils)} · Left <b>{money(t.balanceFils)}</b></p>}
               <p className="bd-none">Open {waited(t.openedAt, now)} min{t.paying ? " · The guest has the card payment page open" : ""}</p>
+              <p className="bd-none">{t.pointsTo ? `Points go to ${t.pointsTo}'s card when paid.` : "No guest card on this tab."}</p>
               <button type="button" className="btn" disabled={!t.canClose} onClick={() => act("close", { tabId: t.id })}>{t.paidFils > 0 ? "Rest paid in cash, close tab" : "Cash paid, close tab"}</button>
               {!t.canClose && <p className="bd-none">A round is still open on this tab.</p>}
             </article>

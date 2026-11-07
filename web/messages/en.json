@@ -96,6 +96,13 @@
         "review": "We could not confirm this payment. The team will check it with you.",
         "initiated": "Your payment is still being confirmed. The team will see it as soon as it arrives."
       }
+    },
+    "points": {
+      "mine": "+{points, plural, one {# point} other {# points}} for this bill",
+      "mineSome": "Points for this bill go to your card",
+      "mineSub": "Added to your card by themselves once the bill is paid.",
+      "other": "Points for this bill go to another guest's card at this table.",
+      "joinSub": "Join now and this bill's points are added once it is paid. Nothing to download."
     }
   }
 }

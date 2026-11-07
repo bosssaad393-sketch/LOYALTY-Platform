@@ -1,5 +1,6 @@
 import { clientKey, createRateLimiter } from "@/lib/rateLimit";
 import { fail } from "@/lib/staffApi";
+import { guestCardFrom } from "@/lib/table/points";
 import { findTable, placeOrder, tableView } from "@/lib/table/db";
 import { CartInput } from "@/lib/table/rules";
 
@@ -14,5 +15,5 @@ export async function POST(request: Request, ctx: RouteContext<"/api/table/[code
   if (!parsed.success) return fail("bad_order");
   const r = await placeOrder(table, parsed.data, { source: "guest" });
   if (!r.ok) return Response.json({ error: "unavailable", unavailable: r.unavailable }, { status: 409 });
-  return Response.json({ orderId: r.orderId, tab: await tableView(table) });
+  return Response.json({ orderId: r.orderId, tab: await tableView(table, guestCardFrom(request.headers.get("cookie"))) });
 }

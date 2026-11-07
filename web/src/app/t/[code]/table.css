@@ -77,3 +77,8 @@
 .tb-payresult { margin-block-start: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; font-size: 15px; }
 .tb-payresult.r-captured { border-color: var(--ok); color: var(--ok); font-weight: 600; }
 .tb-payresult.r-failed, .tb-payresult.r-review { border-color: var(--bad); color: var(--bad); }
+
+/* Points for this bill */
+p.tb-card { cursor: default; }
+.tb-card.on { border-color: var(--ok); }
+.tb-card.on b { color: var(--ok); }

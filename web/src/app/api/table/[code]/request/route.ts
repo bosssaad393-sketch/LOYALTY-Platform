@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { clientKey, createRateLimiter } from "@/lib/rateLimit";
 import { fail } from "@/lib/staffApi";
+import { guestCardFrom } from "@/lib/table/points";
 import { addRequest, findTable, tableView } from "@/lib/table/db";
 import { REQUEST_KINDS } from "@/lib/table/rules";
 
@@ -15,5 +16,5 @@ export async function POST(request: Request, ctx: RouteContext<"/api/table/[code
   const parsed = Input.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail("bad_request");
   await addRequest(table, parsed.data.kind);
-  return Response.json({ tab: await tableView(table) });
+  return Response.json({ tab: await tableView(table, guestCardFrom(request.headers.get("cookie"))) });
 }

@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "../supabase";
+import { awardTabPoints } from "../table/points";
 import { tabCanClose } from "../table/rules";
 import { createCharge, readCharge, tapConfig } from "./client";
 import { judgeCharge, safePayUrl, type PayMethod, type PaymentStatus } from "./rules";
@@ -69,7 +70,8 @@ async function settleTab(venueId: string, tabId: string, paymentId: string) {
   if (m.paidFils > m.totalFils) await audit(venueId, "payment_overpaid", { payment: paymentId, tab: tabId, paid_fils: m.paidFils, total_fils: m.totalFils });
   const now = new Date().toISOString();
   must(await db().from("table_requests").update({ handled_at: now }).eq("tab_id", tabId).eq("venue_id", venueId).is("handled_at", null).select("id"));
-  must(await db().from("tabs").update({ status: "paid", paid_method: "tap", closed_at: now }).eq("id", tabId).eq("venue_id", venueId).eq("status", "open").select("id"));
+  const closed = must(await db().from("tabs").update({ status: "paid", paid_method: "tap", closed_at: now }).eq("id", tabId).eq("venue_id", venueId).eq("status", "open").select("id")) as unknown[];
+  if (closed.length) await awardTabPoints(venueId, tabId);
 }
 
 /** Asks Tap about one payment and records the answer. Only a payment still marked initiated can change. */

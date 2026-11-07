@@ -5,6 +5,7 @@ import { googleWalletConfigured } from "@/lib/googleWallet";
 import { appleWalletConfigured } from "@/lib/appleWallet";
 import BlackCard from "@/components/BlackCard";
 import CardSheet from "./CardSheet";
+import RememberCard from "./RememberCard";
 import { brandColors, footerLine } from "@/lib/brand";
 
 // Live data on every request: allow this page to block instead of prerendering.
@@ -51,6 +52,7 @@ export default async function CardPage({ params }: PageProps<"/card/[cardId]">) 
           )}
         </div>
         <p className="note after" style={{ marginTop: 14 }}>Tip: bookmark this page. It always shows your latest points.</p>
+        <RememberCard cardId={card.id} />
         <p className="foot after">{footerLine(venue.name)}</p>
       </main>
     </>

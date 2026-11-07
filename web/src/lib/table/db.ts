@@ -4,6 +4,7 @@ import { db } from "../supabase";
 import { tapOnFor } from "../tap/client";
 import { payingNow, recentCardPayments, tabMoney } from "../tap/payments";
 import { payState } from "../tap/rules";
+import { awardTabPoints, cardNames, linkCard, pointsFor, venueRate } from "./points";
 import {
   linesTotal, orderPatch, priceCart, salesReport, tabCanClose, waitTable,
   type Cart, type MenuRow, type OrderAction, type OrderStatus, type RequestKind,
@@ -53,14 +54,14 @@ export async function readMenu(venueId: string): Promise<MenuView> {
 
 // ---- tabs and orders ----------------------------------------------------------------------------------------------
 
-type TabRow = { id: string; table_id: string; opened_at: string };
+type TabRow = { id: string; table_id: string; opened_at: string; card_id?: string | null };
 type OrderRow = { id: string; tab_id: string; table_id: string; status: OrderStatus; source: string; ready_minutes: number | null; created_at: string; accepted_at: string | null; ready_at: string | null };
 type LineRow = { order_id: string; name_en: string; name_ar: string | null; price_fils: number; qty: number; note: string | null };
 
 const ORDER_COLUMNS = "id, tab_id, table_id, status, source, ready_minutes, created_at, accepted_at, ready_at";
 
 const openTabOf = async (tableId: string, venueId: string) =>
-  must(await db().from("tabs").select("id, table_id, opened_at").eq("table_id", tableId).eq("venue_id", venueId).eq("status", "open").maybeSingle()) as TabRow | null;
+  must(await db().from("tabs").select("id, table_id, opened_at, card_id").eq("table_id", tableId).eq("venue_id", venueId).eq("status", "open").maybeSingle()) as TabRow | null;
 
 /** The table's open tab, opened now if there is none. Two phones at the same moment end up on the same tab (one open tab per table in the database). */
 async function ensureTab(tableId: string, venueId: string): Promise<TabRow> {
@@ -120,16 +121,27 @@ export async function addRequest(table: { id: string; venueId: string }, kind: R
   if (error && (error as { code?: string }).code !== "23505") throw new Error(error.message);
 }
 
-/** What the guest's page shows: this table's current tab only. No names, no other tables. */
-export async function tableView(table: TableRef) {
+/** Whose card this tab's points go to, as the guest's page may show it: theirs, someone else's (no name), or nobody's yet. */
+export type TabPoints = { card: "mine" | "other" | "none"; estimate: number };
+
+/**
+ * What the guest's page shows: this table's current tab only. No names, no other tables.
+ * `phoneCard` is the card this phone remembers; the first one seen on an open tab is linked to it for the bill's points.
+ */
+export async function tableView(table: TableRef, phoneCard: string | null = null) {
   const cardOn = tapOnFor(table.venueSlug);
   const tab = await openTabOf(table.id, table.venueId);
-  if (!tab) return { rounds: [], totalFils: 0, paidFils: 0, balanceFils: 0, pay: payState({ enabled: cardOn, balanceFils: 0, canClose: true, paying: false }), calls: [] as string[] };
+  const none: TabPoints = { card: "none", estimate: 0 };
+  if (!tab) return { rounds: [], totalFils: 0, paidFils: 0, balanceFils: 0, pay: payState({ enabled: cardOn, balanceFils: 0, canClose: true, paying: false }), points: none, calls: [] as string[] };
   const orders = must(await db().from("orders").select(ORDER_COLUMNS).eq("tab_id", tab.id).eq("venue_id", table.venueId).order("created_at")) as OrderRow[];
   const lines = await linesFor(orders.map((o) => o.id), table.venueId);
   const calls = must(await db().from("table_requests").select("kind").eq("tab_id", tab.id).eq("venue_id", table.venueId).is("handled_at", null)) as { kind: string }[];
   const money = await tabMoney(table.venueId, tab.id);
   const paying = cardOn && (await payingNow(table.venueId, tab.id));
+  const linked = await linkCard(table.venueId, tab.id, tab.card_id ?? null, phoneCard);
+  const points: TabPoints = linked
+    ? { card: linked === phoneCard ? "mine" : "other", estimate: linked === phoneCard ? pointsFor(money.totalFils, await venueRate(table.venueId)) : 0 }
+    : none;
   return {
     rounds: orders.map((o) => ({
       id: o.id,
@@ -142,6 +154,7 @@ export async function tableView(table: TableRef) {
     paidFils: money.paidFils,
     balanceFils: money.balanceFils,
     pay: payState({ enabled: cardOn, balanceFils: money.balanceFils, canClose: money.canClose, paying }),
+    points,
     calls: calls.map((c) => c.kind),
   };
 }
@@ -151,7 +164,7 @@ export async function tableView(table: TableRef) {
 export async function readBoard(venueId: string) {
   const tables = must(await db().from("venue_tables").select("id, label").eq("venue_id", venueId).eq("active", true).order("label")) as { id: string; label: string }[];
   const labelOf = new Map(tables.map((t) => [t.id, t.label]));
-  const tabs = must(await db().from("tabs").select("id, table_id, opened_at").eq("venue_id", venueId).eq("status", "open").order("opened_at")) as TabRow[];
+  const tabs = must(await db().from("tabs").select("id, table_id, opened_at, card_id").eq("venue_id", venueId).eq("status", "open").order("opened_at")) as TabRow[];
   const tabIds = tabs.map((t) => t.id);
   const orders = tabIds.length ? (must(await db().from("orders").select(ORDER_COLUMNS).eq("venue_id", venueId).in("tab_id", tabIds).order("created_at")) as OrderRow[]) : [];
   const lines = await linesFor(orders.map((o) => o.id), venueId);
@@ -163,6 +176,7 @@ export async function readBoard(venueId: string) {
   const recent = await recentCardPayments(venueId, new Date(Date.now() - 10 * 60_000).toISOString());
   const recentTabs = recent.length ? (must(await db().from("tabs").select("id, table_id, status").eq("venue_id", venueId).in("id", [...new Set(recent.map((p) => p.tab_id))])) as { id: string; table_id: string; status: string }[]) : [];
   const tabOf = new Map(recentTabs.map((t) => [t.id, t]));
+  const names = await cardNames(venueId, [...new Set(tabs.map((t) => t.card_id).filter((c): c is string => Boolean(c)))]);
 
   return {
     now: new Date().toISOString(),
@@ -191,6 +205,7 @@ export async function readBoard(venueId: string) {
         paidFils: m?.paidFils ?? 0,
         balanceFils: m?.balanceFils ?? 0,
         paying: m?.paying ?? false,
+        pointsTo: t.card_id ? names.get(t.card_id) ?? null : null,
         canClose: tabCanClose(own),
       };
     }),
@@ -230,7 +245,9 @@ export async function closeTabCash(venueId: string, tabId: string, staffId: stri
   must(await db().from("table_requests").update({ handled_at: now, handled_by: staffId }).eq("tab_id", tabId).eq("venue_id", venueId).is("handled_at", null).select("id"));
   const { paidFils } = await tabMoney(venueId, tabId);
   const closed = must(await db().from("tabs").update({ status: "paid", paid_method: paidFils > 0 ? "mixed" : "cash", closed_at: now, closed_by: staffId }).eq("id", tabId).eq("venue_id", venueId).eq("status", "open").select("id")) as unknown[];
-  return closed.length ? "ok" : "not_found";
+  if (!closed.length) return "not_found";
+  await awardTabPoints(venueId, tabId);
+  return "ok";
 }
 
 export async function setItemAvailable(venueId: string, itemId: string, available: boolean): Promise<boolean> {

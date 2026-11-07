@@ -224,6 +224,19 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
     if (!card || !venue) return { data: null, error: { code: "P0001", message: "card not found" } };
     return { data: [{ ledger_id: entry(card, "redeem", -Number(venue.reward_goal)).id, new_balance: card.points }], error: null };
   }
+  if (fn === "ledger_pos_sale") {
+    const venue = store.venues.find((v) => v.id === args.p_venue);
+    const card = store.cards.find((c) => c.venue_id === args.p_venue && c.code === args.p_code);
+    if (!venue || !card) return { data: null, error: { code: "P0001", message: "card not found" } };
+    const old = ledger.find((l) => l.venue_id === args.p_venue && l.external_ref === args.p_receipt && l.kind === "earn");
+    if (old) return { data: [{ ledger_id: old.id, points_added: 0, new_balance: card.points, duplicate: true }], error: null };
+    const added = Math.floor(Number(args.p_bill) * Number(venue.points_per_bhd));
+    if (added < 1) return { data: null, error: { code: "P0001", message: "bill is too small to earn points" } };
+    card.visits = Number(card.visits ?? 0) + 1;
+    const row = entry(card, "earn", added, args.p_bill);
+    (row as Record<string, unknown>).external_ref = args.p_receipt;
+    return { data: [{ ledger_id: row.id, points_added: added, new_balance: card.points, duplicate: false }], error: null };
+  }
   if (fn === "ledger_undo") {
     const was = ledger.find((l) => l.id === args.p_entry);
     const card = cardOf(was?.card_id);

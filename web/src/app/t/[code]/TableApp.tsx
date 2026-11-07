@@ -9,7 +9,8 @@ import "./table.css";
 
 type Round = { id: string; status: string; readyMinutes: number | null; acceptedAt: string | null; lines: { nameEn: string; nameAr: string | null; qty: number; note: string | null }[] };
 type PayState = "off" | "nothing" | "wait" | "paying" | "ready";
-type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; calls: string[] };
+type Points = { card: "mine" | "other" | "none"; estimate: number };
+type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; calls: string[] };
 /** After coming back from Tap: what the payment turned out to be. */
 type PayResult = "checking" | "captured" | "failed" | "review" | "initiated" | null;
 type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string };
@@ -245,10 +246,20 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
               ? <p className="tb-cashon" role="status">{t("pay.cashOnTheWay")}</p>
               : <button type="button" className="btn primary tb-paybtn" onClick={() => { setError(null); setPayOpen(true); }}>{t("pay.button", { amount: filsText(tab.balanceFils) })}</button>
           )}
-          <a className="tb-card" href={`/join/${venueSlug}`}>
-            <b>{t("cardOffer", { venue: venueName })}</b>
-            <small>{t("cardOfferSub")}</small>
-          </a>
+          {tab.points?.card === "mine" ? (
+            <p className="tb-card on" role="status">
+              <b>{tab.points.estimate > 0 ? t("points.mine", { points: tab.points.estimate }) : t("points.mineSome")}</b>
+              <small>{t("points.mineSub")}</small>
+            </p>
+          ) : tab.points?.card === "other" ? (
+            <p className="tb-card"><small>{t("points.other")}</small></p>
+          ) : (
+            // A new tab, so this page stays open; once the card is made, this page picks it up by itself.
+            <a className="tb-card" href={`/join/${venueSlug}`} target="_blank" rel="noopener">
+              <b>{t("cardOffer", { venue: venueName })}</b>
+              <small>{t("points.joinSub")}</small>
+            </a>
+          )}
         </section>
       )}
 

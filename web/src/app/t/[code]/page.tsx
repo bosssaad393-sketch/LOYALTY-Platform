@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -7,6 +8,7 @@ import LanguageSwitch from "@/components/LanguageSwitch";
 import { directionOf } from "@/i18n/locale";
 import { brandLanguages, poweredBy } from "@/lib/brand";
 import { findTable, readMenu, tableView } from "@/lib/table/db";
+import { GUEST_CARD_COOKIE, guestCardFrom } from "@/lib/table/points";
 import TableApp from "./TableApp";
 
 // Live data on every request: allow this page to block instead of prerendering.
@@ -25,7 +27,8 @@ export default async function TablePage({ params }: PageProps<"/t/[code]">) {
   const locale = await getLocale();
   // The tab reads the clock (is a payment page still open?), so this page is always rendered at request time.
   await connection();
-  const [menu, tab] = await Promise.all([readMenu(table.venueId), tableView(table)]);
+  const phone = (await cookies()).get(GUEST_CARD_COOKIE)?.value;
+  const [menu, tab] = await Promise.all([readMenu(table.venueId), tableView(table, guestCardFrom(phone ? `${GUEST_CARD_COOKIE}=${phone}` : null))]);
 
   return (
     <NextIntlClientProvider>
