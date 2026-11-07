@@ -1,4 +1,5 @@
 import "server-only";
+import { must } from "../must";
 import { randomBytes } from "node:crypto";
 import { db } from "../supabase";
 import { tapOnFor } from "../tap/client";
@@ -13,10 +14,6 @@ import {
 // Every read and write here filters by venue. The venue comes from the table token (guests) or the signed-in person (staff, owner),
 // never from anything else in the request.
 
-const must = <T,>(r: { data: T; error: { message: string } | null }): T => {
-  if (r.error) throw new Error(r.error.message);
-  return r.data;
-};
 
 export type TableRef = { id: string; label: string; venueId: string; venueSlug: string; venueName: string };
 

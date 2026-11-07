@@ -8,7 +8,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const SENT_COOKIE = "orbyn_sent";
 const MAX = 12;
 const HOURS = 12;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+import { UUID_RE as UUID } from "../ids";
 
 /** Null when the site has no secret: then nothing is remembered and guests simply cannot cancel (ordering still works). */
 function key(): string | null {

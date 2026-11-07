@@ -1,4 +1,5 @@
 import "server-only";
+import { must } from "../must";
 import { db } from "../supabase";
 import { awardTabPoints } from "../table/points";
 import { tabCanClose } from "../table/rules";
@@ -8,10 +9,6 @@ import { judgeCharge, safePayUrl, type PayMethod, type PaymentStatus } from "./r
 // Card and BENEFIT payments for a table's tab. The rule everywhere: the browser and the webhook only say "look again".
 // What counts is the charge read back from Tap by our own stored charge id, checked by judgeCharge.
 
-const must = <T,>(r: { data: T; error: { message: string } | null }): T => {
-  if (r.error) throw new Error(r.error.message);
-  return r.data;
-};
 
 /** An unpaid Tap page is reused for this long when the guest taps Pay again for the same amount. */
 const REUSE_MS = 15 * 60_000;

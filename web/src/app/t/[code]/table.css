@@ -47,7 +47,7 @@
 
 .tb-chips { position: sticky; inset-block-start: 0; z-index: 2; display: flex; gap: 8px; margin: 22px -16px 0; padding: 10px 16px; overflow-x: auto; background: var(--bg); scrollbar-width: none; }
 .tb-chips::-webkit-scrollbar { display: none; }
-.tb-chip { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 22px; color: var(--muted); font-size: var(--fs-base); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.tb-chip { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--r-xl); color: var(--muted); font-size: var(--fs-base); font-weight: 600; text-decoration: none; white-space: nowrap; }
 .tb-chip.on { background: var(--gold2); border-color: var(--gold2); color: var(--on-gold); }
 
 .tb-cat { margin-block-start: 22px; scroll-margin-block-start: 72px; }
@@ -62,7 +62,7 @@
 .tb-price { color: var(--gold2); font-size: var(--fs-base); font-variant-numeric: tabular-nums; }
 .tb-item.off b, .tb-item.off .tb-price { color: var(--dim); }
 .tb-step { flex: none; display: flex; align-items: center; gap: 6px; }
-.tb-step button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); font-size: 22px; line-height: 1; cursor: pointer; }
+.tb-step button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); font-size: var(--fs-3xl); line-height: 1; cursor: pointer; }
 .tb-step button.add { border-color: var(--gold-dim); color: var(--gold2); }
 .tb-step span { min-width: 22px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 

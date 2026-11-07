@@ -9,7 +9,7 @@
 
 .bd-tabs { display: flex; gap: 8px; margin: 16px -16px 0; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
 .bd-tabs::-webkit-scrollbar { display: none; }
-.bd-tabs button { flex: none; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 22px; background: transparent; color: var(--muted); font-size: var(--fs-base); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.bd-tabs button { flex: none; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-xl); background: transparent; color: var(--muted); font-size: var(--fs-base); font-weight: 600; cursor: pointer; white-space: nowrap; }
 .bd-tabs button.on { background: var(--gold2); border-color: var(--gold2); color: var(--on-gold); }
 
 .bd-grid { display: grid; gap: 20px; margin-block-start: 18px; }
@@ -38,7 +38,7 @@
 .bd-menu small { display: block; color: var(--dim); font-size: var(--fs-sm); }
 .bd-off { color: var(--dim); text-decoration: line-through; }
 .bd-step { flex: none; display: flex; align-items: center; gap: 6px; }
-.bd-step button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); font-size: 22px; line-height: 1; cursor: pointer; }
+.bd-step button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface2); font-size: var(--fs-3xl); line-height: 1; cursor: pointer; }
 .bd-step b { min-width: 22px; text-align: center; }
 .bd-toggle { flex: none; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: transparent; color: var(--muted); font-size: var(--fs-base); font-weight: 600; cursor: pointer; }
 .bd-toggle.off { border-color: var(--bad); color: var(--bad); }

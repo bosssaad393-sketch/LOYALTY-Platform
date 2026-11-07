@@ -1,4 +1,5 @@
 import "server-only";
+import { must } from "../must";
 import { db } from "../supabase";
 import { posSale } from "../ledgerDb";
 import { refreshWalletCards } from "../staffApi";
@@ -8,12 +9,8 @@ import { refreshWalletCards } from "../staffApi";
 // that card. The database function does the counting and refuses a second earn for the same tab ("tab:<id>").
 
 export const GUEST_CARD_COOKIE = "orbyn_card";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { UUID_RE as UUID } from "../ids";
 
-const must = <T,>(r: { data: T; error: { message: string } | null }): T => {
-  if (r.error) throw new Error(r.error.message);
-  return r.data;
-};
 
 /** The card id this phone remembers, from a raw Cookie header. Anything that is not a card id counts as none. */
 export function guestCardFrom(cookieHeader: string | null): string | null {

@@ -6,6 +6,7 @@ import { CALL_BUTTONS, filsText, linesTotal, type RequestKind } from "@/lib/tabl
 import type { PayMethod } from "@/lib/tap/rules";
 import type { MenuView } from "@/lib/table/db";
 import "./table.css";
+import { UUID_RE as UUID } from "@/lib/ids";
 
 type Round = { id: string; status: string; readyMinutes: number | null; acceptedAt: string | null; canCancel?: boolean; lines: { nameEn: string; nameAr: string | null; qty: number; note: string | null }[] };
 type PayState = "off" | "nothing" | "wait" | "paying" | "ready";
@@ -16,7 +17,6 @@ type PayResult = "checking" | "captured" | "failed" | "review" | "initiated" | n
 type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string };
 
 const POLL_MS = 5000;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy }: Props) {
   const t = useTranslations("table");

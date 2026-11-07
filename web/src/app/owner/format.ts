@@ -1,4 +1,5 @@
-export const n = (x: number) => x.toLocaleString("en-GB");
+export { n } from "@/lib/format";
+import { bahrainDay, bahrainTime } from "@/lib/format";
 
 export function ago(iso: string | null): string {
   if (!iso) return "never";
@@ -20,10 +21,7 @@ export function longDate(): string {
 
 /** "15 Oct, 21:02" in Bahrain time. */
 export function stamp(iso: string): string {
-  const d = new Date(iso);
-  const day = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Asia/Bahrain" });
-  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Bahrain" });
-  return `${day}, ${time}`;
+  return `${bahrainDay(iso)}, ${bahrainTime(iso)}`;
 }
 
 export function shortDate(iso: string): string {

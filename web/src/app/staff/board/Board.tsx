@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { filsText, minutesBetween, READY_MINUTES } from "@/lib/table/rules";
+import { minutesBetween, READY_MINUTES } from "@/lib/table/rules";
 import "./board.css";
+import { filsMoney } from "@/lib/format";
 
 type Line = { name: string; qty: number; note: string | null };
 type Order = { id: string; table: string; status: "new" | "accepted" | "ready"; source: string; at: string; acceptedAt: string | null; readyMinutes: number | null; lines: Line[] };
@@ -35,7 +36,7 @@ function chime(ctx: AudioContext) {
     o.stop(t + i * 0.18 + 0.55);
   }
 }
-const money = (fils: number) => `BHD ${filsText(fils)}`;
+const money = filsMoney;
 
 /** Whole minutes waited. Red once a call has waited 5 minutes, or a round is past its promised time. */
 const waited = (from: string, now: string) => Math.max(0, Math.floor(minutesBetween(from, now)));

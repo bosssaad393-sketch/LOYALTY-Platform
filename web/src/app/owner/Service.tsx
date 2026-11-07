@@ -6,6 +6,7 @@ import type { MenuView } from "@/lib/table/db";
 import QrSvg from "@/components/QrSvg";
 import { LoadError, Loading, Msg, PageHead, useGet } from "./ui";
 import type { Call, Note } from "./types";
+import { filsMoney } from "@/lib/format";
 
 type Avg = { count: number; avgMinutes: number | null };
 type Report = {
@@ -17,7 +18,7 @@ type Report = {
 type Table = { id: string; label: string; token: string };
 type View = "report" | "menu" | "tables";
 
-const money = (fils: number) => `BHD ${filsText(fils)}`;
+const money = filsMoney;
 const PARTS: Record<DayPart, string> = { morning: "Morning (6 to 12)", afternoon: "Afternoon (12 to 18)", evening: "Evening (18 to 24)", late: "Late (0 to 6)" };
 const MEASURES: [WaitMeasure, string][] = [["accept", "Round accepted"], ["ready", "Round ready"], ["coal", "Coal"], ["waiter", "Waiter"], ["bill", "Bill"]];
 
@@ -96,7 +97,7 @@ function ReportView({ call }: { call: Call }) {
                   {hours.map((h) => (
                     <li key={h.hour} className="ow-item">
                       <span className="ow-item-main">{String(h.hour).padStart(2, "0")}:00</span>
-                      <span aria-hidden="true" style={{ flex: 1, height: 8, borderRadius: 4, background: "var(--surface2)" }}><i style={{ display: "block", height: 8, borderRadius: 4, width: `${(h.fils / busiest) * 100}%`, background: "var(--gold)" }} /></span>
+                      <span aria-hidden="true" style={{ flex: 1, height: 8, borderRadius: "var(--r-xs)", background: "var(--surface2)" }}><i style={{ display: "block", height: 8, borderRadius: "var(--r-xs)", width: `${(h.fils / busiest) * 100}%`, background: "var(--gold)" }} /></span>
                       <span className="ow-item-side ow-fig">{filsText(h.fils)}</span>
                     </li>
                   ))}
@@ -183,7 +184,7 @@ function MenuEditor({ call }: { call: Call }) {
                       <span className="ow-lbl">Photo</span>
                       {i.imageUrl && (
                         /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
-                        <img src={i.imageUrl} alt={`Current photo of ${i.nameEn}`} width={120} height={120} style={{ borderRadius: 8, objectFit: "cover" }} />
+                        <img src={i.imageUrl} alt={`Current photo of ${i.nameEn}`} width={120} height={120} style={{ borderRadius: "var(--r-tight)", objectFit: "cover" }} />
                       )}
                       <div className="ow-actions">
                         <label className="ow-btn small">
@@ -203,7 +204,7 @@ function MenuEditor({ call }: { call: Call }) {
                   <>
                     {i.imageUrl && (
                       /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
-                      <img src={i.imageUrl} alt="" width={56} height={56} loading="lazy" style={{ flex: "none", borderRadius: 8, objectFit: "cover" }} />
+                      <img src={i.imageUrl} alt="" width={56} height={56} loading="lazy" style={{ flex: "none", borderRadius: "var(--r-tight)", objectFit: "cover" }} />
                     )}
                     <span className="ow-item-main"><b>{i.nameEn}</b>{!i.nameAr && <small> · no Arabic name yet</small>}{i.nameAr && <small> · {i.nameAr}</small>}{!i.available && <small> · sold out</small>}</span>
                     <span className="ow-item-side ow-rowbtns"><span className="ow-fig">{filsText(i.priceFils)}</span><button type="button" className="ow-btn small" aria-label={`Edit ${i.nameEn}`} onClick={() => setEditing(i.id)}>Edit</button></span>

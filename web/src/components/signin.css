@@ -89,6 +89,7 @@
 /* ---- STAFF B: hey, team ---- */
 .si-staff-b { background: var(--bg); }
 .si-staff-b .si-col { padding: 0 0 max(22px, env(safe-area-inset-bottom)); }
+/* A drawn curve (the arch under the crest), not a corner: kept as its own measure. */
 .si-staff-b .si-top { position: relative; height: 330px; padding: max(62px, env(safe-area-inset-top)) 30px 0; border-radius: 0 0 46px 46px; background: linear-gradient(150deg, var(--gold-hi) 0%, var(--gold2) 40%, var(--gold) 100%); overflow: hidden; color: var(--on-gold); }
 .si-staff-b .si-top::before { content: ""; position: absolute; right: -60px; top: -60px; width: 240px; height: 240px; border-radius: 50%; background: rgba(255, 255, 255, .22); }
 .si-staff-b .si-top::after { content: ""; position: absolute; left: -50px; bottom: -70px; width: 200px; height: 200px; border-radius: 50%; background: rgb(var(--gold-rgb) / .28); }

@@ -17,7 +17,7 @@
   .pp .pp-card { display: flex; flex-direction: column; min-height: 100dvh; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .pp .pp-subject { flex: 1; display: grid; align-content: center; justify-items: center; padding: max(24px, env(safe-area-inset-top)) 24px 20px; }
   .pp .pp-crest { width: 92px; }
-  .pp .pp-sheet { padding: 20px 20px max(16px, env(safe-area-inset-bottom)); border-radius: 28px 28px 0 0; background: var(--surface); border-block-start: 1px solid var(--line); animation: sheet-up 0.42s ease-out both; }
+  .pp .pp-sheet { padding: 20px 20px max(16px, env(safe-area-inset-bottom)); border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--surface); border-block-start: 1px solid var(--line); animation: sheet-up 0.42s ease-out both; }
   .pp .pp-dots { margin-block-start: 6px; }
   .pp .pp-key { height: 58px; }
   .pp .pp-help { margin-block-start: 12px; }
@@ -27,7 +27,7 @@
 .app:has(.jp) .vh-crest, .app:has(.jp) .rc-rule, .app:has(.jp) .rc-tag { display: none; }
 .jp { position: relative; container-type: inline-size; aspect-ratio: 1.75; width: min(100%, 340px); margin: 22px auto 0; padding: 18px 20px; border-radius: var(--r-lg); border: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; background: linear-gradient(rgb(var(--shade-rgb) / 0.5), rgb(var(--shade-rgb) / 0.8)), var(--brand-marble) center / cover no-repeat, var(--surface); }
 .jp-crest { position: absolute; inset-block-start: 16px; inset-inline-end: 18px; width: 54px; height: 54px; object-fit: contain; }
-.jp-code { position: absolute; inset-block-start: 22px; inset-inline-start: 20px; color: var(--gold2); font-size: 20px; letter-spacing: 0.22em; }
+.jp-code { position: absolute; inset-block-start: 22px; inset-inline-start: 20px; color: var(--gold2); font-size: var(--fs-2xl); letter-spacing: 0.22em; }
 .jp-name { font: 600 20px/1.2 var(--sans); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .jp-name.empty { color: var(--dim); }
 .jp-venue { color: var(--muted); font-size: var(--fs-sm); }
@@ -35,7 +35,7 @@
 .pane .btn.primary { box-shadow: none; }
 
 /* Guest card: the sheet under the card, with the reward as a ticket. */
-.cs { margin-block-start: 16px; padding: 20px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); animation: sheet-up 0.42s ease-out both; }
+.cs { margin-block-start: 16px; padding: 20px; border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--line); animation: sheet-up 0.42s ease-out both; }
 .cs-fig { display: flex; align-items: baseline; gap: 8px; }
 .cs-fig b { font: 600 46px/1 var(--serif); font-variant-numeric: tabular-nums; color: var(--text); }
 .cs-fig > span { color: var(--muted); font-size: var(--fs-md); }
@@ -58,7 +58,7 @@
 .tb-bar-sum b { font: 700 19px/1.2 var(--sans); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tb-bar .btn { flex: none; width: auto; min-height: 52px; margin: 0; padding-inline: 26px; }
 .tb-bar { animation: sheet-up 0.3s ease-out both; }
-.tb-sheet { position: fixed; inset: auto 0 0; width: min(100%, 480px); max-width: none; max-height: 86dvh; margin: 0 auto; padding: 0; border: 0; border-block-start: 1px solid var(--line); border-radius: 26px 26px 0 0; background: var(--surface); color: var(--text); overflow: auto; }
+.tb-sheet { position: fixed; inset: auto 0 0; width: min(100%, 480px); max-width: none; max-height: 86dvh; margin: 0 auto; padding: 0; border: 0; border-block-start: 1px solid var(--line); border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--surface); color: var(--text); overflow: auto; }
 .tb-sheet[open] { animation: sheet-up 0.36s ease-out both; }
 .tb-sheet::backdrop { background: rgb(var(--shade-rgb) / 0.72); }
 .tb-sheet-in { padding: 10px 20px max(16px, env(safe-area-inset-bottom)); }
@@ -89,7 +89,7 @@
 .st-actions .chip { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
 
 /* Staff: the scan frame is the screen's subject and its one primary action. */
-.sc { position: relative; display: grid; place-items: center; width: 100%; height: 250px; margin-block-start: 16px; padding: 0; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: rgb(var(--shade-rgb) / 0.55); color: inherit; cursor: pointer; --sweep: 164px; }
+.sc { position: relative; display: grid; place-items: center; width: 100%; height: 250px; margin-block-start: 16px; padding: 0; border: 1px solid var(--line); border-radius: var(--r-xl); overflow: hidden; background: rgb(var(--shade-rgb) / 0.55); color: inherit; cursor: pointer; --sweep: 164px; }
 .sc-box { position: absolute; inset: 40px 18%; }
 .sc-box > i { position: absolute; width: 26px; height: 26px; border: 2px solid var(--gold2); }
 .sc-box > i:nth-child(1) { inset-block-start: 0; inset-inline-start: 0; border-inline-end: 0; border-block-end: 0; border-start-start-radius: 8px; }
@@ -102,7 +102,7 @@
 .st-sheet { animation: sheet-up 0.42s ease-out both; }
 
 /* Staff: the result, one figure and one sentence. */
-.sr { display: grid; justify-items: center; gap: 6px; margin-block-start: 12px; padding: 30px 22px 22px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); text-align: center; animation: sheet-up 0.42s ease-out both; }
+.sr { display: grid; justify-items: center; gap: 6px; margin-block-start: 12px; padding: 30px 22px 22px; border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--line); text-align: center; animation: sheet-up 0.42s ease-out both; }
 .sr-check { width: 72px; height: 72px; fill: none; stroke: var(--gold2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .sr-check * { stroke-dasharray: 1; animation: draw-once 0.6s 0.15s ease-out both; }
 .sr-fig { display: flex; align-items: baseline; gap: 8px; margin-block: 2px; color: var(--gold2); font: 600 64px/1.05 var(--serif); font-variant-numeric: tabular-nums; }
@@ -128,7 +128,7 @@
 .ow-lead-main { grid-column: 1 / -1; border: 0 !important; }
 .ow-lead > div > span { display: block; color: var(--muted); font-size: var(--fs-sm); }
 .ow-lead b { display: block; margin-block-start: 4px; font: 600 24px/1.15 var(--ow-fig); font-variant-numeric: tabular-nums; }
-.ow-lead-main b { margin-block-start: 6px; font-size: 48px; line-height: 1.05; color: var(--gold2); }
+.ow-lead-main b { margin-block-start: 6px; font-size: var(--fs-display); line-height: 1.05; color: var(--gold2); }
 .ow-lead em { display: block; margin-block-start: 4px; font-style: normal; color: var(--muted); font-size: var(--fs-sm); }
 .ow-lead em.up { color: var(--ok); }
 .ow-lead em.down { color: var(--bad); }
@@ -155,7 +155,7 @@
 /* Team join link: the owner's panel and the page a new person opens. */
 .ow-stack { display: grid; gap: 16px; align-content: start; min-width: 0; }
 .ow-joinlink { margin-top: 16px; display: grid; gap: 12px; justify-items: start; }
-.ow-joinlink svg { border-radius: 8px; }
+.ow-joinlink svg { border-radius: var(--r-tight); }
 .tj { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
 .tj-in { width: 100%; max-width: 440px; display: grid; gap: 20px; justify-items: center; }
 .tj-in > .ow-panel { width: 100%; }

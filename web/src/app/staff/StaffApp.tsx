@@ -7,6 +7,7 @@ import PinPad from "@/components/PinPad";
 import type { SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
 import { LARGE_BILL_BHD, MAX_BILL_BHD, pointsFor, readBill } from "@/lib/tillRules";
+import { bahrainDayKey, bahrainTime, bhd as bhdNumber, bhdText } from "@/lib/format";
 
 type Me = { name: string; role: string; venue: string };
 type Guest = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd?: number };
@@ -22,14 +23,14 @@ async function api<T>(path: string, body?: unknown): Promise<Res<T>> {
   return res.ok ? { ok: true, data } : { ok: false, error: data.error ?? "Something went wrong.", status: res.status };
 }
 
-const bhd = (n: number) => `BHD ${n.toFixed(3)}`;
-const time = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bahrain" });
-const dayKey = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Bahrain" });
+const bhd = bhdText;
+const time = bahrainTime;
+const dayKey = bahrainDayKey;
 const QUICK = [3, 5, 10, 15, 20];
 /** When an entry was made, for the 10-minute undo window. Only ever called from a tap, never while drawing. */
 const stamp = () => Date.now();
 /** 1250 -> "1,250.000": three decimals like the receipt, with thousands marked so a typo stands out. */
-const bhdFull = (v: number) => v.toLocaleString("en-GB", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+const bhdFull = bhdNumber;
 
 export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; look?: SignInLook; brand: BrandProps }) {
   const [me, setMe] = useState<Me | null>(initialMe);

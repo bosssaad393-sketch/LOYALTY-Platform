@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import QrSvg from "@/components/QrSvg";
+import { bahrainDay } from "@/lib/format";
 import { Loading, LoadError, Msg, PageHead, useGet } from "./ui";
 import type { Call, Member, Note } from "./types";
 
@@ -10,7 +11,7 @@ type Perk = { id: string; staffId: string; staffName: string; title: string; not
 
 const IDEAS = ["Free meal after your shift", "20% off your next visit", "Early finish on your next shift", "A voucher to spend with us"];
 const STATUS: Record<string, string> = { ready: "Waiting for them", claimed: "Used", cancelled: "Taken back" };
-const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Asia/Bahrain" });
+const day = bahrainDay;
 
 export default function Team({ call }: { call: Call }) {
   const team = useGet<{ team: Member[] }>(call, "/api/owner/team");

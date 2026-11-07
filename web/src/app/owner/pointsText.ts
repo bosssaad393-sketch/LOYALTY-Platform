@@ -4,7 +4,8 @@ import type { Points, PointsRange } from "./types";
 const num = (x: number) => Math.round(x).toLocaleString("en-GB");
 
 /** Money in BHD always has three decimals: 1,845.500. */
-export const bhd = (x: number) => x.toLocaleString("en-GB", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+import { bhd } from "@/lib/format";
+export { bhd };
 
 /** "2026-10-15" -> "15 Oct". The day is already a Bahrain calendar day, so no time zone maths. */
 export function dayLabel(day: string): string {
