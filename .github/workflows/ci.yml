@@ -22,3 +22,22 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+
+      # The production build catches what lint, types and tests cannot (for example a page that breaks prerendering).
+      # Placeholders only: nothing here is a real key, and the .invalid address can never reach a server.
+      # The app reads SUPABASE_URL; the NEXT_PUBLIC_* names are set too so a future browser client builds the same way.
+      - name: Production build
+        run: npm run build
+        env:
+          SUPABASE_URL: https://placeholder.supabase.invalid
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key-not-real
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.invalid
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key-not-real
+          STAFF_SESSION_SECRET: ci-placeholder-session-secret-at-least-32-chars
+          PUBLIC_BASE_URL: https://ci.example.invalid
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      # Known advisories in production dependencies. Reported, never blocking: a fix may need an upstream release.
+      - name: Dependency audit (report only)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true

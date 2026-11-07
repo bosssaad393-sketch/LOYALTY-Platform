@@ -241,7 +241,38 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
     const was = ledger.find((l) => l.id === args.p_entry);
     const card = cardOf(was?.card_id);
     if (!was || !card) return { data: null, error: { code: "P0001", message: "entry not found" } };
-    return { data: [{ ledger_id: entry(card, "undo", -Number(was.points)).id, new_balance: card.points }], error: null };
+    // Linked to the entry it cancels, like the real ledger, so undone visits drop out of the owner's numbers.
+    const undo = entry(card, "undo", -Number(was.points)) as Record<string, unknown>;
+    undo.undoes = was.id;
+    return { data: [{ ledger_id: undo.id, new_balance: card.points }], error: null };
+  }
+  // Sample data never limits anyone (migration 0014 does the real counting).
+  if (fn === "rate_hit") return { data: true, error: null };
+  // Migration 0015's owner_summary, counted the same way over the sample data.
+  if (fn === "owner_summary") {
+    const venue = args.p_venue;
+    const today = new Date(String(args.p_today)).getTime();
+    const DAY = 86_400_000;
+    const cards = store.cards.filter((c) => c.venue_id === venue);
+    const undone = new Set(ledger.filter((l) => l.kind === "undo").map((l) => (l as Record<string, unknown>).undoes));
+    const live = ledger.filter((l) => l.venue_id === venue && (l.kind === "earn" || l.kind === "redeem") && !undone.has(l.id) && new Date(String(l.created_at)).getTime() >= today - 29 * DAY);
+    const t = (l: Row) => new Date(String(l.created_at)).getTime();
+    const visits = live.filter((l) => l.kind === "earn");
+    return {
+      data: {
+        members: cards.length,
+        newThisWeek: cards.filter((c) => new Date(String(c.created_at)).getTime() >= today - 6 * DAY).length,
+        pointsHeld: cards.reduce((s, c) => s + Number(c.points ?? 0), 0),
+        visits7d: visits.filter((l) => t(l) >= today - 6 * DAY).length,
+        visitsPrev7d: visits.filter((l) => t(l) >= today - 13 * DAY && t(l) < today - 6 * DAY).length,
+        rewards30d: live.filter((l) => l.kind === "redeem").length,
+        perDay14: Array.from({ length: 14 }, (_, i) => {
+          const start = today - (13 - i) * DAY;
+          return { day: new Date(start + 3 * 3600_000).toISOString().slice(0, 10), visits: visits.filter((l) => t(l) >= start && t(l) < start + DAY).length };
+        }),
+      },
+      error: null,
+    };
   }
   return { data: null, error: { code: "P0001", message: `${fn} is not part of the sample data` } };
 }

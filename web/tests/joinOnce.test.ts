@@ -68,3 +68,34 @@ describe("joining twice", () => {
     expect((await join(req({ venue: "a", name: "Test Guest 0005", email: "test.guest0005@example.com" }))).status).toBe(200);
   });
 });
+
+describe("sign-up limits counted in the database", () => {
+  const from = (ip: string, n: number) => new Request("http://test.local/api/join", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-forwarded-for": ip },
+    body: JSON.stringify({ terms: true, venue: "a", name: `Test Guest ${n}`, email: `test.guest${n}@example.com` }),
+  });
+  it("one address gets 5 sign-ups in 10 minutes, then a clear refusal", async () => {
+    const codes = [];
+    for (let n = 1; n <= 6; n++) codes.push((await join(from("10.9.0.1", n))).status);
+    expect(codes).toEqual([200, 200, 200, 200, 200, 429]);
+    expect((await (await join(from("10.9.0.1", 7))).json()).code).toBe("too_many");
+    expect((await join(from("10.9.0.2", 8))).status).toBe(200);
+  });
+  it("the whole venue is capped too, whatever the address", async () => {
+    h.state.tables.rate_hits = Array.from({ length: 300 }, () => ({ bucket: `join:venue:${VA}`, at: Date.now() }));
+    expect((await join(from("10.9.0.3", 9))).status).toBe(429);
+    expect(cards()).toHaveLength(0);
+  });
+  it("addresses are stored only as hashes", async () => {
+    await join(from("10.9.0.4", 10));
+    expect(JSON.stringify(h.state.tables.rate_hits)).not.toContain("10.9.0.4");
+  });
+  it("if the limit check fails, guests can still join (and it is logged)", async () => {
+    h.state.failing.add("rpc:rate_hit");
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await join(from("10.9.0.5", 11))).status).toBe(200);
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
+  });
+});

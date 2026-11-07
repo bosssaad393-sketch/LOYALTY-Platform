@@ -26,7 +26,8 @@
     "venue_unavailable": "This venue isn't available.",
     "server": "Something went wrong. Please try again.",
     "offline": "No connection. Please try again.",
-    "already_member": "You already have a card here. Open it from your Wallet or saved link, or ask staff to show it again."
+    "already_member": "You already have a card here. Open it from your Wallet or saved link, or ask staff to show it again.",
+    "too_many": "Too many sign-ups from here. Please wait a few minutes and try again."
   },
   "table": {
     "money": "BHD {amount}",

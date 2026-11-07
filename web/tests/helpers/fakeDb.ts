@@ -26,6 +26,19 @@ export function makeDb(state: FakeState) {
         getUserById: async (id: string) => ({ data: { user: { id, email: `${id}@login.example.test` } }, error: null }),
       },
     },
+    /** rate_hit (migration 0014): counts hits per bucket inside the window, like the database function. */
+    async rpc(fn: string, args: Record<string, unknown>) {
+      if (state.failing.has(`rpc:${fn}`)) return { data: null, error: { message: `${fn} failed (test)` } };
+      if (fn === "rate_hit") {
+        const hits = (state.tables.rate_hits ??= []);
+        const since = Date.now() - Number(args.p_window_seconds) * 1000;
+        const recent = hits.filter((h) => h.bucket === args.p_bucket && Number(h.at) > since).length;
+        if (recent >= Number(args.p_limit)) return { data: false, error: null };
+        hits.push({ bucket: args.p_bucket, at: Date.now() });
+        return { data: true, error: null };
+      }
+      return { data: null, error: { message: `${fn} is not in the test stand-in` } };
+    },
     from(table: string) {
       const filters: ((r: Row) => boolean)[] = [];
       const described: string[] = [];

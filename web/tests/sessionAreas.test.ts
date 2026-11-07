@@ -38,7 +38,7 @@ beforeEach(() => {
 });
 
 const login = (pin: string, area?: string, ip = "1.1.1.1") =>
-  pinLogin(new Request("http://t/api", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": ip }, body: JSON.stringify({ pin, area }) }));
+  pinLogin(new Request("http://t/api", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": ip }, body: JSON.stringify({ pin, area, venue: "a" }) }));
 const cookieOf = (r: Response) => r.headers.get("set-cookie") ?? "";
 
 describe("session values", () => {

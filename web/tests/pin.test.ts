@@ -28,7 +28,7 @@ const OFF = "aaaaaaaa-0000-4000-8000-0000000000a3";
 const DEV = "aaaaaaaa-0000-4000-8000-0000000000a4";
 const OTHER = "bbbbbbbb-0000-4000-8000-0000000000b2";
 
-const login = (pin: string, ip = "1.1.1.1") => loginPOST(new Request("http://t/api", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": ip }, body: JSON.stringify({ pin }) }));
+const login = (pin: string, ip = "1.1.1.1", venue: string | undefined = "a") => loginPOST(new Request("http://t/api", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": ip }, body: JSON.stringify({ pin, venue }) }));
 
 beforeEach(() => {
   h.state = newState({
@@ -76,9 +76,22 @@ describe("PIN login", () => {
     for (let i = 0; i < 30; i++) await login("1357", `7.7.7.${i}`);
     expect((await login("7391", "8.8.8.8")).status).toBe(429);
   });
-  it("two venues never share a session: the PIN finds only its own person", async () => {
-    const r = await login("2846");
+  it("a PIN only opens its own venue: Bob's PIN works at venue B and is a wrong PIN at venue A", async () => {
+    const r = await login("2846", "1.1.1.1", "b");
     expect(await r.json()).toMatchObject({ name: "Bob", venue: "Venue B" });
+    const elsewhere = await login("2846", "1.1.1.2", "a");
+    expect(elsewhere.status).toBe(401);
+    expect(await elsewhere.json()).toEqual({ error: "That PIN is not right." });
+  });
+  it("an unknown or malformed venue is a wrong PIN, never an error that says more", async () => {
+    expect((await login("7391", "1.1.1.3", "no-such-venue")).status).toBe(401);
+    expect((await login("7391", "1.1.1.4", "Bad Venue!")).status).toBe(400);
+  });
+  it("without a venue, the deployment's own venue is used (BRAND_DEFAULT_VENUE)", async () => {
+    vi.stubEnv("BRAND_DEFAULT_VENUE", "a");
+    expect((await login("7391", "1.1.1.5", undefined)).status).toBe(200);
+    expect((await login("2846", "1.1.1.6", undefined)).status).toBe(401);
+    vi.unstubAllEnvs();
   });
 });
 

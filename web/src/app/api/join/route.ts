@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getVenue } from "@/lib/supabase";
 import { createCard, hasCardAt } from "@/lib/cards";
+import { allowed, LIMITS } from "@/lib/rateLimitDb";
 
 const JoinInput = z
   .object({
@@ -32,6 +33,11 @@ export async function POST(request: Request) {
   try {
     const venue = await getVenue(slug);
     if (!venue) return Response.json({ code: "venue_unavailable", error: "This venue isn't available." }, { status: 404 });
+    // Counted in the database so it holds on every server: one caller cannot fill the venue's card codes, and nobody can
+    // use the "already a member" answer to test a list of numbers.
+    if (!(await allowed(LIMITS.joinPerCaller(request.headers), LIMITS.joinPerVenue(venue.id)))) {
+      return Response.json({ code: "too_many", error: "Too many sign-ups from here. Please wait a few minutes and try again." }, { status: 429 });
+    }
     const phone = mobile ? mobile.replace(/[^\d+]/g, "") : undefined;
     const mail = email ? email.toLowerCase() : undefined;
     // One card per guest per venue, so points never split over two cards. Same answer for mobile or email: it does not

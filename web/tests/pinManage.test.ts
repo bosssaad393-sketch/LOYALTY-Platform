@@ -58,7 +58,12 @@ describe("owner sets PINs", () => {
     expect(users().find((u) => u.id === OTHER)!.pin_lookup).toBe(pinLookup("2846"));
     await ownerPin(json({ id: CASHIER, pin: "7391" }));
     expect((await ownerPin(json({ id: OWNER, pin: "7391" }))).status).toBe(400); // too short for an owner
-    expect((await ownerPin(json({ id: CASHIER, pin: "2846" }))).status).toBe(409); // Bob (other venue) already has it: PINs are unique in one deployment
+    // Bob at the OTHER venue has 2846. That must not show here: PINs are unique per venue, so it is simply accepted.
+    expect((await ownerPin(json({ id: CASHIER, pin: "2846" }))).status).toBe(200);
+    expect(users().find((u) => u.id === OTHER)!.pin_lookup).toBe(pinLookup("2846"));
+    // Inside the same venue a PIN is still one person's: a second colleague cannot take Sara's.
+    h.state.tables.staff_users.push({ id: "aaaaaaaa-0000-4000-8000-0000000000a9", venue_id: VA, name: "Ali", role: "staff", active: true, pin_lookup: null });
+    expect((await ownerPin(json({ id: "aaaaaaaa-0000-4000-8000-0000000000a9", pin: "2846" }))).status).toBe(409);
     expect((await ownerPin(json({ id: CASHIER, pin: "1111" }))).status).toBe(400);
     h.staff = as(CASHIER, "staff");
     expect((await ownerPin(json({ id: CASHIER, pin: "5830" }))).status).toBe(403);

@@ -218,3 +218,104 @@ describe("points for a table's bill (0013)", () => {
     expect(after).toEqual({ card_id: null, points_added: 8 });
   });
 });
+
+describe("rate limits in the database (0014)", () => {
+  const hit = async (bucket: string, limit = 3, secs = 600) => (await rows<{ ok: boolean }>("select rate_hit($1, $2, $3) as ok", [bucket, limit, secs]))[0].ok;
+  it("allows up to the limit, then refuses, per bucket", async () => {
+    expect([await hit("t:a"), await hit("t:a"), await hit("t:a"), await hit("t:a")]).toEqual([true, true, true, false]);
+    expect(await hit("t:b")).toBe(true);
+  });
+  it("forgets hits older than the window", async () => {
+    await db.query("insert into rate_hits (bucket, at) values ('t:old', now() - interval '20 minutes'), ('t:old', now() - interval '20 minutes')");
+    expect(await hit("t:old", 2, 600)).toBe(true);
+  });
+  it("refuses nonsense limits", async () => {
+    await expect(hit("", 3)).rejects.toThrow(/invalid rate limit/);
+    await expect(hit("t:c", 0)).rejects.toThrow(/invalid rate limit/);
+  });
+  it("only the server may call it, and the points trigger function is locked down", async () => {
+    const can = async (role: string, fn: string) => (await rows<{ ok: boolean }>(`select has_function_privilege($1, $2, 'EXECUTE') as ok`, [role, fn]))[0].ok;
+    expect(await can("anon", "rate_hit(text, integer, integer)")).toBe(false);
+    expect(await can("service_role", "rate_hit(text, integer, integer)")).toBe(true);
+    expect(await can("anon", "apply_ledger()")).toBe(false);
+  });
+});
+
+describe("owner summary counted in Postgres (0015)", () => {
+  const V = "dddddddd-5555-4000-8000-000000000001";
+  const S = "dddddddd-5555-4000-8000-0000000000a1";
+  // Start of "today" in Bahrain, as the app sends it.
+  const today = new Date(Math.floor((Date.now() + 3 * 3600_000) / 86_400_000) * 86_400_000 - 3 * 3600_000);
+  const ago = (days: number, hours = 1) => new Date(today.getTime() - days * 86_400_000 + hours * 3600_000).toISOString();
+  type Summary = { members: number; newThisWeek: number; pointsHeld: number; visits7d: number; visitsPrev7d: number; rewards30d: number; perDay14: { day: string; visits: number }[] };
+  const summary = async () => (await rows<{ s: Summary }>("select owner_summary($1, $2) as s", [V, today.toISOString()]))[0].s;
+
+  beforeAll(async () => {
+    await db.exec(`
+      insert into venues (id, slug, name, points_per_bhd, reward_goal) values ('${V}', 'summary-venue', 'Summary Venue', 2, 100);
+      insert into staff_users (id, venue_id, name, role) values ('${S}', '${V}', 'S', 'staff');
+    `);
+    // 1200 guests: more than one Supabase page, so the old code would have stopped at 1000.
+    await db.exec(`
+      insert into members (id, name, email, consent_terms)
+        select ('dddddddd-1111-4000-8000-' || lpad(g::text, 12, '0'))::uuid, 'Guest ' || g, 'g' || g || '@example.com', now()
+          from generate_series(1, 1200) g;
+      insert into cards (id, venue_id, member_id, code, points, created_at)
+        select ('dddddddd-2222-4000-8000-' || lpad(g::text, 12, '0'))::uuid, '${V}', ('dddddddd-1111-4000-8000-' || lpad(g::text, 12, '0'))::uuid,
+               lpad((1000 + g)::text, 4, '0'), 0, case when g <= 50 then now() - interval '2 days' else now() - interval '60 days' end
+          from generate_series(1, 1200) g;
+    `);
+    const card = (n: number) => `dddddddd-2222-4000-8000-${String(n).padStart(12, "0")}`;
+    // Visits: 3 today, 2 five days ago, 4 ten days ago (last week), 1 forty days ago (outside 30 days).
+    const earn = async (n: number, at: string) => {
+      const [r] = await rows<{ ledger_id: number }>("select ledger_id from ledger_earn($1, $2, 10)", [card(n), S]);
+      await db.query("update ledger set created_at = $1 where id = $2", [at, r.ledger_id]);
+      return r.ledger_id;
+    };
+    for (const n of [1, 2, 3]) await earn(n, ago(0, 2));
+    for (const n of [4, 5]) await earn(n, ago(5));
+    for (const n of [6, 7, 8, 9]) await earn(n, ago(10));
+    await earn(10, ago(40));
+    // One of today's visits is undone: it must not count.
+    const undone = await earn(11, ago(0, 3));
+    await db.query("update ledger set created_at = now() where id = $1", [undone]);
+    await db.query("select ledger_undo($1, $2)", [undone, S]);
+    // A reward redeemed two days ago (card 12 earns enough first).
+    await db.query("select ledger_earn($1, $2, 60)", [card(12), S]);
+    await db.query("select ledger_redeem($1, $2)", [card(12), S]);
+    await db.query("update ledger set created_at = $1 where card_id = $2", [ago(2), card(12)]);
+  });
+
+  it("counts every guest, past the 1000-row page", async () => {
+    const s = await summary();
+    expect(s.members).toBe(1200);
+    expect(s.newThisWeek).toBe(50);
+    expect(s.pointsHeld).toBe((await rows<{ p: number }>("select sum(points)::int as p from cards where venue_id = $1", [V]))[0].p);
+  });
+  it("counts visits and rewards, leaving out undone entries and anything older than the window", async () => {
+    const s = await summary();
+    // This week: 3 today + 2 five days ago + card 12's earn two days ago. The undone earn does not count.
+    expect(s.visits7d).toBe(6);
+    expect(s.visitsPrev7d).toBe(4);
+    expect(s.rewards30d).toBe(1);
+  });
+  it("gives 14 days, oldest first, in Bahrain dates", async () => {
+    const s = await summary();
+    expect(s.perDay14).toHaveLength(14);
+    expect(s.perDay14[13]).toEqual({ day: new Date(today.getTime() + 3 * 3600_000).toISOString().slice(0, 10), visits: 3 });
+    expect(s.perDay14[8].visits).toBe(2);
+    expect(s.perDay14.reduce((n, d) => n + d.visits, 0)).toBe(3 + 2 + 1 + 4);
+  });
+  it("only the server may call it", async () => {
+    expect((await rows<{ ok: boolean }>("select has_function_privilege('anon', 'owner_summary(uuid, timestamptz)', 'EXECUTE') as ok"))[0].ok).toBe(false);
+  });
+});
+
+describe("PINs per venue (0016)", () => {
+  it("the same PIN may exist at two venues, but not twice in one venue", async () => {
+    await db.query("update staff_users set pin_lookup = 'same-hash' where id in ($1, $2)", [OWNER_A, OWNER_B]);
+    await expect(db.query("update staff_users set pin_lookup = 'same-hash' where id = $1", [MGR_A])).rejects.toThrow(/staff_users_pin_per_venue/);
+    expect((await rows("select indexname from pg_indexes where indexname = 'staff_users_pin_lookup_idx'")).length).toBe(0);
+    await db.query("update staff_users set pin_lookup = null where id in ($1, $2)", [OWNER_A, OWNER_B]);
+  });
+});

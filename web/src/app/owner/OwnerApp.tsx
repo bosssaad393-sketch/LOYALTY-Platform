@@ -88,7 +88,7 @@ export default function OwnerApp({ initialMe, initialTab = "overview", look = "a
 
   /** Used by the sign-in block below. Returns an error text, or null when the login worked. */
   async function signIn(pin: string): Promise<string | null> {
-    const r = await api<Me>("/api/staff/pin-login", "POST", { pin, area: "owner" });
+    const r = await api<Me>("/api/staff/pin-login", "POST", { pin, area: "owner", venue: brand.slug });
     if (r.ok) { setMe(r.data); return null; }
     return r.error;
   }

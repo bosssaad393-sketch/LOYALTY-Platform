@@ -53,9 +53,9 @@ export function readSession(value: string | undefined, area: Area = "staff"): st
   return staffId;
 }
 
-async function loadStaff(where: { id?: string; authUser?: string; pinLookup?: string }): Promise<Staff | null> {
+async function loadStaff(where: { id?: string; authUser?: string; pin?: { venueId: string; lookup: string } }): Promise<Staff | null> {
   let q = db().from("staff_users").select("id, name, role, active, venue_id, venues(slug, name)").eq("active", true);
-  q = where.id ? q.eq("id", where.id) : where.pinLookup ? q.eq("pin_lookup", where.pinLookup) : q.eq("auth_user", where.authUser!);
+  q = where.id ? q.eq("id", where.id) : where.pin ? q.eq("venue_id", where.pin.venueId).eq("pin_lookup", where.pin.lookup) : q.eq("auth_user", where.authUser!);
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
   if (!data) return null;
@@ -64,7 +64,8 @@ async function loadStaff(where: { id?: string; authUser?: string; pinLookup?: st
   return { id: data.id, name: data.name, role: data.role, venueId: data.venue_id, venueSlug: venue.slug, venueName: venue.name };
 }
 
-export const loadStaffByPin = (pinLookup: string) => loadStaff({ pinLookup });
+/** A PIN only ever opens its own venue (migration 0016: PINs are unique per venue, not across the platform). */
+export const loadStaffByPin = (venueId: string, pinLookup: string) => loadStaff({ pin: { venueId, lookup: pinLookup } });
 
 /** Checks email + password with Supabase Auth, then finds the active staff record. */
 export async function signIn(email: string, password: string): Promise<Staff | null> {

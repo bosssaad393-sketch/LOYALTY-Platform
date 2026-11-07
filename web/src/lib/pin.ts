@@ -50,15 +50,27 @@ export function generatePin(role: Staff["role"]): string {
 
 export type PinResult = { ok: true; staff: Staff } | { ok: false; reason: "locked" | "wrong" };
 
-/** Checks a PIN. Counts failures and refuses while locked. The caller is a stable string for the caller's address. */
-export async function signInWithPin(pin: string, caller: string, now = Date.now()): Promise<PinResult> {
+/** The venue a till or owner screen signs in to, from its slug. Null when there is no such venue. */
+async function venueIdOf(slug: string): Promise<string | null> {
+  if (!/^[a-z0-9-]{1,60}$/.test(slug)) return null;
+  const { data, error } = await db().from("venues").select("id").eq("slug", slug).maybeSingle();
+  if (error) throw error;
+  return (data?.id as string | undefined) ?? null;
+}
+
+/**
+ * Checks a PIN at ONE venue (the screen says which). Counts failures and refuses while locked. The caller is a stable string
+ * for the caller's address. A PIN of another venue is simply a wrong PIN here.
+ */
+export async function signInWithPin(pin: string, caller: string, venueSlug: string, now = Date.now()): Promise<PinResult> {
   const who = mac(`caller:${caller}`);
   const since = new Date(now - WINDOW_MS).toISOString();
+  const venueId = await venueIdOf(venueSlug);
   // Read together so sign-in waits for one trip to the database, not three. The lock is still judged first.
   const [mine, all, staff] = await Promise.all([
     db().from("pin_attempts").select("id").eq("who", who).gte("at", since),
     db().from("pin_attempts").select("id").gte("at", since),
-    loadStaffByPin(pinLookup(pin)),
+    venueId ? loadStaffByPin(venueId, pinLookup(pin)) : Promise.resolve(null),
   ]);
   if (mine.error) throw mine.error;
   if (all.error) throw all.error;
@@ -71,13 +83,16 @@ export async function signInWithPin(pin: string, caller: string, now = Date.now(
   return { ok: true, staff };
 }
 
-/** Sets the PIN of one person of THIS venue. Returns "taken" when someone already uses it, false when the person is not in this venue. */
+/**
+ * Sets the PIN of one person of THIS venue. Returns "taken" when someone else in the same venue already uses it (never
+ * looks at other venues, so it cannot reveal anyone's PIN there), false when the person is not in this venue.
+ */
 export async function setPin(venueId: string, staffId: string, pin: string, actor: string): Promise<true | "taken" | false> {
   const { data: person, error } = await db().from("staff_users").select("id, role").eq("id", staffId).eq("venue_id", venueId).maybeSingle();
   if (error) throw error;
   if (!person) return false;
   const lookup = pinLookup(pin);
-  const { data: clash, error: e2 } = await db().from("staff_users").select("id").eq("pin_lookup", lookup).neq("id", staffId).maybeSingle();
+  const { data: clash, error: e2 } = await db().from("staff_users").select("id").eq("venue_id", venueId).eq("pin_lookup", lookup).neq("id", staffId).maybeSingle();
   if (e2) throw e2;
   if (clash) return "taken";
   const { error: e3 } = await db().from("staff_users").update({ pin_lookup: lookup, pin_set_at: new Date().toISOString() }).eq("id", staffId).eq("venue_id", venueId);

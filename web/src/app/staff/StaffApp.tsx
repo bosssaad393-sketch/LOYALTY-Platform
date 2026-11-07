@@ -65,7 +65,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
 
   async function signIn(pin: string) {
     setBusy(true); setLoginError(null);
-    const r = await api<Me>("/api/staff/pin-login", { pin, area: "staff" });
+    const r = await api<Me>("/api/staff/pin-login", { pin, area: "staff", venue: brand.slug });
     setBusy(false);
     if (r.ok) setMe(r.data); else setLoginError(r.error);
   }

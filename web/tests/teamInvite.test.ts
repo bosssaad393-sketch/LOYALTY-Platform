@@ -47,7 +47,7 @@ const joinAs = async (name: string, venue = VA) => {
 };
 const staffRow = (name: string) => h.state.tables.staff_users.find((u) => u.name === name)!;
 const teamRow = async (name: string) => ((await (await teamGET()).json()).team as { name: string; waiting: boolean; active: boolean }[]).find((m) => m.name === name);
-const login = (pin: string) => pinLogin(req("POST", { pin, area: "staff" }));
+const login = (pin: string) => pinLogin(req("POST", { pin, area: "staff", venue: "a" }));
 
 beforeEach(() => {
   h.jar = {};
