@@ -1,22 +1,69 @@
-import { brandName } from "@/lib/brand";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
+import NetworkBackdrop from "@/components/NetworkBackdrop";
+import VenueHeader from "@/components/VenueHeader";
+import LanguageSwitch from "@/components/LanguageSwitch";
+import { directionOf } from "@/i18n/locale";
+import { brandLanguages, brandName, brandVenue, poweredBy } from "@/lib/brand";
+import { getVenue } from "@/lib/supabase";
 
-export default function Home() {
-  const named = process.env.BRAND_NAME?.trim();
+// The venue's rules are read live and the guest's language comes from their cookie, so this page is made per request.
+export const instant = false;
+
+/**
+ * The front door: someone who opens the site's address instead of a QR code. It says what the card is, how it works with this
+ * venue's real rules, and gets them to their card. Staff and the owner find their sign-in at the foot.
+ */
+export default async function Home() {
+  const locale = await getLocale();
+  const t = await getTranslations("home");
+  const slug = brandVenue();
+  const venue = await getVenue(slug).catch(() => null);
+  const name = venue?.name ?? brandName();
+  const rate = Number(venue?.points_per_bhd ?? 0);
+  const goal = Number(venue?.reward_goal ?? 0);
+  const reward = venue?.reward_text?.trim() ?? "";
+
+  const steps = [
+    { title: t("step1"), text: t("step1Text") },
+    { title: t("step2"), text: t("step2Text") },
+    {
+      title: t("step3"),
+      text: rate > 0 && goal > 0 && reward ? t("step3Text", { rate, goal, reward }) : t("step3Plain"),
+    },
+  ];
+
   return (
-    <main className="app">
-      <header className="brandbar">
-        {named ? (
-          <span className="mark">{brandName().toUpperCase()}</span>
-        ) : (
-          /* eslint-disable-next-line @next/next/no-img-element -- vector logo */
-          <img src="/orbyn-logo-horizontal.svg" alt="Orbyn" width={220} height={55} />
-        )}
-      </header>
-      <div className="title">
-        <div className="eyebrow">Digital rewards</div>
-        <h1>Your rewards card, in your phone&apos;s Wallet</h1>
-        <p className="sub">Scan the QR code at the venue to get your card.</p>
-      </div>
-    </main>
+    <NextIntlClientProvider>
+      <NetworkBackdrop fixed />
+      <main className="app" lang={locale} dir={directionOf(locale)}>
+        <LanguageSwitch languages={brandLanguages()} />
+        <VenueHeader venueName={name} venueSlug={slug} eyebrow={t("eyebrow", { venue: name })} title={t("title")} sub={t("sub")} />
+
+        <div className="actions">
+          {venue && <a className="btn primary" href={`/join/${venue.slug}`}>{t("join")}</a>}
+          <p className="note">{venue ? t("hasCard") : t("noVenue")}</p>
+        </div>
+
+        <ol className="hm-steps" aria-label={t("howLabel")}>
+          {steps.map((s, i) => (
+            <li key={i}>
+              <span className="hm-n" aria-hidden="true">{i + 1}</span>
+              <div>
+                <b>{s.title}</b>
+                <p>{s.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <nav className="hm-team" aria-label={t("teamLabel")}>
+          <a href="/staff">{t("staff")}</a>
+          <span aria-hidden="true">·</span>
+          <a href="/owner">{t("owner")}</a>
+        </nav>
+        {poweredBy() && <p className="foot">{poweredBy()}</p>}
+      </main>
+    </NextIntlClientProvider>
   );
 }

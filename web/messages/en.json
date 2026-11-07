@@ -121,5 +121,24 @@
     "sub": "The card or page may have been removed, or the link is incomplete.",
     "join": "Get a card",
     "hasCard": "Already have a card here? Open it from your Wallet, or ask staff to show it again."
+  },
+  "home": {
+    "eyebrow": "{venue} Rewards",
+    "title": "Your rewards card, in your phone's Wallet",
+    "sub": "Collect points every visit. Nothing to download.",
+    "join": "Get your card",
+    "hasCard": "Already a member? Open your card from your Wallet or your saved link.",
+    "noVenue": "Scan the QR code at the venue to get your card.",
+    "howLabel": "How it works",
+    "step1": "Join in a minute",
+    "step1Text": "Scan the QR code at the counter or tap the button. Your name and a mobile or email is all it takes.",
+    "step2": "Earn on every bill",
+    "step2Text": "Show your card when you pay, or order from your table: the points are added once the bill is paid.",
+    "step3": "Enjoy your reward",
+    "step3Text": "{rate, plural, one {# point} other {# points}} for every BHD 1. At {goal} points: {reward}.",
+    "step3Plain": "Your points add up on your card until your reward is ready.",
+    "teamLabel": "Team sign-in",
+    "staff": "Staff",
+    "owner": "Owner"
   }
 }
