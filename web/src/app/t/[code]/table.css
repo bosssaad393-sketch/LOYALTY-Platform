@@ -31,6 +31,15 @@
 .s-cancelled .tb-status { color: var(--bad); }
 .s-cancelled ul { text-decoration: line-through; color: var(--dim); }
 .tb-q { color: var(--text); font-weight: 700; }
+/* Taking back a round before staff accept it: a quiet text button, then a two-button question in place. */
+.tb-cancel { margin-block-start: 10px; min-height: 44px; padding: 0 2px; background: none; border: 0; color: var(--muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.tb-cancel:hover { color: var(--bad); }
+.tb-cancelask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block-start: 10px; font-size: 14px; }
+.tb-cancelask span { flex: 1 1 100%; color: var(--text); font-weight: 600; }
+.tb-cancelyes, .tb-cancelkeep { min-height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.tb-cancelyes { background: none; border: 1px solid var(--bad); color: var(--bad); }
+.tb-cancelkeep { background: var(--surface); border: 1px solid var(--line); color: var(--text); }
+.tb-cancelyes:disabled, .tb-cancelkeep:disabled { opacity: 0.6; cursor: default; }
 .tb-card { display: block; margin-block-start: 6px; padding: 14px; border: 1px solid var(--gold-dim); border-radius: 12px; color: var(--text); text-decoration: none; }
 .tb-card b { display: block; font-size: 15px; }
 .tb-card small { display: block; margin-block-start: 2px; color: var(--muted); font-size: 13.5px; }

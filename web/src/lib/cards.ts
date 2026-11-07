@@ -35,6 +35,25 @@ export async function createCard(
   throw new Error("Could not find a free card code. The venue may be full.");
 }
 
+/**
+ * True when a guest who has not deleted their data already holds a card at this venue under this mobile or email.
+ * Used to stop a second card (points split over two). The card itself is never handed out here: typing someone's
+ * number must not open their card, so the guest gets it back from staff, who can see them.
+ */
+export async function hasCardAt(venueId: string, contact: { phone?: string; email?: string }): Promise<boolean> {
+  const ids = new Set<string>();
+  for (const [col, value] of [["phone", contact.phone], ["email", contact.email]] as const) {
+    if (!value) continue;
+    const { data, error } = await db().from("members").select("id, deleted_at").eq(col, value).is("deleted_at", null).limit(50);
+    if (error) throw error;
+    for (const m of data ?? []) ids.add(m.id as string);
+  }
+  if (!ids.size) return false;
+  const { data, error } = await db().from("cards").select("id").eq("venue_id", venueId).in("member_id", [...ids]).limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
+}
+
 export async function getCardView(cardId: string): Promise<CardView | null> {
   const { data, error } = await db()
     .from("cards")

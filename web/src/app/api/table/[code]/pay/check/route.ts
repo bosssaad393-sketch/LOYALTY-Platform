@@ -2,6 +2,7 @@ import { z } from "zod";
 import { clientKey, createRateLimiter } from "@/lib/rateLimit";
 import { fail } from "@/lib/staffApi";
 import { guestCardFrom } from "@/lib/table/points";
+import { sentOrdersFrom } from "@/lib/table/sentOrders";
 import { findTable, tableView } from "@/lib/table/db";
 import { checkPayment } from "@/lib/tap/payments";
 
@@ -20,5 +21,5 @@ export async function POST(request: Request, ctx: RouteContext<"/api/table/[code
     return "initiated" as const;
   });
   if (!status) return fail("not_found", 404);
-  return Response.json({ status, tab: await tableView(table, guestCardFrom(request.headers.get("cookie"))) });
+  return Response.json({ status, tab: await tableView(table, guestCardFrom(request.headers.get("cookie")), sentOrdersFrom(request.headers.get("cookie"))) });
 }

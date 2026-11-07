@@ -50,5 +50,7 @@
 .bd-card.cash { border-color: var(--gold); }
 .bd-card.cash .bd-kind { color: var(--gold2); font-weight: 700; }
 .bd-card.paid { border-color: var(--ok); }
+.bd-card.gone { border-color: var(--bad); }
+.bd-card.gone .bd-kind { text-decoration: line-through; color: var(--dim); }
 .bd-due { margin-block: 4px 8px; color: var(--muted); font-size: 14.5px; }
 .bd-due b { color: var(--text); font-variant-numeric: tabular-nums; }

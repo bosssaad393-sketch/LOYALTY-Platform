@@ -7,7 +7,7 @@ import type { PayMethod } from "@/lib/tap/rules";
 import type { MenuView } from "@/lib/table/db";
 import "./table.css";
 
-type Round = { id: string; status: string; readyMinutes: number | null; acceptedAt: string | null; lines: { nameEn: string; nameAr: string | null; qty: number; note: string | null }[] };
+type Round = { id: string; status: string; readyMinutes: number | null; acceptedAt: string | null; canCancel?: boolean; lines: { nameEn: string; nameAr: string | null; qty: number; note: string | null }[] };
 type PayState = "off" | "nothing" | "wait" | "paying" | "ready";
 type Points = { card: "mine" | "other" | "none"; estimate: number };
 type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; calls: string[] };
@@ -38,6 +38,9 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
   const [payOpen, setPayOpen] = useState(false);
   const [payBusy, setPayBusy] = useState<PayMethod | "cash" | null>(null);
   const [payResult, setPayResult] = useState<PayResult>(null);
+  const [asking, setAsking] = useState<string | null>(null);
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
 
   const money = (fils: number) => t("money", { amount: filsText(fils) });
 
@@ -144,8 +147,25 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     setTab(data.tab);
     setQty({});
     setReview(false);
+    setCancelled(false);
     setSent(true);
     document.getElementById("tb-rounds")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /** Takes back a round this phone sent, while staff have not accepted it. */
+  async function cancelRound(orderId: string) {
+    setError(null);
+    setCancelBusy(true);
+    const res = await fetch(`/api/table/${token}/cancel`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ orderId }) }).catch(() => null);
+    const data = res ? await res.json().catch(() => ({})) : null;
+    setCancelBusy(false);
+    setAsking(null);
+    if (data?.tab) setTab(data.tab);
+    if (res?.ok) { setSent(false); setCancelled(true); return; }
+    if (!res) setError(t("errors.offline"));
+    else if (data?.error === "started") setError(t("cancel.started"));
+    else if (res.status === 429) setError(t("errors.tooMany"));
+    else setError(t("errors.server"));
   }
 
   async function call(kind: RequestKind) {
@@ -223,7 +243,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
             <h2 className="tb-h" id="tb-h-rounds">{t("yourTab")}</h2>
             <b className="tb-fig">{money(tab.totalFils)}</b>
           </div>
-          <div role="status">{sent && <p className="tb-sent">{t("sent")}</p>}</div>
+          <div role="status">{sent ? <p className="tb-sent">{t("sent")}</p> : cancelled ? <p className="tb-sent">{t("cancel.done")}</p> : null}</div>
           <ol className="tb-roundlist">
             {tab.rounds.map((r, i) => (
               <li key={r.id} className={`tb-round s-${r.status}`}>
@@ -235,6 +255,15 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
                 <ul>
                   {r.lines.map((l, j) => <li key={j}><span className="tb-q">{l.qty}×</span> {name(l)}{l.note ? <small> · {l.note}</small> : null}</li>)}
                 </ul>
+                {r.canCancel && (asking === r.id ? (
+                  <div className="tb-cancelask" role="group" aria-label={t("cancel.confirm")}>
+                    <span>{t("cancel.confirm")}</span>
+                    <button type="button" className="tb-cancelyes" disabled={cancelBusy} onClick={() => cancelRound(r.id)}>{t("cancel.yes")}</button>
+                    <button type="button" className="tb-cancelkeep" disabled={cancelBusy} onClick={() => setAsking(null)}>{t("cancel.keep")}</button>
+                  </div>
+                ) : (
+                  <button type="button" className="tb-cancel" onClick={() => { setError(null); setAsking(r.id); }}>{t("cancel.button")}</button>
+                ))}
               </li>
             ))}
           </ol>

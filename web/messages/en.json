@@ -25,7 +25,8 @@
     "bad_mobile": "That mobile number doesn't look right.",
     "venue_unavailable": "This venue isn't available.",
     "server": "Something went wrong. Please try again.",
-    "offline": "No connection. Please try again."
+    "offline": "No connection. Please try again.",
+    "already_member": "You already have a card here. Open it from your Wallet or saved link, or ask staff to show it again."
   },
   "table": {
     "money": "BHD {amount}",
@@ -103,6 +104,21 @@
       "mineSub": "Added to your card by themselves once the bill is paid.",
       "other": "Points for this bill go to another guest's card at this table.",
       "joinSub": "Join now and this bill's points are added once it is paid. Nothing to download."
+    },
+    "cancel": {
+      "button": "Cancel this round",
+      "confirm": "Cancel this round?",
+      "yes": "Yes, cancel",
+      "keep": "Keep it",
+      "done": "Round cancelled.",
+      "started": "Staff have already started this round. Please ask your waiter."
     }
+  },
+  "notFound": {
+    "eyebrow": "Link not found",
+    "title": "This link isn't working",
+    "sub": "The card or page may have been removed, or the link is incomplete.",
+    "join": "Get a card",
+    "hasCard": "Already have a card here? Open it from your Wallet, or ask staff to show it again."
   }
 }

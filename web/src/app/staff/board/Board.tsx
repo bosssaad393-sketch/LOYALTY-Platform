@@ -9,8 +9,9 @@ type Order = { id: string; table: string; status: "new" | "accepted" | "ready"; 
 type Call = { id: string; table: string; kind: string; at: string };
 type TabRow = { id: string; table: string; openedAt: string; totalFils: number; paidFils: number; balanceFils: number; paying: boolean; pointsTo: string | null; canClose: boolean };
 type CardPaid = { id: string; table: string; amountFils: number; method: string | null; at: string; closed: boolean };
+type GuestCancelled = { id: string; table: string; at: string; lines: { name: string; qty: number }[] };
 type MenuCat = { id: string; name: string; items: { id: string; name: string; priceFils: number; available: boolean }[] };
-type BoardData = { now: string; tables: { id: string; label: string }[]; calls: Call[]; orders: Order[]; tabs: TabRow[]; cardPaid: CardPaid[]; menu: MenuCat[] };
+type BoardData = { now: string; tables: { id: string; label: string }[]; calls: Call[]; orders: Order[]; tabs: TabRow[]; cardPaid: CardPaid[]; guestCancelled?: GuestCancelled[]; menu: MenuCat[] };
 type View = "live" | "tabs" | "add" | "soldout";
 
 const POLL_MS = 4000;
@@ -74,6 +75,7 @@ export default function Board({ venue }: { venue: string }) {
       ...data.calls.map((c): [string, string] => [c.id, `Table ${c.table}: ${KIND[c.kind] ?? c.kind}`]),
       ...data.orders.filter((o) => o.status === "new").map((o): [string, string] => [o.id, `Table ${o.table}: new round`]),
       ...(data.cardPaid ?? []).map((p): [string, string] => [p.id, `Table ${p.table}: paid ${money(p.amountFils)} by card`]),
+      ...(data.guestCancelled ?? []).map((c): [string, string] => [`x:${c.id}`, `Table ${c.table}: guest cancelled a round`]),
     ];
     if (!seen.current) { seen.current = new Set(items.map(([id]) => id)); return; }
     const fresh = items.filter(([id]) => !seen.current!.has(id));
@@ -181,6 +183,19 @@ export default function Board({ venue }: { venue: string }) {
                   <div className="bd-row"><strong className="bd-table">Table {p.table}</strong><span className="bd-clock">{waited(p.at, now)} min ago</span></div>
                   <p className="bd-kind">{money(p.amountFils)}{p.method ? ` · ${METHOD[p.method] ?? p.method}` : ""}</p>
                   <p className="bd-none">{p.closed ? "Tab closed. The table can be cleared." : "Part paid. The rest is still open on the tab."}</p>
+                </article>
+              ))}
+            </section>
+          )}
+
+          {(data.guestCancelled ?? []).length > 0 && (
+            <section aria-labelledby="bd-h-gone">
+              <h2 className="bd-h" id="bd-h-gone">Cancelled by guest</h2>
+              {data.guestCancelled!.map((c) => (
+                <article key={c.id} className="bd-card gone">
+                  <div className="bd-row"><strong className="bd-table">Table {c.table}</strong><span className="bd-clock">{waited(c.at, now)} min ago</span></div>
+                  <p className="bd-kind">{c.lines.map((l) => `${l.qty}× ${l.name}`).join(", ")}</p>
+                  <p className="bd-none">The guest took this round back before it was accepted. Nothing to make.</p>
                 </article>
               ))}
             </section>

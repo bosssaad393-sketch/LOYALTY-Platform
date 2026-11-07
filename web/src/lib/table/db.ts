@@ -127,8 +127,9 @@ export type TabPoints = { card: "mine" | "other" | "none"; estimate: number };
 /**
  * What the guest's page shows: this table's current tab only. No names, no other tables.
  * `phoneCard` is the card this phone remembers; the first one seen on an open tab is linked to it for the bill's points.
+ * `sent` is the rounds this phone sent: those it may still cancel (not yet accepted) say so.
  */
-export async function tableView(table: TableRef, phoneCard: string | null = null) {
+export async function tableView(table: TableRef, phoneCard: string | null = null, sent: Set<string> = new Set()) {
   const cardOn = tapOnFor(table.venueSlug);
   const tab = await openTabOf(table.id, table.venueId);
   const none: TabPoints = { card: "none", estimate: 0 };
@@ -148,6 +149,7 @@ export async function tableView(table: TableRef, phoneCard: string | null = null
       status: o.status,
       readyMinutes: o.ready_minutes,
       acceptedAt: o.accepted_at,
+      canCancel: o.status === "new" && sent.has(o.id),
       lines: lines.filter((l) => l.order_id === o.id).map((l) => ({ nameEn: l.name_en, nameAr: l.name_ar, qty: l.qty, note: l.note })),
     })),
     totalFils: money.totalFils,
@@ -177,6 +179,9 @@ export async function readBoard(venueId: string) {
   const recentTabs = recent.length ? (must(await db().from("tabs").select("id, table_id, status").eq("venue_id", venueId).in("id", [...new Set(recent.map((p) => p.tab_id))])) as { id: string; table_id: string; status: string }[]) : [];
   const tabOf = new Map(recentTabs.map((t) => [t.id, t]));
   const names = await cardNames(venueId, [...new Set(tabs.map((t) => t.card_id).filter((c): c is string => Boolean(c)))]);
+  // Rounds a guest took back in the last 10 minutes, so staff who already saw one know why it went.
+  const taken = must(await db().from("audit_log").select("detail, created_at").eq("venue_id", venueId).eq("action", "order_cancelled_by_guest").gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString())) as { detail: { order?: string } | null; created_at: string }[];
+  const takenAt = new Map(taken.filter((a) => a.detail?.order).map((a) => [a.detail!.order!, a.created_at]));
 
   return {
     now: new Date().toISOString(),
@@ -194,6 +199,9 @@ export async function readBoard(venueId: string) {
         readyMinutes: o.ready_minutes,
         lines: lines.filter((l) => l.order_id === o.id).map((l) => ({ name: l.name_en, qty: l.qty, note: l.note })),
       })),
+    guestCancelled: orders
+      .filter((o) => o.status === "cancelled" && takenAt.has(o.id))
+      .map((o) => ({ id: o.id, table: label(o.table_id), at: takenAt.get(o.id)!, lines: lines.filter((l) => l.order_id === o.id).map((l) => ({ name: l.name_en, qty: l.qty })) })),
     tabs: tabs.map((t) => {
       const own = orders.filter((o) => o.tab_id === t.id);
       const m = money.get(t.id);
@@ -228,6 +236,24 @@ export async function actOnOrder(venueId: string, orderId: string, action: Order
   // Only if nobody else moved it since it was read.
   const moved = must(await db().from("orders").update(patch).eq("id", orderId).eq("venue_id", venueId).eq("status", order.status).select("id")) as unknown[];
   return moved.length ? "ok" : "changed";
+}
+
+/**
+ * A guest takes back a round they sent, before staff accept it (nothing is being made yet). The route has already checked that
+ * this phone sent it. "started" when staff accepted or cancelled it first: the guest then asks a waiter.
+ */
+export async function guestCancelOrder(table: { id: string; venueId: string }, orderId: string): Promise<"ok" | "not_found" | "started"> {
+  const order = must(await db().from("orders").select("id, status, tab_id").eq("id", orderId).eq("venue_id", table.venueId).eq("table_id", table.id).maybeSingle()) as { status: OrderStatus; tab_id: string } | null;
+  if (!order) return "not_found";
+  const tab = await openTabOf(table.id, table.venueId);
+  if (!tab || tab.id !== order.tab_id) return "not_found";
+  const patch = orderPatch(order.status, "cancel", undefined, new Date().toISOString());
+  if (order.status !== "new" || !patch) return "started";
+  // Only while it is still new: if staff accepted it a moment ago, it stays.
+  const moved = must(await db().from("orders").update(patch).eq("id", orderId).eq("venue_id", table.venueId).eq("status", "new").select("id")) as unknown[];
+  if (!moved.length) return "started";
+  await db().from("audit_log").insert({ venue_id: table.venueId, actor: "guest", action: "order_cancelled_by_guest", detail: { order: orderId } });
+  return "ok";
 }
 
 export async function handleRequest(venueId: string, requestId: string, staffId: string): Promise<boolean> {

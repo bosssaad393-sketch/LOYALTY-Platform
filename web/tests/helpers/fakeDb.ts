@@ -66,8 +66,12 @@ export function makeDb(state: FakeState) {
         if (op === "select") return { data: shape(hit()), error: null };
         if (op === "insert") {
           // Like the real table, a new offer gets its send time from the clock and starts not withdrawn.
-          const defaults: Row = table === "offers" ? { sent_at: new Date().toISOString(), withdrawn_at: null } : {};
-          const added = (Array.isArray(payload) ? payload : [payload]).map((p) => ({ id: `row-${++seq}`, ...defaults, ...(p as Row) }));
+          // Orders and log lines get their time from the clock too, as they do in the database.
+          const defaults: Row = table === "offers" ? { sent_at: new Date().toISOString(), withdrawn_at: null }
+            : table === "orders" ? { status: "new", created_at: new Date().toISOString() }
+            : table === "audit_log" ? { created_at: new Date().toISOString() } : {};
+          // Ids look like the database's UUIDs (routes check for that); the last part counts up so tests can still read them.
+          const added = (Array.isArray(payload) ? payload : [payload]).map((p) => ({ id: `ffffffff-0000-4000-8000-${String(++seq).padStart(12, "0")}`, ...defaults, ...(p as Row) }));
           rows.push(...added);
           return { data: returning ? shape(added) : null, error: null };
         }

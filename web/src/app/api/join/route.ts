@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getVenue } from "@/lib/supabase";
-import { createCard } from "@/lib/cards";
+import { createCard, hasCardAt } from "@/lib/cards";
 
 const JoinInput = z
   .object({
@@ -32,12 +32,14 @@ export async function POST(request: Request) {
   try {
     const venue = await getVenue(slug);
     if (!venue) return Response.json({ code: "venue_unavailable", error: "This venue isn't available." }, { status: 404 });
-    const card = await createCard(venue, {
-      name,
-      phone: mobile ? mobile.replace(/[^\d+]/g, "") : undefined,
-      email: email ? email.toLowerCase() : undefined,
-      news,
-    });
+    const phone = mobile ? mobile.replace(/[^\d+]/g, "") : undefined;
+    const mail = email ? email.toLowerCase() : undefined;
+    // One card per guest per venue, so points never split over two cards. Same answer for mobile or email: it does not
+    // tell anyone which of the two is on file.
+    if (await hasCardAt(venue.id, { phone, email: mail })) {
+      return Response.json({ code: "already_member", error: "You already have a card here. Open it from your Wallet or saved link, or ask staff to show it again." }, { status: 409 });
+    }
+    const card = await createCard(venue, { name, phone, email: mail, news });
     return Response.json({ cardId: card.id });
   } catch (err) {
     console.error("join failed", err);

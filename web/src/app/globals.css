@@ -359,6 +359,7 @@ button.ow-chip:hover { border-color: var(--gold); }
 .ow-c-pts span { font: 400 12px var(--sans); color: var(--dim); }
 .ow-c-last { color: var(--muted); }
 .ow-c-act { text-align: right !important; padding-right: 0 !important; width: 1%; white-space: nowrap; }
+.ow-c-act .ow-btn + .ow-btn { margin-inline-start: 6px; }
 .ow-c-meta { display: none; }
 .ow-table thead .ow-c-visits, .ow-table thead .ow-c-pts { padding-right: 24px; }
 .ow-table td.ow-c-visits { padding-right: 24px; }

@@ -9,6 +9,7 @@ import { directionOf } from "@/i18n/locale";
 import { brandLanguages, poweredBy } from "@/lib/brand";
 import { findTable, readMenu, tableView } from "@/lib/table/db";
 import { GUEST_CARD_COOKIE, guestCardFrom } from "@/lib/table/points";
+import { SENT_COOKIE, sentOrdersFrom } from "@/lib/table/sentOrders";
 import TableApp from "./TableApp";
 
 // Live data on every request: allow this page to block instead of prerendering.
@@ -27,8 +28,10 @@ export default async function TablePage({ params }: PageProps<"/t/[code]">) {
   const locale = await getLocale();
   // The tab reads the clock (is a payment page still open?), so this page is always rendered at request time.
   await connection();
-  const phone = (await cookies()).get(GUEST_CARD_COOKIE)?.value;
-  const [menu, tab] = await Promise.all([readMenu(table.venueId), tableView(table, guestCardFrom(phone ? `${GUEST_CARD_COOKIE}=${phone}` : null))]);
+  const jar = await cookies();
+  const phone = jar.get(GUEST_CARD_COOKIE)?.value;
+  const sent = jar.get(SENT_COOKIE)?.value;
+  const [menu, tab] = await Promise.all([readMenu(table.venueId), tableView(table, guestCardFrom(phone ? `${GUEST_CARD_COOKIE}=${phone}` : null), sentOrdersFrom(sent ? `${SENT_COOKIE}=${sent}` : null))]);
 
   return (
     <NextIntlClientProvider>
