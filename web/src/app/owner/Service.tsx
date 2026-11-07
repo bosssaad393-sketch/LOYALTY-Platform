@@ -284,6 +284,7 @@ function Tables({ call }: { call: Call }) {
               <span className="ow-item-main"><b>Table {t.label}</b></span>
               <span className="ow-item-side ow-rowbtns">
                 <button type="button" className="ow-btn small" aria-expanded={shown === t.id} onClick={() => setShown(shown === t.id ? null : t.id)}>QR code</button>
+                <a className="ow-btn small" href={`/owner/qr-kit?table=${t.id}`} target="_blank" rel="noreferrer" aria-label={`Print the card for table ${t.label}`}>Print card</a>
                 <button type="button" className="ow-btn small danger" aria-label={`Remove table ${t.label}`} onClick={() => remove(t.id)}>Remove</button>
               </span>
               {shown === t.id && <TableQr token={t.token} label={t.label} />}
@@ -297,6 +298,9 @@ function Tables({ call }: { call: Call }) {
         <Field label="Table name" name="label" required />
         <p className="ow-note">A short name guests and staff both know, for example 4 or Terrace 2.</p>
         <div className="ow-actions"><button className="ow-btn primary" type="submit">Add table</button></div>
+        <h2 className="ow-h" style={{ marginTop: 24 }}>QR kit</h2>
+        <p className="ow-note">A card for every table and one for the counter, four to an A4 sheet. Print it here or save it as a PDF for a print shop.</p>
+        <div className="ow-actions"><a className="ow-btn" href="/owner/qr-kit" target="_blank" rel="noreferrer">Open the QR kit</a></div>
       </form>
     </div>
   );
