@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { CALL_BUTTONS, filsText, linesTotal, type RequestKind } from "@/lib/table/rules";
 import type { PayMethod } from "@/lib/tap/rules";
@@ -216,7 +216,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
 
   return (
     <>
-      <header className="tb-head">
+      <header className="tb-head rv" style={{ "--i": 0 } as CSSProperties}>
         {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark; hidden when the client has no crest file */}
         <img className="tb-crest" src={`/venues/${venueSlug}/crest.png`} alt={venueName} width={64} height={64} onError={(e) => { e.currentTarget.style.display = "none"; }} />
         <div>
@@ -225,7 +225,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
         </div>
       </header>
 
-      <section className="tb-calls" aria-label={t("callsLabel")}>
+      <section className="tb-calls rv" style={{ "--i": 1 } as CSSProperties} aria-label={t("callsLabel")}>
         {CALL_BUTTONS.map((k) => {
           const open = tab.calls.includes(k);
           return (
@@ -314,11 +314,11 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
         <section key={c.id} id={`c-${c.id}`} className="tb-cat" aria-labelledby={`h-${c.id}`}>
           <h2 className="tb-cat-h" id={`h-${c.id}`}>{name(c)}</h2>
           <ul className="tb-items">
-            {c.items.map((i) => {
+            {c.items.map((i, k) => {
               const n = qty[i.id] ?? 0;
               const note = (ar && i.noteAr) || i.noteEn;
               return (
-                <li key={i.id} className={`tb-item${i.available ? "" : " off"}`}>
+                <li key={i.id} className={`tb-item rv${i.available ? "" : " off"}`} style={{ "--i": 2 + Math.min(k, 6) } as CSSProperties}>
                   {i.imageUrl && (
                     /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
                     <img className="tb-photo" src={i.imageUrl} alt="" width={88} height={88} loading="lazy" decoding="async" />

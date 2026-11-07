@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
+import { spotMove } from "@/components/spotlight";
 import VisitsChart from "./Chart";
 import { greeting, longDate, n } from "./format";
 import PointsSummary from "./PointsSummary";
@@ -30,7 +31,7 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
       {summary.error && <LoadError text={summary.error} onRetry={summary.reload} />}
       {!s && !summary.error && <Loading />}
       {fresh && (
-        <section className="ow-panel ow-start" aria-labelledby="ow-h-start">
+        <section className="ow-panel ow-start rv" aria-labelledby="ow-h-start">
           <h2 className="ow-h" id="ow-h-start">No guests yet</h2>
           <p className="ow-note">The numbers here fill in as guests join and staff add points. Three steps to the first guest:</p>
           <ol className="ow-steps">
@@ -42,27 +43,27 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
         </section>
       )}
       {s && !fresh && (
-        <section className="ow-lead" aria-label="This week">
-          <div className="ow-lead-main">
+        <section className="ow-lead ow-bento" aria-label="This week">
+          <div className="ow-lead-main spot rv" style={{ "--i": 0 } as CSSProperties} onPointerMove={spotMove}>
             <span>Visits in 7 days</span>
             <b><Count id="ov-visits" value={s.visits7d} /></b>
             {trend !== null ? <em className={trend < 0 ? "down" : trend > 0 ? "up" : ""}>{trend > 0 ? "+" : ""}{trend}% on the 7 days before</em> : <em>No earlier week to compare yet</em>}
           </div>
-          <div><span>Members</span><b><Count id="ov-members" value={s.members} /></b><em>+{n(s.newThisWeek)} this week</em></div>
-          <div><span>Points held</span><b><Count id="ov-held" value={s.pointsHeld} /></b><em>By all guests</em></div>
-          <div><span>Rewards</span><b><Count id="ov-rewards" value={s.rewards30d} /></b><em>In 30 days</em></div>
+          <div className="spot rv" style={{ "--i": 1 } as CSSProperties} onPointerMove={spotMove}><span>Members</span><b><Count id="ov-members" value={s.members} /></b><em>+{n(s.newThisWeek)} this week</em></div>
+          <div className="spot rv" style={{ "--i": 2 } as CSSProperties} onPointerMove={spotMove}><span>Points held</span><b><Count id="ov-held" value={s.pointsHeld} /></b><em>By all guests</em></div>
+          <div className="spot rv" style={{ "--i": 3 } as CSSProperties} onPointerMove={spotMove}><span>Rewards</span><b><Count id="ov-rewards" value={s.rewards30d} /></b><em>In 30 days</em></div>
         </section>
       )}
 
       <div className="ow-two">
         {s && !fresh ? (
-          <section className="ow-panel" aria-labelledby="ow-h-chart">
+          <section className="ow-panel spot rv" style={{ "--i": 4 } as CSSProperties} onPointerMove={spotMove} aria-labelledby="ow-h-chart">
             <h2 className="ow-h" id="ow-h-chart">Visits per day, last 14 days</h2>
             <VisitsChart days={s.perDay14} />
           </section>
         ) : <div />}
         <div className="ow-col">
-          <section className="ow-panel" aria-labelledby="ow-h-do">
+          <section className="ow-panel rv" style={{ "--i": 5 } as CSSProperties} aria-labelledby="ow-h-do">
             <h2 className="ow-h" id="ow-h-do">Do next</h2>
             <div className="ow-do">
               {isOwner && <Quick title="Send an update" lead="Today’s reward and bonus" onClick={onSendUpdate} />}

@@ -60,6 +60,7 @@ export default function BlackCard({ venueName, venueSlug, memberName, since, poi
       >
         <div className="bc-glow" />
         <div className="bc-hl" />
+        <span className="beam" aria-hidden="true" />
 
         <div className="bc-plate">
           {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}

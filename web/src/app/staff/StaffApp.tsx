@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import CountUp from "@/components/CountUp";
+import Island, { type IslandMessage } from "@/components/Island";
 import QrScanner from "./QrScanner";
 import PinPad from "@/components/PinPad";
 import type { SignInLook } from "@/components/SignIn";
@@ -27,6 +28,7 @@ const bhd = bhdText;
 const time = bahrainTime;
 const dayKey = bahrainDayKey;
 const QUICK = [3, 5, 10, 15, 20];
+const TABS: Tab[] = ["guest", "recent", "help", "end"];
 /** When an entry was made, for the 10-minute undo window. Only ever called from a tap, never while drawing. */
 const stamp = () => Date.now();
 /** 1250 -> "1,250.000": three decimals like the receipt, with thousands marked so a typo stands out. */
@@ -39,7 +41,10 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   const [scanning, setScanning] = useState(false);
   const [bill, setBill] = useState("");
   const [lastEntry, setLastEntry] = useState<{ id: number; at: number } | null>(null);
-  const [msg, setMsg] = useState<{ kind: "ok" | "bad"; text: string } | null>(null);
+  const [msg, setMsgState] = useState<IslandMessage | null>(null);
+  // Each message gets its own id, so the island grows again even when the same words repeat.
+  const setMsg = useCallback((m: { kind: "ok" | "bad"; text: string } | null) => setMsgState(m ? { ...m, id: stamp() } : null), []);
+  const clearMsg = useCallback(() => setMsgState(null), []);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ added: number; first: string; total: number; ready: boolean } | null>(null);
   const [recent, setRecent] = useState<Recent[]>([]);
@@ -91,7 +96,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     if (r.ok) { setGuest(r.data); setBill(""); setConfirmLarge(false); setLastEntry(null); setResult(null); }
     else if (r.status === 401) signedOut();
     else setMsg({ kind: "bad", text: r.error });
-  }, [signedOut]);
+  }, [signedOut, setMsg]);
 
   async function act(path: string, body: unknown, success: (d: { guest: Guest; ledgerId?: number; added?: number }) => string) {
     setBusy(true); setMsg(null);
@@ -180,7 +185,6 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
                 <label className="field"><span className="lbl">Card code (4 digits)</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="4827" autoComplete="off" required onChange={(e) => { const c = e.target.value.replace(/\D/g, ""); if (c.length === 4 && !busy) find(c); }} /></label>
                 <button className="btn" type="submit" disabled={busy}>Find</button>
               </form>
-              {msg && <p className={`msg ${msg.kind}`} role="alert">{msg.text}</p>}
             </div>
           </>
         ) : result ? (
@@ -226,7 +230,6 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
               {canUndo && (
                 <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} points.`; })}>Undo my last entry (10 minutes)</button>
               )}
-              {msg && <p className={`msg ${msg.kind}`} role="alert">{msg.text}</p>}
             </form>
             <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); setConfirmLarge(false); }}>Done, next guest</button>
           </>
@@ -258,7 +261,6 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
               <button className="btn primary st-big" type="button" onClick={() => claim(p)}>Show it and mark as used</button>
             </section>
           )) : <section className="panel"><p className="note st-left">Nothing waiting for you today. Have a good evening.</p></section>}
-          {msg && <p className={`msg ${msg.kind}`} role="status">{msg.text}</p>}
           <button className="btn" type="button" onClick={lock}>Lock and finish</button>
         </>
       ) : (
@@ -276,9 +278,10 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
         </>
       )}
 
-      <nav className="st-tabs" aria-label="Staff sections">
-        {(["guest", "recent", "help", "end"] as Tab[]).map((t) => (
-          <button key={t} type="button" className={`btn${tab === t ? " on" : ""}`} onClick={() => { setTab(t); setMsg(null); if (t === "recent") void loadRecent(); if (t === "end") { void loadRecent(); void loadPerks(); } }}>
+      <Island message={msg} onGone={clearMsg} />
+      <nav className="dock" aria-label="Staff sections" style={{ "--n": TABS.length, "--at": TABS.indexOf(tab) } as CSSProperties}>
+        {TABS.map((t, i) => (
+          <button key={t} type="button" style={{ gridColumn: i + 1 }} aria-current={tab === t ? "page" : undefined} onClick={() => { setTab(t); setMsg(null); if (t === "recent") void loadRecent(); if (t === "end") { void loadRecent(); void loadPerks(); } }}>
             {t === "end" ? "End" : t[0].toUpperCase() + t.slice(1)}
             {t === "end" && perks.length > 0 && <i className="st-dot" aria-label={`${perks.length} reward waiting`} />}
           </button>

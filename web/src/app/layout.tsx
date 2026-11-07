@@ -4,6 +4,7 @@ import { Amiri, Cormorant_Garamond, Outfit, Tajawal } from "next/font/google";
 import "./globals.css";
 import "./ground.css";
 import "./screens.css";
+import "@/components/motion.css";
 import { brandColors, brandName, brandStyle, brandVenue, usesOrbynLook } from "@/lib/brand";
 
 // The client's name, colours and venue come from environment variables (src/lib/brand.ts, .env.example).

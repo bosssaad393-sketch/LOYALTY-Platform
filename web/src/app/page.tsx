@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import NetworkBackdrop from "@/components/NetworkBackdrop";
@@ -38,16 +39,18 @@ export default async function Home() {
       <NetworkBackdrop fixed />
       <main className="app" lang={locale} dir={directionOf(locale)}>
         <LanguageSwitch languages={brandLanguages()} />
-        <VenueHeader venueName={name} venueSlug={slug} eyebrow={t("eyebrow", { venue: name })} title={t("title")} sub={t("sub")} />
+        <div className="dots rv" style={{ "--i": 0 } as CSSProperties}>
+          <VenueHeader venueName={name} venueSlug={slug} eyebrow={t("eyebrow", { venue: name })} title={t("title")} sub={t("sub")} />
+        </div>
 
-        <div className="actions">
-          {venue && <a className="btn primary" href={`/join/${venue.slug}`}>{t("join")}</a>}
+        <div className="actions rv" style={{ "--i": 2 } as CSSProperties}>
+          {venue && <a className="btn primary shine" href={`/join/${venue.slug}`}>{t("join")}</a>}
           <p className="note">{venue ? t("hasCard") : t("noVenue")}</p>
         </div>
 
         <ol className="hm-steps" aria-label={t("howLabel")}>
           {steps.map((s, i) => (
-            <li key={i}>
+            <li key={i} className="rv" style={{ "--i": 3 + i } as CSSProperties}>
               <span className="hm-n" aria-hidden="true">{i + 1}</span>
               <div>
                 <b>{s.title}</b>
@@ -57,7 +60,7 @@ export default async function Home() {
           ))}
         </ol>
 
-        <nav className="hm-team" aria-label={t("teamLabel")}>
+        <nav className="hm-team rv" style={{ "--i": 6 } as CSSProperties} aria-label={t("teamLabel")}>
           <a href="/staff">{t("staff")}</a>
           <span aria-hidden="true">·</span>
           <a href="/owner">{t("owner")}</a>

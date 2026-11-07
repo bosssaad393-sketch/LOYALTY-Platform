@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { getCardView, isUuid } from "@/lib/cards";
@@ -47,7 +48,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
           code={card.code}
           qr={qr}
         />
-        <CardSheet points={card.points} goal={goal} rewardText={venue.reward_text} />
+        <div className="rv" style={{ "--i": 2 } as CSSProperties}><CardSheet points={card.points} goal={goal} rewardText={venue.reward_text} /></div>
 
         <div className="actions after">
           {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> Add to Apple Wallet</a>}

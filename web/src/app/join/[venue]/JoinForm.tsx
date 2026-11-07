@@ -59,14 +59,15 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
 
   return (
     <>
-    <div className="jp" aria-hidden="true">
+    <div className="jp rv" style={{ "--i": 1 } as CSSProperties} aria-hidden="true">
+      <span className="beam" />
       {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
       <img className="jp-crest" src={`/venues/${venue}/crest.png`} alt="" width={54} height={54} />
       <span className="jp-code">••••</span>
       <b className={`jp-name${who.trim() ? "" : " empty"}`}>{who.trim() || t("name")}</b>
       <span className="jp-venue">{venueName}</span>
     </div>
-    <form className="pane" style={{ "--tex": `url(/venues/${venue}/texture.jpg)` } as CSSProperties} onSubmit={onSubmit}>
+    <form className="pane rv" style={{ "--tex": `url(/venues/${venue}/texture.jpg)`, "--i": 2 } as CSSProperties} onSubmit={onSubmit}>
       <label className="field">
         <span className="lbl">{t("name")}</span>
         <input className="in" name="name" autoComplete="name" placeholder={t("namePlaceholder")} required maxLength={80} onChange={(e) => { setWho(e.target.value); clear("name"); }} {...mark("name")} />
@@ -89,7 +90,7 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
         <span>{t.rich("terms", { link: (chunks) => <a href={`/join/${venue}/terms`}>{chunks}</a> })}</span>
       </label>
       <p className="err" id="join-err" role="alert">{error}</p>
-      <button className="btn primary" type="submit" disabled={busy}>
+      <button className="btn primary shine" type="submit" disabled={busy}>
         {busy ? t("busy") : t("submit")}
       </button>
       <p className="note">{t("privacy", { venue: venueName })}</p>

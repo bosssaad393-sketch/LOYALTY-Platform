@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -25,6 +26,7 @@ export default async function JoinPage({ params }: PageProps<"/join/[venue]">) {
     <NetworkBackdrop fixed />
     <main className="app" lang={locale} dir={directionOf(locale)}>
       <LanguageSwitch languages={brandLanguages()} />
+      <div className="rv" style={{ "--i": 0 } as CSSProperties}>
       <VenueHeader
         venueName={venue.name}
         venueSlug={venue.slug}
@@ -32,6 +34,7 @@ export default async function JoinPage({ params }: PageProps<"/join/[venue]">) {
         title={t("title", { venue: venue.name })}
         sub={t("sub")}
       />
+      </div>
       <JoinForm venue={venue.slug} venueName={venue.name} />
       <p className="foot">{foot}</p>
     </main>
