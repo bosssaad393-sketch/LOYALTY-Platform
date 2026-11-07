@@ -1,7 +1,6 @@
 // The printable QR kit: one card per table, plus a counter card that opens the loyalty card sign-up.
 // Pure helpers, no database, so the links and the page layout can be tested on their own.
-import QRCode from "qrcode";
-import { qrPath } from "../../app/dev/screens";
+import { qrShape as shapeOf } from "../qr";
 
 export type KitCard =
   | { kind: "table"; id: string; label: string; url: string }
@@ -40,10 +39,7 @@ export function sheets<T>(cards: T[], perSheet = 4): T[][] {
 }
 
 /** The code as one SVG path. Level Q still scans with a scratch or a drink ring on the card. */
-export function qrShape(url: string): { size: number; d: string } {
-  const { modules } = QRCode.create(url, { errorCorrectionLevel: "Q" });
-  return { size: modules.size, d: qrPath(modules.size, modules.data) };
-}
+export const qrShape = (url: string): { size: number; d: string } => shapeOf(url);
 
 /** The address as people would type it, for the line under the code: no https, no long table code. */
 export const shortHost = (base: string) => base.replace(/^https?:\/\//, "").replace(/\/.*$/, "");

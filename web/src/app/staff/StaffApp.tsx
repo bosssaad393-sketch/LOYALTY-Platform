@@ -1,14 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import CountUp from "@/components/CountUp";
 import QrScanner from "./QrScanner";
 import PinPad from "@/components/PinPad";
 import type { SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
+import { LARGE_BILL_BHD, MAX_BILL_BHD, pointsFor, readBill } from "@/lib/tillRules";
 
 type Me = { name: string; role: string; venue: string };
-type Guest = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean };
+type Guest = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd?: number };
 type Recent = { id: number; kind: string; points: number; billBhd: number | null; at: string; by: string; guest: string };
 type Perk = { id: string; title: string; note: string | null; validUntil: string | null; from: string };
 type Tab = "guest" | "recent" | "help" | "end";
@@ -25,6 +26,10 @@ const bhd = (n: number) => `BHD ${n.toFixed(3)}`;
 const time = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bahrain" });
 const dayKey = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Bahrain" });
 const QUICK = [3, 5, 10, 15, 20];
+/** When an entry was made, for the 10-minute undo window. Only ever called from a tap, never while drawing. */
+const stamp = () => Date.now();
+/** 1250 -> "1,250.000": three decimals like the receipt, with thousands marked so a typo stands out. */
+const bhdFull = (v: number) => v.toLocaleString("en-GB", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
 export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; look?: SignInLook; brand: BrandProps }) {
   const [me, setMe] = useState<Me | null>(initialMe);
@@ -39,6 +44,9 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   const [recent, setRecent] = useState<Recent[]>([]);
   const [perks, setPerks] = useState<Perk[]>([]);
   const [loginError, setLoginError] = useState<string | null>(null);
+  /** A large bill waits for one more tap ("Yes, BHD 450.000"). Cleared when the amount changes. */
+  const [confirmLarge, setConfirmLarge] = useState(false);
+  const billBox = useRef<HTMLInputElement>(null);
 
   const signedOut = useCallback(() => { setMe(null); setGuest(null); setTab("guest"); }, []);
 
@@ -79,7 +87,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     setScanning(false); setMsg(null); setBusy(true);
     const r = await api<Guest>(`/api/staff/card?code=${encodeURIComponent(code)}`, undefined);
     setBusy(false);
-    if (r.ok) { setGuest(r.data); setBill(""); setLastEntry(null); setResult(null); }
+    if (r.ok) { setGuest(r.data); setBill(""); setConfirmLarge(false); setLastEntry(null); setResult(null); }
     else if (r.status === 401) signedOut();
     else setMsg({ kind: "bad", text: r.error });
   }, [signedOut]);
@@ -90,7 +98,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     setBusy(false);
     if (!r.ok) { if (r.status === 401) signedOut(); else setMsg({ kind: "bad", text: r.error }); return; }
     setGuest(r.data.guest);
-    if (r.data.ledgerId) setLastEntry({ id: r.data.ledgerId, at: Date.now() });
+    if (r.data.ledgerId) setLastEntry({ id: r.data.ledgerId, at: stamp() });
     setMsg({ kind: "ok", text: success(r.data) });
     void loadRecent();
   }
@@ -108,7 +116,22 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     return () => clearTimeout(t);
   }, [lastEntry]);
 
-  const billNum = Number(bill.replace(",", "."));
+  const billRead = readBill(bill);
+  const billNum = billRead.value;
+  const preview = guest ? pointsFor(billNum, guest.pointsPerBhd ?? 0) : 0;
+  const canAdd = billRead.state === "ok" || billRead.state === "large";
+
+  // The guest is found: the cursor goes straight to the bill, so staff type the amount without another tap.
+  useEffect(() => {
+    if (guest && !result) billBox.current?.focus({ preventScroll: true });
+  }, [guest, result]);
+
+  function addPoints() {
+    if (!guest || !canAdd || busy) return;
+    if (billRead.state === "large" && !confirmLarge) { setConfirmLarge(true); return; }
+    setConfirmLarge(false);
+    void act("/api/staff/earn", { cardId: guest.cardId, billBhd: billNum }, (d) => { setBill(""); setResult({ added: d.added ?? 0, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady }); return `Added ${d.added} points for ${bhd(billNum)}. ${d.guest.firstName} now has ${d.guest.points}.`; });
+  }
   const canUndo = lastEntry !== null;
 
   const today = dayKey(new Date().toISOString());
@@ -153,7 +176,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
             )}
             <div className="panel st-or">
               <form className="row" onSubmit={(e) => { e.preventDefault(); const c = new FormData(e.currentTarget).get("code"); if (c) find(String(c)); }}>
-                <label className="field"><span className="lbl">Card code (4 digits)</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="4827" autoComplete="off" required /></label>
+                <label className="field"><span className="lbl">Card code (4 digits)</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="4827" autoComplete="off" required onChange={(e) => { const c = e.target.value.replace(/\D/g, ""); if (c.length === 4 && !busy) find(c); }} /></label>
                 <button className="btn" type="submit" disabled={busy}>Find</button>
               </form>
               {msg && <p className={`msg ${msg.kind}`} role="alert">{msg.text}</p>}
@@ -181,21 +204,30 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
                 <button className="btn primary st-big" type="button" disabled={busy} onClick={() => act("/api/staff/redeem", { cardId: guest.cardId }, (d) => `Reward given. ${d.guest.firstName} now has ${d.guest.points} points.`)}>Give reward and take {guest.goal} points</button>
               )}
             </section>
-            <section className="panel">
+            <form className="panel" onSubmit={(e) => { e.preventDefault(); addPoints(); }}>
               <label className="field">
                 <span className="lbl">Bill total (BHD)</span>
-                <input className="in st-code" inputMode="decimal" placeholder="12.500" value={bill} onChange={(e) => setBill(e.target.value)} autoComplete="off" />
+                <input ref={billBox} className="in st-code" inputMode="decimal" enterKeyHint="done" placeholder="12.500" value={bill} onChange={(e) => { setBill(e.target.value); setConfirmLarge(false); }} autoComplete="off" aria-invalid={billRead.state === "bad" || billRead.state === "too_large" || undefined} aria-describedby="st-bill-note" />
               </label>
               <div className="st-quick" role="group" aria-label="Common bill amounts">
-                {QUICK.map((q) => <button key={q} type="button" className="chip" onClick={() => setBill(String(q))}>{q}</button>)}
+                {QUICK.map((q) => <button key={q} type="button" className={`chip${billNum === q ? " on" : ""}`} aria-pressed={billNum === q} onClick={() => { setBill(String(q)); setConfirmLarge(false); }}>{q}</button>)}
               </div>
-              <button className="btn primary st-big" type="button" disabled={busy || !(billNum > 0)} onClick={() => act("/api/staff/earn", { cardId: guest.cardId, billBhd: billNum }, (d) => { setBill(""); setResult({ added: d.added ?? 0, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady }); return `Added ${d.added} points for ${bhd(billNum)}. ${d.guest.firstName} now has ${d.guest.points}.`; })}>Add points</button>
+              <p id="st-bill-note" className={`st-billnote${billRead.state === "bad" || billRead.state === "too_large" ? " bad" : confirmLarge ? " warn" : ""}`} aria-live="polite">
+                {billRead.state === "bad" ? "Type the amount in BHD, for example 12.500."
+                  : billRead.state === "too_large" ? `The most for one bill is BHD ${MAX_BILL_BHD.toLocaleString("en-GB")}.`
+                  : confirmLarge ? `BHD ${bhdFull(billNum)} is more than ${LARGE_BILL_BHD}. Tap again if that is right.`
+                  : canAdd && preview > 0 ? `${guest.firstName} will get ${preview} ${preview === 1 ? "point" : "points"}.`
+                  : canAdd ? "Too small for a point." : " "}
+              </p>
+              <button className={`btn primary st-big${confirmLarge ? " st-confirm" : ""}`} type="submit" disabled={busy || !canAdd || preview < 1}>
+                {busy ? "Adding…" : confirmLarge ? `Yes, BHD ${bhdFull(billNum)}` : preview > 0 ? `Add ${preview} ${preview === 1 ? "point" : "points"}` : "Add points"}
+              </button>
               {canUndo && (
                 <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} points.`; })}>Undo my last entry (10 minutes)</button>
               )}
               {msg && <p className={`msg ${msg.kind}`} role="alert">{msg.text}</p>}
-            </section>
-            <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); }}>Done, next guest</button>
+            </form>
+            <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); setConfirmLarge(false); }}>Done, next guest</button>
           </>
         )
       ) : tab === "recent" ? (

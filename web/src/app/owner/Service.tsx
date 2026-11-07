@@ -1,10 +1,9 @@
 "use client";
 
-import QRCode from "qrcode";
 import { useCallback, useState, type FormEvent } from "react";
 import { filsText, type DayPart, type WaitMeasure } from "@/lib/table/rules";
 import type { MenuView } from "@/lib/table/db";
-import { qrPath } from "../dev/screens";
+import QrSvg from "@/components/QrSvg";
 import { LoadError, Loading, Msg, PageHead, useGet } from "./ui";
 import type { Call, Note } from "./types";
 
@@ -308,16 +307,9 @@ function Tables({ call }: { call: Call }) {
 
 function TableQr({ token, label }: { token: string; label: string }) {
   const [url] = useState(() => `${window.location.origin}/t/${token}`);
-  const [qr] = useState(() => {
-    const { modules } = QRCode.create(url, { errorCorrectionLevel: "Q" });
-    return { size: modules.size, d: qrPath(modules.size, modules.data) };
-  });
-  const quiet = 4;
   return (
     <div style={{ width: "100%", display: "grid", gap: 10, justifyItems: "start" }}>
-      <svg role="img" aria-label={`QR code for table ${label}`} width={200} height={200} viewBox={`${-quiet} ${-quiet} ${qr.size + quiet * 2} ${qr.size + quiet * 2}`} style={{ background: "#fff", borderRadius: 8, color: "#000" }}>
-        <path d={qr.d} fill="currentColor" />
-      </svg>
+      <QrSvg text={url} label={`QR code for table ${label}`} />
       <a className="ow-note" href={url} target="_blank" rel="noreferrer" style={{ overflowWrap: "anywhere" }}>{url}</a>
     </div>
   );

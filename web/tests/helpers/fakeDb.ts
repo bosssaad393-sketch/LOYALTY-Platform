@@ -45,7 +45,8 @@ export function makeDb(state: FakeState) {
       let op: "select" | "insert" | "update" | "delete" = "select";
       let payload: unknown;
       let columns = "*";
-      let sort: { col: string; asc: boolean } | undefined;
+      // Several .order() calls sort by the first, then the next, like SQL's ORDER BY a, b.
+      const sorts: { col: string; asc: boolean }[] = [];
       let max: number | undefined;
       let range: [number, number] | undefined;
       let one: "maybe" | "one" | undefined;
@@ -65,9 +66,12 @@ export function makeDb(state: FakeState) {
             }
             return copy;
           });
-          if (sort) {
-            const { col, asc } = sort;
-            out = out.sort((a, b) => (String(a[col]) < String(b[col]) ? -1 : String(a[col]) > String(b[col]) ? 1 : 0) * (asc ? 1 : -1));
+          if (sorts.length) {
+            const cmp = (x: unknown, y: unknown) => (typeof x === "number" && typeof y === "number" ? x - y : String(x) < String(y) ? -1 : String(x) > String(y) ? 1 : 0);
+            out = out.sort((a, b) => {
+              for (const { col, asc } of sorts) { const c = cmp(a[col], b[col]) * (asc ? 1 : -1); if (c) return c; }
+              return 0;
+            });
           }
           if (range) out = out.slice(range[0], range[1] + 1);
           if (max !== undefined) out = out.slice(0, max);
@@ -128,6 +132,11 @@ export function makeDb(state: FakeState) {
           described.push(`neq ${c}`);
           return b;
         },
+        gt(c: string, v: number) {
+          filters.push((r) => Number(r[c]) > v);
+          described.push(`gt ${c}`);
+          return b;
+        },
         is(c: string, v: null) {
           filters.push((r) => (r[c] ?? null) === v);
           described.push(`is ${c} null`);
@@ -150,7 +159,7 @@ export function makeDb(state: FakeState) {
           return b;
         },
         order(col: string, o?: { ascending?: boolean }) {
-          sort = { col, asc: o?.ascending !== false };
+          sorts.push({ col, asc: o?.ascending !== false });
           return b;
         },
         limit(n: number) {

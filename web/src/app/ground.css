@@ -71,7 +71,7 @@
 .look-orbyn .pp, .look-orbyn .si-owner-a, .look-orbyn .si-owner-b, .look-orbyn .si-staff-a, .look-orbyn .si-staff-b, .look-orbyn .ow, .look-orbyn .dv { background: transparent; }
 .look-orbyn .ow-head { background: rgb(var(--shade-rgb) / 0.28); }
 .look-orbyn .tb-chips { background: rgb(4 25 29 / 0.92); }
-@media (min-width: 701px) { .look-orbyn .tb-chips { margin-inline: -10px; padding-inline: 10px; border-radius: 16px; } }
+@media (min-width: 701px) { .look-orbyn .tb-chips { margin-inline: -10px; padding-inline: 10px; border-radius: var(--r-md); } }
 
 /* Flat colour instead of metallic foil, one frame instead of a double line, and a sidebar that recedes. */
 .look-orbyn .pane::before { display: none; }

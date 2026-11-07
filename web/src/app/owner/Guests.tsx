@@ -1,8 +1,7 @@
 "use client";
 
-import QRCode from "qrcode";
 import { useState } from "react";
-import { qrPath } from "../dev/screens";
+import QrSvg from "@/components/QrSvg";
 import { ago, n } from "./format";
 import { Confirm, Loading, LoadError, Msg, PageHead, Sheet, useDebounced, useGet } from "./ui";
 import type { Call, Guest, Note } from "./types";
@@ -101,16 +100,9 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
  */
 function CardQr({ cardId, name }: { cardId: string; name: string }) {
   const [url] = useState(() => `${window.location.origin}/card/${cardId}`);
-  const [qr] = useState(() => {
-    const { modules } = QRCode.create(url, { errorCorrectionLevel: "Q" });
-    return { size: modules.size, d: qrPath(modules.size, modules.data) };
-  });
-  const quiet = 4;
   return (
     <div style={{ display: "grid", gap: 12, justifyItems: "center", paddingBlock: 8 }}>
-      <svg role="img" aria-label={`QR code for ${name}'s card`} width={220} height={220} viewBox={`${-quiet} ${-quiet} ${qr.size + quiet * 2} ${qr.size + quiet * 2}`} style={{ background: "#fff", borderRadius: 8, color: "#000" }}>
-        <path d={qr.d} fill="currentColor" />
-      </svg>
+      <QrSvg text={url} label={`QR code for ${name}'s card`} size={220} />
       <p className="ow-note" style={{ textAlign: "center" }}>Ask the guest to scan this with their phone camera. Their card opens with all their points. Check it is really them first: this code opens their card.</p>
     </div>
   );

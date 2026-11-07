@@ -13,14 +13,15 @@ type SheetName = "points" | "reward" | null;
 export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; isOwner: boolean; onSendUpdate: () => void }) {
   const summary = useGet<Summary>(call, "/api/owner/summary");
   // The top-guests list and the quick-action previews are extras: if one fails the rest of the page still works.
-  const guests = useGet<{ guests: Guest[] }>(call, "/api/owner/guests?q=");
+  const guests = useGet<{ guests: Guest[] }>(call, "/api/owner/guests?top=3");
   const week = useGet<Points>(call, "/api/owner/points?range=7d");
   const rules = useGet<Rules>(call, "/api/owner/rules");
   const [sheet, setSheet] = useState<SheetName>(null);
 
   const s = summary.data;
   const trend = s && s.visitsPrev7d > 0 ? Math.round(((s.visits7d - s.visitsPrev7d) / s.visitsPrev7d) * 100) : null;
-  const top = useMemo(() => (guests.data?.guests ?? []).filter((g) => g.visits > 0).sort((a, b) => b.visits - a.visits || b.points - a.points).slice(0, 3), [guests.data]);
+  const top = useMemo(() => (guests.data?.guests ?? []).slice(0, 3), [guests.data]);
+  const fresh = s !== undefined && s !== null && s.members === 0;
 
   return (
     <>
@@ -28,7 +29,19 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
 
       {summary.error && <LoadError text={summary.error} onRetry={summary.reload} />}
       {!s && !summary.error && <Loading />}
-      {s && (
+      {fresh && (
+        <section className="ow-panel ow-start" aria-labelledby="ow-h-start">
+          <h2 className="ow-h" id="ow-h-start">No guests yet</h2>
+          <p className="ow-note">The numbers here fill in as guests join and staff add points. Three steps to the first guest:</p>
+          <ol className="ow-steps">
+            <li><b>Print the QR kit.</b> A card for every table and one for the counter.</li>
+            <li><b>Put the counter card by the till.</b> Guests scan it and get their card in under a minute.</li>
+            <li><b>Staff sign in on the till</b> with their PIN and add points when the bill is paid.</li>
+          </ol>
+          <div className="ow-actions"><a className="ow-btn primary" href="/owner/qr-kit" target="_blank" rel="noreferrer">Open the QR kit</a></div>
+        </section>
+      )}
+      {s && !fresh && (
         <section className="ow-lead" aria-label="This week">
           <div className="ow-lead-main">
             <span>Visits in 7 days</span>
@@ -42,7 +55,7 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
       )}
 
       <div className="ow-two">
-        {s ? (
+        {s && !fresh ? (
           <section className="ow-panel" aria-labelledby="ow-h-chart">
             <h2 className="ow-h" id="ow-h-chart">Visits per day, last 14 days</h2>
             <VisitsChart days={s.perDay14} />

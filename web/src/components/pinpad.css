@@ -1,7 +1,7 @@
 .pp { position: relative; overflow: hidden; min-height: 100dvh; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)); background: radial-gradient(90% 60% at 50% 40%, rgb(var(--gold-rgb) / 0.07), transparent 70%), var(--deep); color: var(--text); }
 .pp-stage { position: relative; width: min(100%, 380px); }
 /* frosted-glass panel with a thin gold edge, over soft gold spheres */
-.pp-card { position: relative; z-index: 1; text-align: center; padding: 30px 24px 24px; border-radius: 28px; border: 1px solid rgb(var(--gold-rgb) / 0.55); background: linear-gradient(145deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.03)); -webkit-backdrop-filter: blur(22px) saturate(1.2); backdrop-filter: blur(22px) saturate(1.2); box-shadow: 0 24px 60px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.12); }
+.pp-card { position: relative; z-index: 1; text-align: center; padding: 30px 24px 24px; border-radius: var(--r-xl); border: 1px solid rgb(var(--gold-rgb) / 0.55); background: linear-gradient(145deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.03)); -webkit-backdrop-filter: blur(22px) saturate(1.2); backdrop-filter: blur(22px) saturate(1.2); box-shadow: 0 24px 60px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.12); }
 .pp-orb { position: absolute; border-radius: 50%; background: radial-gradient(circle at 32% 26%, var(--gold-hi) 0%, var(--gold) 30%, var(--gold-dim) 66%, var(--deep) 100%); box-shadow: 0 18px 40px rgb(0 0 0 / 0.5); }
 .pp-orb.o1 { width: 150px; height: 150px; left: -62px; top: 12%; }
 .pp-orb.o2 { width: 110px; height: 110px; right: -38px; top: -34px; }
@@ -11,22 +11,22 @@
 .pp-crest { display: block; margin: 0 auto 8px; width: 140px; height: auto; object-fit: contain; }
 .pp-venue { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; font: 600 13px/1 var(--sans); letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold); }
 .pp-title { margin: 6px 0 4px; font: 600 34px/1.1 var(--serif); }
-.pp-sub { margin: 0; color: var(--muted); font-size: 15px; }
+.pp-sub { margin: 0; color: var(--muted); font-size: var(--fs-md); }
 .pp-dots { display: flex; justify-content: center; gap: 14px; height: 18px; margin: 26px 0 8px; }
 .pp-dots i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--gold-dim); background: transparent; transition: background 0.12s, transform 0.12s; }
 .pp-dots i.on { background: var(--gold); border-color: var(--gold); transform: scale(1.08); }
-.pp-err { min-height: 22px; margin: 0 0 8px; color: var(--bad); font-size: 14px; }
+.pp-err { min-height: 22px; margin: 0 0 8px; color: var(--bad); font-size: var(--fs-base); }
 .pp-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.pp-key { height: 64px; border-radius: 16px; border: 1px solid rgb(var(--gold-rgb) / 0.28); background: rgb(255 255 255 / 0.06); color: var(--text); font: 500 26px/1 var(--serif); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.1s, transform 0.08s; }
+.pp-key { height: 64px; border-radius: var(--r-md); border: 1px solid rgb(var(--gold-rgb) / 0.28); background: rgb(255 255 255 / 0.06); color: var(--text); font: 500 26px/1 var(--serif); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.1s, transform 0.08s; }
 .pp-key:hover { border-color: var(--gold-dim); }
 .pp-key:active { background: rgb(255 255 255 / 0.14); transform: scale(0.97); }
 .pp-key:focus-visible, .pp-go:focus-visible { outline: 2px solid var(--gold2); outline-offset: 2px; }
 .pp-fn { font: 700 12px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); background: transparent; }
 .pp-key[disabled] { opacity: 0.5; cursor: default; }
-.pp-go { width: 100%; height: 58px; margin-top: 16px; border-radius: 16px; border: 1px solid var(--gold); background: linear-gradient(135deg, var(--gold2), var(--gold)); color: var(--on-gold); font: 700 14px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; }
+.pp-go { width: 100%; height: 58px; margin-top: 16px; border-radius: var(--r-md); border: 1px solid var(--gold); background: linear-gradient(135deg, var(--gold2), var(--gold)); color: var(--on-gold); font: 700 14px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; }
 .pp-go[disabled] { opacity: 0.4; cursor: default; }
-.pp-help { margin: 18px 0 0; color: var(--dim); font-size: 13px; }
-.pp-pw { margin: 10px 0 0; color: var(--dim); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; }
+.pp-help { margin: 18px 0 0; color: var(--dim); font-size: var(--fs-sm); }
+.pp-pw { margin: 10px 0 0; color: var(--dim); font-size: var(--fs-xs); letter-spacing: 0.2em; text-transform: uppercase; }
 @media (prefers-reduced-motion: reduce) { .pp-dots i, .pp-key { transition: none; } }
 
 .pp-orb { display: var(--net, block); }

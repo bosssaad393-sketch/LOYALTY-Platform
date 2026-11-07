@@ -118,6 +118,10 @@ class Query implements PromiseLike<Result> {
     this.filters.push((r) => values.includes(r[column]));
     return this;
   }
+  gt(column: string, value: number) {
+    this.filters.push((r) => Number(r[column]) > value);
+    return this;
+  }
   gte(column: string, value: string) {
     this.filters.push((r) => String(r[column]) >= value);
     return this;

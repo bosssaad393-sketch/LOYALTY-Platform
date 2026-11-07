@@ -11,8 +11,9 @@ import { brandColors, footerLine } from "@/lib/brand";
 // Live data on every request: allow this page to block instead of prerendering.
 export const instant = false;
 
-export default async function CardPage({ params }: PageProps<"/card/[cardId]">) {
+export default async function CardPage({ params, searchParams }: PageProps<"/card/[cardId]">) {
   const { cardId } = await params;
+  const { welcome } = await searchParams;
   if (!isUuid(cardId)) notFound();
   const view = await getCardView(cardId);
   if (!view) notFound();
@@ -30,6 +31,12 @@ export default async function CardPage({ params }: PageProps<"/card/[cardId]">) 
   return (
     <>
       <main className="app">
+        {welcome === "1" && (
+          <p className="welcome" role="status">
+            <b>Welcome, {memberName.trim().split(/\s+/)[0]}. Your card is ready.</b>
+            <span>Keep it: add it to your Wallet or bookmark this page. Show it at the till to collect points.</span>
+          </p>
+        )}
         <BlackCard
           venueName={venue.name}
           venueSlug={venue.slug}

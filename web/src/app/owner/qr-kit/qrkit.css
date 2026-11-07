@@ -7,16 +7,16 @@
 /* ---- the bar above the sheets (screen only) ---- */
 .qk-bar { max-width: 210mm; margin: 0 auto 20px; display: grid; gap: 12px; }
 .qk-h { font: 700 28px/1.1 var(--sans); }
-.qk-note { color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+.qk-note { color: var(--muted); font-size: var(--fs-base); line-height: 1.5; }
 .qk-note a { color: var(--gold); }
 .qk-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.qk-looks { display: inline-flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.qk-looks a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; }
+.qk-looks { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
+.qk-looks a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; color: var(--muted); font-size: var(--fs-base); font-weight: 600; text-decoration: none; }
 .qk-looks a[aria-current="true"] { background: var(--gold); color: var(--on-gold); }
-.qk-print { min-height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--gold); color: var(--on-gold); font: 700 15px var(--sans); cursor: pointer; }
+.qk-print { min-height: 44px; padding: 0 18px; border: 0; border-radius: var(--r-sm); background: var(--gold); color: var(--on-gold); font: 700 15px var(--sans); cursor: pointer; }
 .qk-print:disabled { opacity: 0.5; cursor: default; }
-.qk-back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; }
-.qk-warn { max-width: 210mm; margin: 0 auto 16px; padding: 12px 14px; border: 1px solid var(--bad); border-radius: 12px; color: var(--bad); font-size: 14.5px; }
+.qk-back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-sm); color: var(--muted); font-size: var(--fs-base); font-weight: 600; text-decoration: none; }
+.qk-warn { max-width: 210mm; margin: 0 auto 16px; padding: 12px 14px; border: 1px solid var(--bad); border-radius: var(--r-sm); color: var(--bad); font-size: var(--fs-base); }
 
 /* ---- sheets and cards ---- */
 .qk-sheets { display: grid; justify-content: center; gap: 24px; }

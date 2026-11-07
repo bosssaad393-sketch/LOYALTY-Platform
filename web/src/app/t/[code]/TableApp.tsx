@@ -41,6 +41,13 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
   const [asking, setAsking] = useState<string | null>(null);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+  /** The round just sent, lit briefly so the guest sees where it went. */
+  const [fresh, setFresh] = useState<string | null>(null);
+  useEffect(() => {
+    if (!fresh) return;
+    const t = setTimeout(() => setFresh(null), 2400);
+    return () => clearTimeout(t);
+  }, [fresh]);
 
   const money = (fils: number) => t("money", { amount: filsText(fils) });
 
@@ -149,6 +156,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     setReview(false);
     setCancelled(false);
     setSent(true);
+    setFresh(typeof data.orderId === "string" ? data.orderId : null);
     document.getElementById("tb-rounds")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -246,7 +254,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
           <div role="status">{sent ? <p className="tb-sent">{t("sent")}</p> : cancelled ? <p className="tb-sent">{t("cancel.done")}</p> : null}</div>
           <ol className="tb-roundlist">
             {tab.rounds.map((r, i) => (
-              <li key={r.id} className={`tb-round s-${r.status}`}>
+              <li key={r.id} className={`tb-round s-${r.status}${fresh === r.id ? " fresh" : ""}`}>
                 <div className="tb-rowhead">
                   <span className="tb-roundno">{t("round", { n: i + 1 })}</span>
                   <span className="tb-status">{status(r)}</span>
@@ -342,7 +350,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       {count > 0 && (
         <div className="tb-bar">
           <div className="tb-bar-in">
-            <div className="tb-bar-sum"><small>{t("items", { count })}</small><b>{money(total)}</b></div>
+            <div className="tb-bar-sum"><small key={count} className="tb-pop">{t("items", { count })}</small><b>{money(total)}</b></div>
             <button type="button" className="btn primary" onClick={() => setReview(true)}>{t("review")}</button>
           </div>
         </div>

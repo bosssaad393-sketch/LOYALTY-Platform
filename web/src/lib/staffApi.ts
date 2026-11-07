@@ -21,20 +21,20 @@ export async function withStaff(handler: (staff: Staff) => Promise<Response>): P
   }
 }
 
-export type GuestView = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean };
+export type GuestView = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd: number };
 
 /** What staff may see about a guest: first name, points and visits. Never phone or email. */
 export async function guestView(cardId: string, staff: Staff): Promise<GuestView | null> {
   const { data, error } = await db()
     .from("cards")
-    .select("id, code, points, visits, venue_id, members(name, deleted_at), venues(reward_goal, reward_text)")
+    .select("id, code, points, visits, venue_id, members(name, deleted_at), venues(reward_goal, reward_text, points_per_bhd)")
     .eq("id", cardId)
     .eq("venue_id", staff.venueId)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const member = data.members as unknown as { name: string; deleted_at: string | null } | null;
-  const venue = data.venues as unknown as { reward_goal: number; reward_text: string } | null;
+  const venue = data.venues as unknown as { reward_goal: number; reward_text: string; points_per_bhd?: number } | null;
   if (!member || member.deleted_at || !venue) return null;
   return {
     cardId: data.id,
@@ -45,6 +45,8 @@ export async function guestView(cardId: string, staff: Staff): Promise<GuestView
     goal: venue.reward_goal,
     rewardText: venue.reward_text,
     rewardReady: data.points >= venue.reward_goal,
+    // So the till can say how many points a bill adds before it is sent.
+    pointsPerBhd: Number(venue.points_per_bhd ?? 0),
   };
 }
 

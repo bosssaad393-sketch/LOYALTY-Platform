@@ -25,12 +25,12 @@
 
 /* Join: the card they are about to get, with their name on it as they type. */
 .app:has(.jp) .vh-crest, .app:has(.jp) .rc-rule, .app:has(.jp) .rc-tag { display: none; }
-.jp { position: relative; container-type: inline-size; aspect-ratio: 1.75; width: min(100%, 340px); margin: 22px auto 0; padding: 18px 20px; border-radius: 18px; border: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; background: linear-gradient(rgb(var(--shade-rgb) / 0.5), rgb(var(--shade-rgb) / 0.8)), var(--brand-marble) center / cover no-repeat, var(--surface); }
+.jp { position: relative; container-type: inline-size; aspect-ratio: 1.75; width: min(100%, 340px); margin: 22px auto 0; padding: 18px 20px; border-radius: var(--r-lg); border: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; background: linear-gradient(rgb(var(--shade-rgb) / 0.5), rgb(var(--shade-rgb) / 0.8)), var(--brand-marble) center / cover no-repeat, var(--surface); }
 .jp-crest { position: absolute; inset-block-start: 16px; inset-inline-end: 18px; width: 54px; height: 54px; object-fit: contain; }
 .jp-code { position: absolute; inset-block-start: 22px; inset-inline-start: 20px; color: var(--gold2); font-size: 20px; letter-spacing: 0.22em; }
 .jp-name { font: 600 20px/1.2 var(--sans); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .jp-name.empty { color: var(--dim); }
-.jp-venue { color: var(--muted); font-size: 13px; }
+.jp-venue { color: var(--muted); font-size: var(--fs-sm); }
 .app:has(.jp) .pane { margin-block-start: 18px; animation: sheet-up 0.42s ease-out both; }
 .pane .btn.primary { box-shadow: none; }
 
@@ -38,23 +38,23 @@
 .cs { margin-block-start: 16px; padding: 20px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); animation: sheet-up 0.42s ease-out both; }
 .cs-fig { display: flex; align-items: baseline; gap: 8px; }
 .cs-fig b { font: 600 46px/1 var(--serif); font-variant-numeric: tabular-nums; color: var(--text); }
-.cs-fig > span { color: var(--muted); font-size: 15px; }
-.cs-meter { height: 8px; margin-block-start: 14px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
-.cs-meter i { display: block; height: 100%; border-radius: 4px; background: var(--gold2); transform-origin: left; animation: fill-once 0.9s 0.2s ease-out both; }
+.cs-fig > span { color: var(--muted); font-size: var(--fs-md); }
+.cs-meter { height: 8px; margin-block-start: 14px; border-radius: var(--r-xs); background: var(--surface2); overflow: hidden; }
+.cs-meter i { display: block; height: 100%; border-radius: var(--r-xs); background: var(--gold2); transform-origin: left; animation: fill-once 0.9s 0.2s ease-out both; }
 [dir="rtl"] .cs-meter i { transform-origin: right; }
-.cs-left { margin-block-start: 10px; color: var(--muted); font-size: 14.5px; }
+.cs-left { margin-block-start: 10px; color: var(--muted); font-size: var(--fs-base); }
 .cs-left b { color: var(--text); font-weight: 600; }
-.ticket { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; margin-block-start: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface2); }
+.ticket { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; margin-block-start: 18px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface2); }
 .ticket > div { padding: 14px 16px; min-width: 0; }
-.ticket small { display: block; color: var(--dim); font-size: 12.5px; }
-.ticket b { display: block; margin-block-start: 2px; font-size: 15.5px; font-weight: 600; overflow-wrap: anywhere; }
+.ticket small { display: block; color: var(--dim); font-size: var(--fs-xs); }
+.ticket b { display: block; margin-block-start: 2px; font-size: var(--fs-md); font-weight: 600; overflow-wrap: anywhere; }
 .ticket .ticket-end { border-inline-start: 2px dotted var(--line); text-align: end; }
 .ticket .ticket-end b { font-variant-numeric: tabular-nums; color: var(--gold2); white-space: nowrap; }
 .ticket.ready { border-color: var(--gold2); }
 
 /* Table: the order sheet. */
 .tb-bar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 408px; margin-inline: auto; }
-.tb-bar-sum small { display: block; color: var(--muted); font-size: 13px; }
+.tb-bar-sum small { display: block; color: var(--muted); font-size: var(--fs-sm); }
 .tb-bar-sum b { font: 700 19px/1.2 var(--sans); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tb-bar .btn { flex: none; width: auto; min-height: 52px; margin: 0; padding-inline: 26px; }
 .tb-bar { animation: sheet-up 0.3s ease-out both; }
@@ -62,27 +62,27 @@
 .tb-sheet[open] { animation: sheet-up 0.36s ease-out both; }
 .tb-sheet::backdrop { background: rgb(var(--shade-rgb) / 0.72); }
 .tb-sheet-in { padding: 10px 20px max(16px, env(safe-area-inset-bottom)); }
-.tb-grip { width: 40px; height: 4px; margin: 0 auto 14px; border-radius: 2px; background: var(--line); }
+.tb-grip { width: 40px; height: 4px; margin: 0 auto 14px; border-radius: var(--r-xs); background: var(--line); }
 .tb-sum { list-style: none; margin-block-start: 8px; }
 .tb-sum li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding-block: 8px; border-block-end: 1px solid var(--line); }
-.tb-sum b { font-size: 15.5px; font-weight: 600; }
-.tb-sum em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14.5px; white-space: nowrap; }
-.tb-sum .tb-step button { width: 40px; height: 44px; background: none; border-radius: 12px; }
+.tb-sum b { font-size: var(--fs-md); font-weight: 600; }
+.tb-sum em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-base); white-space: nowrap; }
+.tb-sum .tb-step button { width: 40px; height: 44px; background: none; border-radius: var(--r-sm); }
 .tb-sum-total { display: flex; align-items: baseline; justify-content: space-between; padding-block: 14px 16px; }
 .tb-sum-total span { color: var(--muted); }
 .tb-sum-total b { font: 700 24px/1 var(--sans); font-variant-numeric: tabular-nums; }
 .tb-sheet .btn.primary { width: 100%; min-height: 54px; }
-.tb-more { display: block; width: 100%; min-height: 44px; margin-block-start: 4px; background: none; border: 0; color: var(--muted); font-size: 14.5px; cursor: pointer; }
+.tb-more { display: block; width: 100%; min-height: 44px; margin-block-start: 4px; background: none; border: 0; color: var(--muted); font-size: var(--fs-base); cursor: pointer; }
 
 /* Table: each round shows how far along it is. */
 .tb-prog { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-block-start: 10px; }
-.tb-prog i { display: block; height: 4px; border-radius: 2px; background: var(--surface2); }
+.tb-prog i { display: block; height: 4px; border-radius: var(--r-xs); background: var(--surface2); }
 .tb-prog.p-new i:nth-child(1), .tb-prog.p-accepted i:nth-child(-n+2), .tb-prog.p-ready i, .tb-prog.p-served i { background: var(--gold2); }
 .tb-prog.p-ready i { background: var(--ok); }
 .tb-prog.p-served i { background: var(--dim); }
 
 /* Staff: one strip for the day. */
-.st-today { gap: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.st-today { gap: 0; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
 .st-today span { border: 0; border-radius: 0; background: none; }
 .st-today span + span { border-inline-start: 1px solid var(--line); }
 .st-actions { display: flex; align-items: center; gap: 8px; }
@@ -97,7 +97,7 @@
 .sc-box > i:nth-child(3) { inset-block-end: 0; inset-inline-start: 0; border-inline-end: 0; border-block-start: 0; border-end-start-radius: 8px; }
 .sc-box > i:nth-child(4) { inset-block-end: 0; inset-inline-end: 0; border-inline-start: 0; border-block-start: 0; border-end-end-radius: 8px; }
 .sc-line { position: absolute; inset-inline: 0; inset-block-start: 0; height: 2px; background: var(--gold2); opacity: 0.55; animation: sweep 2.6s ease-in-out infinite alternate; }
-.sc-go { position: relative; display: inline-flex; align-items: center; min-height: 52px; padding: 0 26px; border-radius: 14px; background: var(--gold2); color: var(--on-gold); font-weight: 700; }
+.sc-go { position: relative; display: inline-flex; align-items: center; min-height: 52px; padding: 0 26px; border-radius: var(--r-md); background: var(--gold2); color: var(--on-gold); font-weight: 700; }
 .st-or { margin-block-start: 14px; }
 .st-sheet { animation: sheet-up 0.42s ease-out both; }
 
@@ -109,27 +109,27 @@
 .sr-fig small { color: var(--muted); font: 500 16px/1 var(--sans); }
 .sr .btn { width: 100%; }
 .sr .btn.primary { margin-block-start: 14px; }
-.sr-undo { min-height: 44px; background: none; border: 0; color: var(--muted); font-size: 14.5px; cursor: pointer; }
+.sr-undo { min-height: 44px; background: none; border: 0; color: var(--muted); font-size: var(--fs-base); cursor: pointer; }
 .sr-undo u { color: var(--text); }
 
 /* Board: colour goes on the clock and the state. With many cards on screen, actions are outlined so nothing shouts. */
 .bd-act { width: 100%; background: transparent; border-color: var(--gold-dim); color: var(--gold2); }
 .bd-act:hover { border-color: var(--gold2); }
 .bd-act:active { background: var(--gold2); color: var(--on-gold); }
-.bd-clock { font-size: 15px; font-weight: 600; color: var(--text); }
-.bd-prog { height: 4px; border-radius: 2px; background: var(--surface2); overflow: hidden; }
+.bd-clock { font-size: var(--fs-md); font-weight: 600; color: var(--text); }
+.bd-prog { height: 4px; border-radius: var(--r-xs); background: var(--surface2); overflow: hidden; }
 .bd-prog i { display: block; height: 100%; background: var(--gold2); }
 .bd-card.late .bd-prog i { background: var(--bad); }
 
 /* Owner: the week's answer in one divided strip, then the chart beside what to do next. */
-.ow-lead { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--ow-rule); border-radius: 16px; background: var(--surface); }
+.ow-lead { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--ow-rule); border-radius: var(--r-md); background: var(--surface); }
 .ow-lead > div { min-width: 0; padding: 16px; border-block-start: 1px solid var(--ow-rule); border-inline-start: 1px solid var(--ow-rule); }
 .ow-lead > div:nth-child(2) { border-inline-start: 0; }
 .ow-lead-main { grid-column: 1 / -1; border: 0 !important; }
-.ow-lead > div > span { display: block; color: var(--muted); font-size: 13.5px; }
+.ow-lead > div > span { display: block; color: var(--muted); font-size: var(--fs-sm); }
 .ow-lead b { display: block; margin-block-start: 4px; font: 600 24px/1.15 var(--ow-fig); font-variant-numeric: tabular-nums; }
 .ow-lead-main b { margin-block-start: 6px; font-size: 48px; line-height: 1.05; color: var(--gold2); }
-.ow-lead em { display: block; margin-block-start: 4px; font-style: normal; color: var(--muted); font-size: 13px; }
+.ow-lead em { display: block; margin-block-start: 4px; font-style: normal; color: var(--muted); font-size: var(--fs-sm); }
 .ow-lead em.up { color: var(--ok); }
 .ow-lead em.down { color: var(--bad); }
 .ow-two { display: grid; gap: 16px; margin-block-start: 16px; }
@@ -138,7 +138,7 @@
 .ow-do { display: grid; margin-block-start: 6px; }
 .ow-do .ow-quick-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; width: 100%; min-height: 0; padding: 12px 0; border: 0; border-block-start: 1px solid var(--ow-rule); border-radius: 0; background: none; text-align: start; }
 .ow-do .ow-quick-card:first-child { border-block-start: 0; }
-.ow-do .ow-quick-t { grid-column: 1; font-size: 15.5px; }
+.ow-do .ow-quick-t { grid-column: 1; font-size: var(--fs-md); }
 .ow-do .ow-quick-s { grid-column: 1; }
 .ow-do .ow-quick-card > :last-child { position: static; grid-column: 2; grid-row: 1 / span 2; align-self: center; margin: 0; }
 @media (min-width: 701px) {

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import QRCode from "qrcode";
-import { qrPath } from "../dev/screens";
+import QrSvg from "@/components/QrSvg";
 import { Loading, LoadError, Msg, PageHead, useGet } from "./ui";
 import type { Call, Member, Note } from "./types";
 
@@ -166,7 +165,7 @@ export default function Team({ call }: { call: Call }) {
 
 /** One link or QR code for the whole team: people add themselves, then appear above for approval. */
 function JoinLink({ call }: { call: Call }) {
-  const [link, setLink] = useState<{ url: string; size: number; d: string; until: string } | null>(null);
+  const [link, setLink] = useState<{ url: string; until: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
 
@@ -176,8 +175,7 @@ function JoinLink({ call }: { call: Call }) {
     setBusy(false);
     if (!r.ok) { if (r.status !== 401) setNote({ kind: "bad", text: r.error }); return; }
     const url = `${window.location.origin}${r.data.path}`;
-    const { modules } = QRCode.create(url, { errorCorrectionLevel: "M" });
-    setLink({ url, size: modules.size, d: qrPath(modules.size, modules.data), until: day(r.data.expiresAt) });
+    setLink({ url, until: day(r.data.expiresAt) });
   }
 
   async function share(url: string) {
@@ -194,10 +192,7 @@ function JoinLink({ call }: { call: Call }) {
       <Msg note={note} />
       {link ? (
         <div className="ow-joinlink">
-          <svg role="img" aria-label="QR code for the team join link" width={200} height={200} viewBox={`-4 -4 ${link.size + 8} ${link.size + 8}`}>
-            <rect x={-4} y={-4} width={link.size + 8} height={link.size + 8} fill="#fff" />
-            <path d={link.d} fill="#000" />
-          </svg>
+          <QrSvg text={link.url} label="QR code for the team join link" />
           <p className="ow-note">Works until {link.until}.</p>
           <div className="ow-actions"><button type="button" className="ow-btn primary" onClick={() => share(link.url)}>Share link</button></div>
         </div>
