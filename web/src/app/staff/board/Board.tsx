@@ -1,19 +1,39 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { filsText, minutesBetween, READY_MINUTES } from "@/lib/table/rules";
 import "./board.css";
 
 type Line = { name: string; qty: number; note: string | null };
 type Order = { id: string; table: string; status: "new" | "accepted" | "ready"; source: string; at: string; acceptedAt: string | null; readyMinutes: number | null; lines: Line[] };
 type Call = { id: string; table: string; kind: string; at: string };
-type TabRow = { id: string; table: string; openedAt: string; totalFils: number; canClose: boolean };
+type TabRow = { id: string; table: string; openedAt: string; totalFils: number; paidFils: number; balanceFils: number; paying: boolean; canClose: boolean };
+type CardPaid = { id: string; table: string; amountFils: number; method: string | null; at: string; closed: boolean };
 type MenuCat = { id: string; name: string; items: { id: string; name: string; priceFils: number; available: boolean }[] };
-type BoardData = { now: string; tables: { id: string; label: string }[]; calls: Call[]; orders: Order[]; tabs: TabRow[]; menu: MenuCat[] };
+type BoardData = { now: string; tables: { id: string; label: string }[]; calls: Call[]; orders: Order[]; tabs: TabRow[]; cardPaid: CardPaid[]; menu: MenuCat[] };
 type View = "live" | "tabs" | "add" | "soldout";
 
 const POLL_MS = 4000;
-const KIND: Record<string, string> = { coal: "Coal", waiter: "Waiter", bill: "Bill" };
+/** While the board is in the background it still checks, less often, so the alert can reach a locked or switched-away screen. */
+const HIDDEN_EVERY = 4;
+const KIND: Record<string, string> = { coal: "Coal", waiter: "Waiter", bill: "Bill", cash: "Pay cash: bring the bill" };
+const METHOD: Record<string, string> = { BENEFIT: "BENEFIT", APPLE_PAY: "Apple Pay", VISA: "Visa", MASTERCARD: "Mastercard", MADA: "mada", AMEX: "Amex" };
+
+/** A short two-note chime made in the browser, so there is no sound file to load. */
+function chime(ctx: AudioContext) {
+  const t = ctx.currentTime;
+  for (const [i, f] of [880, 1320].entries()) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t + i * 0.18);
+    g.gain.exponentialRampToValueAtTime(0.35, t + i * 0.18 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.18 + 0.5);
+    o.connect(g).connect(ctx.destination);
+    o.start(t + i * 0.18);
+    o.stop(t + i * 0.18 + 0.55);
+  }
+}
 const money = (fils: number) => `BHD ${filsText(fils)}`;
 
 /** Whole minutes waited. Red once a call has waited 5 minutes, or a round is past its promised time. */
@@ -27,6 +47,9 @@ export default function Board({ venue }: { venue: string }) {
   const [offline, setOffline] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [tableId, setTableId] = useState("");
+  const [alerts, setAlerts] = useState(false);
+  const audio = useRef<AudioContext | null>(null);
+  const seen = useRef<Set<string> | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/staff/board").catch(() => null);
@@ -38,10 +61,41 @@ export default function Board({ venue }: { venue: string }) {
 
   useEffect(() => {
     const first = setTimeout(load, 0);
-    const poll = setInterval(() => { if (!document.hidden) void load(); }, POLL_MS);
+    let tick = 0;
+    const poll = setInterval(() => { tick++; if (!document.hidden || tick % HIDDEN_EVERY === 0) void load(); }, POLL_MS);
     const clock = setInterval(() => setNow(new Date().toISOString()), 15_000);
     return () => { clearTimeout(first); clearInterval(poll); clearInterval(clock); };
   }, [load]);
+
+  // Every new call, new round and card payment rings once: chime, a buzz on phones, and a system notice when the board is not in front.
+  useEffect(() => {
+    if (!data) return;
+    const items: [string, string][] = [
+      ...data.calls.map((c): [string, string] => [c.id, `Table ${c.table}: ${KIND[c.kind] ?? c.kind}`]),
+      ...data.orders.filter((o) => o.status === "new").map((o): [string, string] => [o.id, `Table ${o.table}: new round`]),
+      ...(data.cardPaid ?? []).map((p): [string, string] => [p.id, `Table ${p.table}: paid ${money(p.amountFils)} by card`]),
+    ];
+    if (!seen.current) { seen.current = new Set(items.map(([id]) => id)); return; }
+    const fresh = items.filter(([id]) => !seen.current!.has(id));
+    for (const [id] of fresh) seen.current.add(id);
+    if (!fresh.length || !alerts) return;
+    if (audio.current) chime(audio.current);
+    navigator.vibrate?.([200, 100, 200]);
+    if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+      new Notification(fresh.map(([, text]) => text).join(" · "), { tag: "orbyn-board" });
+    }
+  }, [data, alerts]);
+
+  async function turnOnAlerts() {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (Ctx) {
+      audio.current ??= new Ctx();
+      await audio.current.resume().catch(() => {});
+      chime(audio.current);
+    }
+    if ("Notification" in window && Notification.permission === "default") await Notification.requestPermission().catch(() => {});
+    setAlerts(true);
+  }
 
   async function act(path: string, body: unknown): Promise<boolean> {
     setError(null);
@@ -83,7 +137,10 @@ export default function Board({ venue }: { venue: string }) {
           <p className="bd-venue">{venue}</p>
           <h1 className="bd-title">Tables</h1>
         </div>
-        <a className="bd-link" href="/staff">Guest cards</a>
+        <div className="bd-headlinks">
+          <button type="button" className={`bd-alerts${alerts ? " on" : ""}`} aria-pressed={alerts} onClick={() => (alerts ? setAlerts(false) : void turnOnAlerts())}>{alerts ? "Alerts on" : "Turn on alerts"}</button>
+          <a className="bd-link" href="/staff">Guest cards</a>
+        </div>
       </header>
 
       {offline && <p className="bd-error" role="alert">No connection. This board may be out of date.</p>}
@@ -103,14 +160,31 @@ export default function Board({ venue }: { venue: string }) {
             {data.calls.map((c) => {
               const m = waited(c.at, now);
               return (
-                <article key={c.id} className={`bd-card${m >= 5 ? " late" : ""}`}>
+                <article key={c.id} className={`bd-card${m >= 5 ? " late" : ""}${c.kind === "cash" ? " cash" : ""}`}>
                   <div className="bd-row"><strong className="bd-table">Table {c.table}</strong><span className="bd-clock">{m} min</span></div>
                   <p className="bd-kind">{KIND[c.kind] ?? c.kind}</p>
+                  {c.kind === "cash" && (() => {
+                    const tab = data.tabs.find((x) => x.table === c.table);
+                    return tab ? <p className="bd-due">To collect <b>{money(tab.balanceFils)}</b></p> : null;
+                  })()}
                   <button type="button" className="btn bd-act" onClick={() => act("request", { requestId: c.id })}>Done</button>
                 </article>
               );
             })}
           </section>
+
+          {(data.cardPaid ?? []).length > 0 && (
+            <section aria-labelledby="bd-h-paid">
+              <h2 className="bd-h" id="bd-h-paid">Paid by card</h2>
+              {data.cardPaid.map((p) => (
+                <article key={p.id} className="bd-card paid">
+                  <div className="bd-row"><strong className="bd-table">Table {p.table}</strong><span className="bd-clock">{waited(p.at, now)} min ago</span></div>
+                  <p className="bd-kind">{money(p.amountFils)}{p.method ? ` · ${METHOD[p.method] ?? p.method}` : ""}</p>
+                  <p className="bd-none">{p.closed ? "Tab closed. The table can be cleared." : "Part paid. The rest is still open on the tab."}</p>
+                </article>
+              ))}
+            </section>
+          )}
 
           <section aria-labelledby="bd-h-new">
             <h2 className="bd-h" id="bd-h-new">New rounds</h2>
@@ -169,8 +243,9 @@ export default function Board({ venue }: { venue: string }) {
           {data.tabs.map((t) => (
             <article key={t.id} className="bd-card">
               <div className="bd-row"><strong className="bd-table">Table {t.table}</strong><b className="bd-total">{money(t.totalFils)}</b></div>
-              <p className="bd-none">Open {waited(t.openedAt, now)} min</p>
-              <button type="button" className="btn" disabled={!t.canClose} onClick={() => act("close", { tabId: t.id })}>Cash paid, close tab</button>
+              {t.paidFils > 0 && <p className="bd-due">Paid by card {money(t.paidFils)} · Left <b>{money(t.balanceFils)}</b></p>}
+              <p className="bd-none">Open {waited(t.openedAt, now)} min{t.paying ? " · The guest has the card payment page open" : ""}</p>
+              <button type="button" className="btn" disabled={!t.canClose} onClick={() => act("close", { tabId: t.id })}>{t.paidFils > 0 ? "Rest paid in cash, close tab" : "Cash paid, close tab"}</button>
               {!t.canClose && <p className="bd-none">A round is still open on this tab.</p>}
             </article>
           ))}

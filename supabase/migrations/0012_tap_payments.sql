@@ -7,6 +7,10 @@
 alter table tabs drop constraint if exists tabs_paid_method_check;
 alter table tabs add constraint tabs_paid_method_check check (paid_method in ('cash', 'tap', 'mixed'));
 
+-- "Pay cash" on the table page calls staff with the bill, as its own kind so the board says cash.
+alter table table_requests drop constraint if exists table_requests_kind_check;
+alter table table_requests add constraint table_requests_kind_check check (kind in ('coal', 'waiter', 'bill', 'cash'));
+
 create table if not exists payments (
   id              uuid primary key default gen_random_uuid(),
   venue_id        uuid not null references venues(id) on delete cascade,
@@ -19,7 +23,7 @@ create table if not exists payments (
   -- review = Tap answered something that does not match this payment (amount, currency, reference): a person must look.
   status          text not null default 'initiated' check (status in ('initiated', 'captured', 'failed', 'review')),
   provider_status text,                           -- Tap's own word, e.g. CAPTURED, DECLINED
-  method          text,                           -- e.g. BENEFIT, VISA, as Tap reports it
+  method          text,                           -- benefit or card as the guest chose it; once paid, what Tap reports (BENEFIT, VISA...)
   pay_url         text,                           -- Tap's payment page for this charge, so a second tap on Pay reuses it
   note            text check (note is null or length(note) <= 300),
   created_at      timestamptz not null default now(),

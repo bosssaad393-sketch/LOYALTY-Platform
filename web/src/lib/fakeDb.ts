@@ -60,12 +60,15 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   orders: [],
   order_items: [],
   table_requests: [],
+  payments: [],
+  audit_log: [],
 };
 
 const DEFAULTS: Record<string, () => Row> = {
   tabs: () => ({ status: "open", opened_at: new Date().toISOString() }),
   orders: () => ({ status: "new", source: "guest", ready_minutes: null, accepted_at: null, ready_at: null }),
   table_requests: () => ({ handled_at: null }),
+  payments: () => ({ status: "initiated", currency: "BHD", charge_id: null, pay_url: null, paid_at: null, note: null }),
   venue_tables: () => ({ active: true }),
   menu_categories: () => ({ active: true }),
   menu_items: () => ({ active: true, available: true }),

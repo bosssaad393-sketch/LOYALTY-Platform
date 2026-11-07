@@ -36,7 +36,8 @@
       "waiter": "Waiter",
       "bill": "Bill",
       "tap": "Tap to call",
-      "onTheWay": "We know"
+      "onTheWay": "We know",
+      "cash": "Cash"
     },
     "yourTab": "Your tab",
     "sent": "Sent. Staff will confirm the time.",
@@ -69,6 +70,32 @@
     "review": "Review order",
     "yourOrder": "Your order",
     "total": "Total",
-    "addMore": "Add more"
+    "addMore": "Add more",
+    "pay": {
+      "button": "Pay BHD {amount}",
+      "title": "Pay the bill",
+      "toPay": "To pay",
+      "paidSoFar": "Paid by card",
+      "benefit": "BENEFIT",
+      "benefitSub": "Pay from your bank app",
+      "card": "Apple Pay or card",
+      "cardSub": "Apple Pay, Visa, Mastercard",
+      "cash": "Cash",
+      "cashSub": "The team brings the bill to your table",
+      "opening": "Opening the payment page…",
+      "notNow": "Not now",
+      "waitNote": "You can pay by card once your order is ready. Cash is fine any time.",
+      "waitError": "A round is still being made. You can pay by card once it is ready.",
+      "nothingError": "There is nothing left to pay on this table.",
+      "failedError": "The payment page did not open. Please try again or pay cash.",
+      "cashOnTheWay": "The team is on the way with your bill.",
+      "result": {
+        "checking": "Checking your payment…",
+        "captured": "Paid. Thank you.",
+        "failed": "The payment did not go through. Nothing was taken. You can try again or pay cash.",
+        "review": "We could not confirm this payment. The team will check it with you.",
+        "initiated": "Your payment is still being confirmed. The team will see it as soon as it arrives."
+      }
+    }
   }
 }

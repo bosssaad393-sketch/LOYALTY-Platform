@@ -42,3 +42,13 @@
 .bd-step b { min-width: 22px; text-align: center; }
 .bd-toggle { flex: none; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; }
 .bd-toggle.off { border-color: var(--bad); color: var(--bad); }
+
+/* Payments and alerts */
+.bd-headlinks { display: flex; align-items: center; gap: 10px; }
+.bd-alerts { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; }
+.bd-alerts.on { border-color: var(--ok); color: var(--ok); }
+.bd-card.cash { border-color: var(--gold); }
+.bd-card.cash .bd-kind { color: var(--gold2); font-weight: 700; }
+.bd-card.paid { border-color: var(--ok); }
+.bd-due { margin-block: 4px 8px; color: var(--muted); font-size: 14.5px; }
+.bd-due b { color: var(--text); font-variant-numeric: tabular-nums; }

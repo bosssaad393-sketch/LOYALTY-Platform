@@ -61,8 +61,14 @@ export function safePayUrl(url: unknown): string | null {
   }
 }
 
+/** What the guest picked: Benefit goes straight to BENEFIT; card opens Tap's page with Apple Pay and cards. */
+export const PAY_METHODS = ["benefit", "card"] as const;
+export type PayMethod = (typeof PAY_METHODS)[number];
+const SOURCE: Record<PayMethod, string> = { benefit: "src_bh.benefit", card: "src_all" };
+
 export type ChargeInput = {
   paymentId: string;
+  method: PayMethod;
   tabId: string;
   amountFils: number;
   description: string;
@@ -70,7 +76,8 @@ export type ChargeInput = {
   webhookUrl: string;
 };
 
-/** The body for POST /v2/charges. src_all = Tap's own page with every method the venue's account offers. Nothing is saved on Tap. */
+/** The body for POST /v2/charges. src_all = Tap's own page with every method the venue's account offers (Apple Pay shows on
+ * devices that have it). src_bh.benefit = BENEFIT directly. Nothing is saved on Tap. */
 export function chargeBody(c: ChargeInput) {
   return {
     amount: toTapAmount(c.amountFils),
@@ -83,7 +90,7 @@ export function chargeBody(c: ChargeInput) {
     reference: { transaction: c.paymentId, order: c.tabId },
     receipt: { email: false, sms: false },
     customer: { first_name: "Guest" },
-    source: { id: "src_all" },
+    source: { id: SOURCE[c.method] },
     post: { url: c.webhookUrl },
     redirect: { url: c.redirectUrl },
   };

@@ -161,3 +161,43 @@ describe("table service tables (0010)", () => {
     expect(b).toEqual({ public: true, allowed_mime_types: ["image/webp", "image/jpeg"] });
   });
 });
+
+describe("Tap payments (0012)", () => {
+  const V = "dddddddd-0000-4000-8000-000000000001";
+  const T = "dddddddd-0000-4000-8000-000000000002";
+  let tab: string;
+
+  beforeAll(async () => {
+    await db.query("insert into venues (id, slug, name) values ($1, 'pay-test', 'Pay Test')", [V]);
+    await db.query("insert into venue_tables (id, venue_id, label, token) values ($1, $2, '1', 'a-long-random-pay-code')", [T, V]);
+    tab = (await rows<{ id: string }>("insert into tabs (venue_id, table_id) values ($1, $2) returning id", [V, T]))[0].id;
+  });
+
+  it("a tab can close as paid by card or card plus cash, and nothing else", async () => {
+    await db.query("update tabs set paid_method = 'tap' where id = $1", [tab]);
+    await db.query("update tabs set paid_method = 'mixed' where id = $1", [tab]);
+    await db.query("update tabs set paid_method = 'cash' where id = $1", [tab]);
+    await expect(db.query("update tabs set paid_method = 'cheque' where id = $1", [tab])).rejects.toThrow(/tabs_paid_method_check/);
+  });
+
+  it("takes a cash call, and still refuses an unknown kind", async () => {
+    await db.query("insert into table_requests (venue_id, tab_id, table_id, kind) values ($1, $2, $3, 'cash')", [V, tab, T]);
+    await expect(db.query("insert into table_requests (venue_id, tab_id, table_id, kind) values ($1, $2, $3, 'dance')", [V, tab, T])).rejects.toThrow(/table_requests_kind_check/);
+  });
+
+  it("stores payments in BHD fils, above zero, with each Tap charge only once", async () => {
+    const add = (amount: number, charge: string | null, currency = "BHD") =>
+      db.query("insert into payments (venue_id, tab_id, amount_fils, charge_id, currency) values ($1, $2, $3, $4, $5)", [V, tab, amount, charge, currency]);
+    await add(5200, "chg_TEST00000001");
+    await expect(add(5200, "chg_TEST00000001")).rejects.toThrow(/unique|duplicate/);
+    await expect(add(0, null)).rejects.toThrow(/check/);
+    await expect(add(100, null, "USD")).rejects.toThrow(/check/);
+    const [p] = await rows<{ status: string }>("select status from payments where charge_id = 'chg_TEST00000001'");
+    expect(p.status).toBe("initiated");
+    await expect(db.query("update payments set status = 'refunded' where charge_id = 'chg_TEST00000001'")).rejects.toThrow(/check/);
+  });
+
+  it("runs twice without harm", async () => {
+    await db.exec(readFileSync(join(dir, "0012_tap_payments.sql"), "utf8"));
+  });
+});

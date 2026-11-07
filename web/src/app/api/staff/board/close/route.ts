@@ -4,7 +4,7 @@ import { closeTabCash, readBoard } from "@/lib/table/db";
 
 const Input = z.object({ tabId: z.uuid() });
 
-/** Cash paid: closes the tab. Card payment comes with the Tap work. */
+/** Cash paid for what is left: closes the tab. Card and BENEFIT payments close the tab by themselves (lib/tap/payments.ts). */
 export async function POST(request: Request) {
   return withStaff(async (staff) => {
     const parsed = Input.safeParse(await request.json().catch(() => null));

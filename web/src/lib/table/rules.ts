@@ -2,8 +2,10 @@
 // Money is integer fils everywhere (BHD 1.500 = 1500). Prices always come from the menu on the server, never from the browser.
 import { z } from "zod";
 
-export const REQUEST_KINDS = ["coal", "waiter", "bill"] as const;
+export const REQUEST_KINDS = ["coal", "waiter", "bill", "cash"] as const;
 export type RequestKind = (typeof REQUEST_KINDS)[number];
+/** The call buttons on the table page. The bill is asked for from the Pay sheet (cash), so it has no button of its own. */
+export const CALL_BUTTONS = ["coal", "waiter"] as const satisfies readonly RequestKind[];
 
 export const READY_MINUTES = [10, 20] as const;
 
@@ -105,14 +107,14 @@ export function waitTable(orders: ReportOrder[], requests: ReportRequest[]): Wai
   return DAY_PARTS.map((part) => {
     const os = orders.filter((o) => dayPart(o.created_at) === part);
     const rs = requests.filter((r) => dayPart(r.created_at) === part && r.handled_at);
-    const req = (kind: RequestKind) => avg(rs.filter((r) => r.kind === kind).map((r) => minutesBetween(r.created_at, r.handled_at!)));
+    const req = (...kinds: RequestKind[]) => avg(rs.filter((r) => kinds.includes(r.kind as RequestKind)).map((r) => minutesBetween(r.created_at, r.handled_at!)));
     return {
       part,
       accept: avg(os.filter((o) => o.accepted_at).map((o) => minutesBetween(o.created_at, o.accepted_at!))),
       ready: avg(os.filter((o) => o.ready_at).map((o) => minutesBetween(o.created_at, o.ready_at!))),
       coal: req("coal"),
       waiter: req("waiter"),
-      bill: req("bill"),
+      bill: req("bill", "cash"),
     };
   });
 }

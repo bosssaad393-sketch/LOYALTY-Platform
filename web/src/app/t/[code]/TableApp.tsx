@@ -2,15 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { filsText, linesTotal, REQUEST_KINDS, type RequestKind } from "@/lib/table/rules";
+import { CALL_BUTTONS, filsText, linesTotal, type RequestKind } from "@/lib/table/rules";
+import type { PayMethod } from "@/lib/tap/rules";
 import type { MenuView } from "@/lib/table/db";
 import "./table.css";
 
 type Round = { id: string; status: string; readyMinutes: number | null; acceptedAt: string | null; lines: { nameEn: string; nameAr: string | null; qty: number; note: string | null }[] };
-type Tab = { rounds: Round[]; totalFils: number; calls: string[] };
+type PayState = "off" | "nothing" | "wait" | "paying" | "ready";
+type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; calls: string[] };
+/** After coming back from Tap: what the payment turned out to be. */
+type PayResult = "checking" | "captured" | "failed" | "review" | "initiated" | null;
 type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string };
 
 const POLL_MS = 5000;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy }: Props) {
   const t = useTranslations("table");
@@ -27,6 +32,11 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
   const [section, setSection] = useState(initialMenu[0]?.id ?? "");
   const [review, setReview] = useState(false);
   const sheet = useRef<HTMLDialogElement>(null);
+  const paySheet = useRef<HTMLDialogElement>(null);
+  const [paying, setPaying] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
+  const [payBusy, setPayBusy] = useState<PayMethod | "cash" | null>(null);
+  const [payResult, setPayResult] = useState<PayResult>(null);
 
   const money = (fils: number) => t("money", { amount: filsText(fils) });
 
@@ -41,6 +51,36 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     }, POLL_MS);
     return () => clearInterval(id);
   }, [token]);
+
+  // Back from Tap's page (?pay=<id>): ask the server, which asks Tap. A few tries, because a bank can take a moment.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const id = url.searchParams.get("pay");
+    if (!id || !UUID.test(id)) return;
+    url.searchParams.delete("pay");
+    url.searchParams.delete("tap_id");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    let stop = false;
+    (async () => {
+      setPayResult("checking");
+      for (let i = 0; i < 6 && !stop; i++) {
+        const res = await fetch(`/api/table/${token}/pay/check`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ paymentId: id }) }).catch(() => null);
+        const data = res?.ok ? await res.json().catch(() => null) : null;
+        if (data?.tab) setTab(data.tab);
+        if (data && data.status !== "initiated") { setPayResult(data.status); return; }
+        await new Promise((r) => setTimeout(r, 2500));
+      }
+      if (!stop) setPayResult("initiated");
+    })();
+    return () => { stop = true; };
+  }, [token]);
+
+  useEffect(() => {
+    const d = paySheet.current;
+    if (!d) return;
+    if (payOpen && !d.open) d.showModal();
+    if (!payOpen && d.open) d.close();
+  }, [payOpen]);
 
   // The chip follows the section on screen, and stays in view in its own sideways strip.
   useEffect(() => {
@@ -111,6 +151,33 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     setError(null);
     const data = await post("request", { kind });
     if (data) setTab(data.tab);
+    return Boolean(data);
+  }
+
+  /** Card or BENEFIT: the server makes the charge for what is left and sends back Tap's page. */
+  async function payOnline(method: PayMethod) {
+    setError(null);
+    setPayBusy(method);
+    const res = await fetch(`/api/table/${token}/pay`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ method }) }).catch(() => null);
+    const data = res ? await res.json().catch(() => ({})) : null;
+    if (res?.ok && typeof data?.url === "string") {
+      setPaying(true);
+      window.location.assign(data.url);
+      return;
+    }
+    setPayBusy(null);
+    if (!res) setError(t("errors.offline"));
+    else if (data?.error === "wait") setError(t("pay.waitError"));
+    else if (data?.error === "nothing") setError(t("pay.nothingError"));
+    else if (res.status === 429) setError(t("errors.tooMany"));
+    else setError(t("pay.failedError"));
+  }
+
+  async function payCash() {
+    setPayBusy("cash");
+    const ok = await call("cash");
+    setPayBusy(null);
+    if (ok) setPayOpen(false);
   }
 
   const status = (r: Round) => {
@@ -130,7 +197,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       </header>
 
       <section className="tb-calls" aria-label={t("callsLabel")}>
-        {REQUEST_KINDS.map((k) => {
+        {CALL_BUTTONS.map((k) => {
           const open = tab.calls.includes(k);
           return (
             <button key={k} type="button" className={`tb-call${open ? " on" : ""}`} aria-pressed={open} disabled={open} onClick={() => call(k)}>
@@ -140,6 +207,14 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
           );
         })}
       </section>
+
+      <div role="status">
+        {payResult && (
+          <p className={`tb-payresult r-${payResult}`}>
+            {t(`pay.result.${payResult}` as "pay.result.captured")}
+          </p>
+        )}
+      </div>
 
       {tab.rounds.length > 0 && (
         <section className="tb-rounds" id="tb-rounds" aria-labelledby="tb-h-rounds">
@@ -162,6 +237,14 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
               </li>
             ))}
           </ol>
+          {tab.paidFils > 0 && (
+            <div className="tb-paidrow"><span>{t("pay.paidSoFar")}</span><b>{money(tab.paidFils)}</b></div>
+          )}
+          {tab.balanceFils > 0 && (
+            tab.calls.includes("cash")
+              ? <p className="tb-cashon" role="status">{t("pay.cashOnTheWay")}</p>
+              : <button type="button" className="btn primary tb-paybtn" onClick={() => { setError(null); setPayOpen(true); }}>{t("pay.button", { amount: filsText(tab.balanceFils) })}</button>
+          )}
           <a className="tb-card" href={`/join/${venueSlug}`}>
             <b>{t("cardOffer", { venue: venueName })}</b>
             <small>{t("cardOfferSub")}</small>
@@ -214,7 +297,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       {poweredBy && <p className="foot">{poweredBy}</p>}
       {allItems.some((i) => i.imageUrl?.startsWith("/menu-photos/")) && <p className="foot"><a href="/menu-photos/CREDITS.txt">{t("photoCredits")}</a></p>}
 
-      {!review && <div role="alert">{error && <p className="tb-error">{error}</p>}</div>}
+      {!review && !payOpen && <div role="alert">{error && <p className="tb-error">{error}</p>}</div>}
 
       {count > 0 && (
         <div className="tb-bar">
@@ -246,6 +329,30 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
           {review && <div role="alert">{error && <p className="tb-error" style={{ marginBlock: "0 12px" }}>{error}</p>}</div>}
           <button type="button" className="btn primary" disabled={busy} onClick={send}>{busy ? t("sending") : t("send", { count })}</button>
           <button type="button" className="tb-more" onClick={() => setReview(false)}>{t("addMore")}</button>
+        </div>
+      </dialog>
+
+      <dialog ref={paySheet} className="tb-sheet" aria-labelledby="tb-h-pay" onClose={() => setPayOpen(false)} onClick={(e) => { if (e.target === e.currentTarget) setPayOpen(false); }}>
+        <div className="tb-sheet-in">
+          <div className="tb-grip" aria-hidden="true" />
+          <h2 className="tb-h" id="tb-h-pay">{t("pay.title")}</h2>
+          <div className="tb-sum-total"><span>{t("pay.toPay")}</span><b>{money(tab.balanceFils)}</b></div>
+          {payOpen && <div role="alert">{error && <p className="tb-error" style={{ marginBlock: "0 12px" }}>{error}</p>}</div>}
+          {tab.pay !== "off" && (
+            <>
+              {tab.pay === "wait" && <p className="tb-paynote">{t("pay.waitNote")}</p>}
+              <button type="button" className="tb-payopt" disabled={tab.pay === "wait" || payBusy !== null || paying} onClick={() => payOnline("benefit")}>
+                <b>{t("pay.benefit")}</b><small>{payBusy === "benefit" ? t("pay.opening") : t("pay.benefitSub")}</small>
+              </button>
+              <button type="button" className="tb-payopt" disabled={tab.pay === "wait" || payBusy !== null || paying} onClick={() => payOnline("card")}>
+                <b>{t("pay.card")}</b><small>{payBusy === "card" ? t("pay.opening") : t("pay.cardSub")}</small>
+              </button>
+            </>
+          )}
+          <button type="button" className="tb-payopt" disabled={payBusy !== null || paying} onClick={payCash}>
+            <b>{t("pay.cash")}</b><small>{payBusy === "cash" ? t("sending") : t("pay.cashSub")}</small>
+          </button>
+          <button type="button" className="tb-more" onClick={() => setPayOpen(false)}>{t("pay.notNow")}</button>
         </div>
       </dialog>
     </>

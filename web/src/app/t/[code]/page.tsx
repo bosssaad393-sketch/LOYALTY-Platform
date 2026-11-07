@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import LanguageSwitch from "@/components/LanguageSwitch";
@@ -22,6 +23,8 @@ export default async function TablePage({ params }: PageProps<"/t/[code]">) {
   const table = await findTable(token);
   if (!table) notFound();
   const locale = await getLocale();
+  // The tab reads the clock (is a payment page still open?), so this page is always rendered at request time.
+  await connection();
   const [menu, tab] = await Promise.all([readMenu(table.venueId), tableView(table)]);
 
   return (
