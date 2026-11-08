@@ -702,6 +702,6 @@ textarea.ow-terms { min-height: 240px; font-size: var(--fs-md); line-height: 1.6
 .hm-n { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--gold-dim); color: var(--gold2); display: grid; place-items: center; font: 700 var(--fs-base)/1 var(--sans); font-variant-numeric: tabular-nums; }
 .hm-steps b { display: block; font-size: var(--fs-lg); color: var(--text); }
 .hm-steps p { margin-top: 4px; font-size: var(--fs-base); line-height: 1.5; color: var(--muted); }
-.hm-team { position: relative; z-index: 1; margin-top: 26px; display: flex; justify-content: center; gap: 10px; font-size: var(--fs-base); color: var(--dim); }
+.hm-team { position: relative; z-index: 1; margin-top: 26px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 22px; font-size: var(--fs-base); color: var(--dim); }
 .hm-team a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; padding: 12px 4px; }
 .hm-team a:hover { color: var(--gold2); }

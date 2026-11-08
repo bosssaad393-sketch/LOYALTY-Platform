@@ -7,13 +7,14 @@ import LanguageSwitch from "@/components/LanguageSwitch";
 import { directionOf } from "@/i18n/locale";
 import { brandLanguages, brandName, brandVenue, poweredBy } from "@/lib/brand";
 import { getVenue } from "@/lib/supabase";
+import { readLinks } from "@/lib/venueLinks";
 
 // The venue's rules are read live and the guest's language comes from their cookie, so this page is made per request.
 export const instant = false;
 
 /**
  * The front door: someone who opens the site's address instead of a QR code. It says what the card is, how it works with this
- * venue's real rules, and gets them to their card. Staff and the owner find their sign-in at the foot.
+ * venue's real rules, and gets them to their card. The foot links to the menu, Google reviews and Instagram.
  */
 export default async function Home() {
   const locale = await getLocale();
@@ -24,6 +25,7 @@ export default async function Home() {
   const rate = Number(venue?.points_per_bhd ?? 0);
   const goal = Number(venue?.reward_goal ?? 0);
   const reward = venue?.reward_text?.trim() ?? "";
+  const links = venue ? await readLinks(venue.id) : { instagram: null, googleReview: null };
 
   const steps = [
     { title: t("step1"), text: t("step1Text") },
@@ -60,10 +62,10 @@ export default async function Home() {
           ))}
         </ol>
 
-        <nav className="hm-team rv" style={{ "--i": 6 } as CSSProperties} aria-label={t("teamLabel")}>
-          <a href="/staff">{t("staff")}</a>
-          <span aria-hidden="true">·</span>
-          <a href="/owner">{t("owner")}</a>
+        <nav className="hm-team rv" style={{ "--i": 6 } as CSSProperties} aria-label={t("linksLabel")}>
+          {venue && <a href={`/menu/${venue.slug}`}>{t("menu")}</a>}
+          {links.googleReview && <a href={links.googleReview} target="_blank" rel="noopener noreferrer">{t("review")}</a>}
+          {links.instagram && <a href={links.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>}
         </nav>
         {poweredBy() && <p className="foot">{poweredBy()}</p>}
       </main>

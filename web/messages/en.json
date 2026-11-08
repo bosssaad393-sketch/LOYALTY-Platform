@@ -139,6 +139,16 @@
     "step3Plain": "Your points add up on your card until your reward is ready.",
     "teamLabel": "Team sign-in",
     "staff": "Staff",
-    "owner": "Owner"
+    "owner": "Owner",
+    "menu": "Menu",
+    "review": "Leave a Google review",
+    "linksLabel": "Menu and links"
+  },
+  "menuPage": {
+    "title": "Menu",
+    "atTable": "At a table? Scan its QR code to order from your phone.",
+    "empty": "The menu is not ready yet.",
+    "soldOut": "Sold out",
+    "money": "BHD {amount}"
   }
 }
