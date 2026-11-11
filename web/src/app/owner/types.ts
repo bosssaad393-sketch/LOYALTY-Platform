@@ -12,7 +12,20 @@ export type Summary = {
   perDay14: { day: string; visits: number }[];
 };
 
-export type Guest = { cardId: string; code: string; name: string; points: number; visits: number; lastVisit: string | null; joined: string };
+// GET /api/owner/insights (src/lib/ownerInsights.ts). busiest.weekday: 0 = Sunday ... 6 = Saturday, Bahrain time.
+export type Insights = {
+  visited: number;
+  returning: number;
+  returningRate: number | null;
+  lapsed: number;
+  nearReward: number;
+  rewardReady: number;
+  busiest: { weekday: number; visits: number; share: number } | null;
+  rewardGoal: number;
+  complete: boolean;
+};
+
+export type Guest ={ cardId: string; code: string; name: string; points: number; visits: number; lastVisit: string | null; joined: string };
 export type Rules = { pointsPerBhd: number; rewardGoal: number; rewardText: string };
 export type Member = { id: string; name: string; role: string; active: boolean; hasPin: boolean; me: boolean; waiting?: boolean };
 

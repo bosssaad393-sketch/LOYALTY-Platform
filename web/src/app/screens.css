@@ -135,6 +135,7 @@
 .ow-two { display: grid; gap: 16px; margin-block-start: 16px; }
 .ow-two > * { min-width: 0; }
 .ow-col { display: grid; gap: 16px; align-content: start; }
+.ow-insights { margin-block-start: 16px; }
 .ow-do { display: grid; margin-block-start: 6px; }
 .ow-do .ow-quick-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; width: 100%; min-height: 0; padding: 12px 0; border: 0; border-block-start: 1px solid var(--ow-rule); border-radius: 0; background: none; text-align: start; }
 .ow-do .ow-quick-card:first-child { border-block-start: 0; }
