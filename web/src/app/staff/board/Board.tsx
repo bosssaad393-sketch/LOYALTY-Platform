@@ -49,6 +49,15 @@ export default function Board({ venue }: { venue: string }) {
   const [offline, setOffline] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [tableId, setTableId] = useState("");
+  const [find, setFind] = useState("");
+  const [cat, setCat] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 5000);
+    return () => clearTimeout(t);
+  }, [notice]);
   const [alerts, setAlerts] = useState(false);
   const audio = useRef<AudioContext | null>(null);
   const seen = useRef<Set<string> | null>(null);
@@ -114,8 +123,13 @@ export default function Board({ venue }: { venue: string }) {
 
   async function addRound() {
     const items = Object.entries(cart).filter(([, q]) => q > 0).map(([id, qty]) => ({ id, qty }));
-    if (await act("add", { tableId, items })) { setCart({}); setView("live"); }
+    const label = data?.tables.find((t) => t.id === tableId)?.label;
+    setAdding(true);
+    const ok = await act("add", { tableId, items });
+    setAdding(false);
+    if (ok) { setCart({}); setFind(""); setCat(""); setTableId(""); setNotice(`Added to table ${label ?? ""}.`); setView("live"); }
   }
+  const bump = (id: string, by: number) => setCart((c) => ({ ...c, [id]: Math.max(0, Math.min(20, (c[id] ?? 0) + by)) }));
 
   if (!data) return <main className="app bd"><p className="bd-empty" role="status">{offline ? "No connection. Trying again…" : "Loading…"}</p></main>;
 
@@ -126,6 +140,13 @@ export default function Board({ venue }: { venue: string }) {
   const allItems = data.menu.flatMap((c) => c.items);
   const cartCount = Object.values(cart).reduce((a, b) => a + b, 0);
   const cartTotal = allItems.reduce((sum, i) => sum + i.priceFils * (cart[i.id] ?? 0), 0);
+
+  const picked = data.tables.find((t) => t.id === tableId);
+  const q = find.trim().toLowerCase();
+  const shown = data.menu
+    .filter((c) => q || !cat || c.id === cat)
+    .map((c) => ({ ...c, items: c.items.filter((i) => i.available && (!q || i.name.toLowerCase().includes(q))) }))
+    .filter((c) => c.items.length > 0);
 
   const lines = (o: Order) => (
     <ul className="bd-lines">
@@ -148,6 +169,10 @@ export default function Board({ venue }: { venue: string }) {
 
       {offline && <p className="bd-error" role="alert">No connection. This board may be out of date.</p>}
       <div role="alert">{error && <p className="bd-error">{error}</p>}</div>
+      <div role="status">{notice && <p className="bd-note">{notice}</p>}</div>
+
+      <input className="in bd-find" type="search" placeholder="Search the menu to add to a table" aria-label="Search the menu to add to a table" value={find}
+        onChange={(e) => { setFind(e.target.value); if (e.target.value.trim()) { setView("add"); setError(null); } }} />
 
       <nav className="bd-tabs" aria-label="Board sections">
         {([["live", `Live${liveCount ? ` (${liveCount})` : ""}`], ["tabs", `Open tabs (${data.tabs.length})`], ["add", "Add order"], ["soldout", "Sold out"]] as [View, string][]).map(([v, label]) => (
@@ -262,6 +287,7 @@ export default function Board({ venue }: { venue: string }) {
               {t.paidFils > 0 && <p className="bd-due">Paid by card {money(t.paidFils)} · Left <b>{money(t.balanceFils)}</b></p>}
               <p className="bd-none">Open {waited(t.openedAt, now)} min{t.paying ? " · The guest has the card payment page open" : ""}</p>
               <p className="bd-none">{t.pointsTo ? `Points go to ${t.pointsTo}'s card when paid.` : "No guest card on this tab."}</p>
+              <button type="button" className="btn primary" onClick={() => { const tb = data.tables.find((x) => x.label === t.table); if (tb) setTableId(tb.id); setError(null); setView("add"); }}>Add items</button>
               <button type="button" className="btn" disabled={!t.canClose} onClick={() => act("close", { tabId: t.id })}>{t.paidFils > 0 ? "Rest paid in cash, close tab" : "Cash paid, close tab"}</button>
               {!t.canClose && <p className="bd-none">A round is still open on this tab.</p>}
             </article>
@@ -271,35 +297,58 @@ export default function Board({ venue }: { venue: string }) {
 
       {view === "add" && (
         <section className="bd-list" aria-label="Add an order">
-          <label className="field"><span className="lbl">Table</span>
-            <select className="in" value={tableId} onChange={(e) => setTableId(e.target.value)}>
-              <option value="">Choose a table</option>
-              {data.tables.map((t) => <option key={t.id} value={t.id}>Table {t.label}</option>)}
-            </select>
-          </label>
-          {data.menu.map((c) => (
+          <h2 className="bd-h" id="bd-h-table">Table</h2>
+          <div className="bd-tables" role="group" aria-labelledby="bd-h-table">
+            {data.tables.map((t) => {
+              const tab = data.tabs.find((x) => x.table === t.label);
+              return (
+                <button key={t.id} type="button" className={`bd-tbl${tableId === t.id ? " on" : ""}`} aria-pressed={tableId === t.id} onClick={() => setTableId(t.id)}>
+                  <b>{t.label}</b>
+                  <small>{tab ? money(tab.totalFils) : "No tab"}</small>
+                </button>
+              );
+            })}
+          </div>
+
+          {!q && data.menu.length > 1 && (
+            <div className="bd-tabs bd-cats" role="group" aria-label="Menu section">
+              <button type="button" className={cat === "" ? "on" : ""} aria-pressed={cat === ""} onClick={() => setCat("")}>All</button>
+              {data.menu.map((c) => <button key={c.id} type="button" className={cat === c.id ? "on" : ""} aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>{c.name}</button>)}
+            </div>
+          )}
+          {shown.length === 0 && <p className="bd-none">Nothing on the menu matches.</p>}
+          {shown.map((c) => (
             <div key={c.id}>
               <h2 className="bd-h">{c.name}</h2>
               <ul className="bd-menu">
-                {c.items.filter((i) => i.available).map((i) => {
+                {c.items.map((i) => {
                   const n = cart[i.id] ?? 0;
                   return (
-                    <li key={i.id}>
-                      <span>{i.name}<small>{money(i.priceFils)}</small></span>
-                      <span className="bd-step">
-                        {n > 0 && <button type="button" aria-label={`One less ${i.name}`} onClick={() => setCart({ ...cart, [i.id]: n - 1 })}>−</button>}
-                        {n > 0 && <b>{n}</b>}
-                        <button type="button" aria-label={`One more ${i.name}`} disabled={n >= 20} onClick={() => setCart({ ...cart, [i.id]: n + 1 })}>+</button>
-                      </span>
+                    <li key={i.id} className={n > 0 ? "has" : ""}>
+                      <button type="button" className="bd-pick" aria-label={`Add one ${i.name}`} disabled={n >= 20} onClick={() => bump(i.id, 1)}>
+                        <span>{i.name}</span><small>{money(i.priceFils)}</small>
+                      </button>
+                      {n > 0 && (
+                        <span className="bd-step">
+                          <button type="button" aria-label={`One less ${i.name}`} onClick={() => bump(i.id, -1)}>−</button>
+                          <b aria-live="polite">{n}</b>
+                        </span>
+                      )}
                     </li>
                   );
                 })}
               </ul>
             </div>
           ))}
-          <button type="button" className="btn primary" disabled={!tableId || cartCount === 0} onClick={addRound}>
-            {cartCount ? `Add ${cartCount} to the board · ${money(cartTotal)}` : "Add to the board"}
-          </button>
+
+          <div className="bd-addbar">
+            <p>
+              <b>{picked ? `Table ${picked.label}` : "Choose a table"}</b>
+              <span>{cartCount ? `${cartCount} ${cartCount === 1 ? "item" : "items"} · ${money(cartTotal)}` : "Tap an item to add it"}</span>
+            </p>
+            {cartCount > 0 && <button type="button" className="bd-quiet" onClick={() => setCart({})}>Clear</button>}
+            <button type="button" className="btn primary" disabled={!tableId || cartCount === 0 || adding} onClick={addRound}>{adding ? "Adding…" : "Add to tab"}</button>
+          </div>
         </section>
       )}
 

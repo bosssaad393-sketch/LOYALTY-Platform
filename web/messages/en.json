@@ -32,8 +32,9 @@
   "table": {
     "money": "BHD {amount}",
     "tableLabel": "Table {label}",
-    "callsLabel": "Call the team",
+    "callsLabel": "Bill and points",
     "calls": {
+      "redeem": "Redeem points",
       "coal": "Coal",
       "waiter": "Waiter",
       "bill": "Bill",

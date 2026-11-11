@@ -32,8 +32,9 @@
   "table": {
     "money": "{amount} د.ب",
     "tableLabel": "طاولة {label}",
-    "callsLabel": "اطلب الفريق",
+    "callsLabel": "الفاتورة والنقاط",
     "calls": {
+      "redeem": "استبدال النقاط",
       "coal": "الفحم",
       "waiter": "النادل",
       "bill": "الفاتورة",

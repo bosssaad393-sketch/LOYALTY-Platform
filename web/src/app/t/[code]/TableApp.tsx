@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CALL_BUTTONS, filsText, linesTotal, type RequestKind } from "@/lib/table/rules";
+import { filsText, linesTotal, type RequestKind } from "@/lib/table/rules";
 import type { PayMethod } from "@/lib/tap/rules";
 import type { MenuView } from "@/lib/table/db";
 import "./table.css";
@@ -14,11 +14,11 @@ type Points = { card: "mine" | "other" | "none"; estimate: number };
 type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; calls: string[] };
 /** After coming back from Tap: what the payment turned out to be. */
 type PayResult = "checking" | "captured" | "failed" | "review" | "initiated" | null;
-type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string };
+type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string; cardHref: string };
 
 const POLL_MS = 5000;
 
-export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy }: Props) {
+export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy, cardHref }: Props) {
   const t = useTranslations("table");
   const locale = useLocale();
   const ar = locale === "ar";
@@ -176,6 +176,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     else setError(t("errors.server"));
   }
 
+  const billAsked = tab.calls.includes("bill") || tab.calls.includes("cash");
   async function call(kind: RequestKind) {
     setError(null);
     const data = await post("request", { kind });
@@ -226,15 +227,11 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       </header>
 
       <section className="tb-calls rv" style={{ "--i": 1 } as CSSProperties} aria-label={t("callsLabel")}>
-        {CALL_BUTTONS.map((k) => {
-          const open = tab.calls.includes(k);
-          return (
-            <button key={k} type="button" className={`tb-call${open ? " on" : ""}`} aria-pressed={open} disabled={open} onClick={() => call(k)}>
-              <b>{t(`calls.${k}`)}</b>
-              <small>{open ? t("calls.onTheWay") : t("calls.tap")}</small>
-            </button>
-          );
-        })}
+        <button type="button" className={`tb-call${billAsked ? " on" : ""}`} aria-pressed={billAsked} disabled={billAsked} onClick={() => call("bill")}>
+          {t("calls.bill")}{billAsked && <small>{t("calls.onTheWay")}</small>}
+        </button>
+        {/* A new tab, so the table page stays open behind the card. */}
+        <a className="tb-call" href={cardHref} target="_blank" rel="noopener">{t("calls.redeem")}</a>
       </section>
 
       <div role="status">
@@ -312,27 +309,31 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
 
       {menu.map((c) => (
         <section key={c.id} id={`c-${c.id}`} className="tb-cat" aria-labelledby={`h-${c.id}`}>
-          <h2 className="tb-cat-h" id={`h-${c.id}`}>{name(c)}</h2>
+          <h2 className="tb-cat-h" id={`h-${c.id}`}>{name(c)}<small>{c.items.length}</small></h2>
           <ul className="tb-items">
             {c.items.map((i, k) => {
               const n = qty[i.id] ?? 0;
               const note = (ar && i.noteAr) || i.noteEn;
               return (
-                <li key={i.id} className={`tb-item rv${i.available ? "" : " off"}`} style={{ "--i": 2 + Math.min(k, 6) } as CSSProperties}>
-                  {i.imageUrl && (
-                    /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
-                    <img className="tb-photo" src={i.imageUrl} alt="" width={88} height={88} loading="lazy" decoding="async" />
-                  )}
+                <li key={i.id} className={`tb-item rv${i.available ? "" : " off"}${n > 0 ? " picked" : ""}`} style={{ "--i": 2 + Math.min(k, 6) } as CSSProperties}>
                   <div className="tb-item-main">
                     <b>{name(i)}</b>
                     {note && <small>{note}</small>}
                     <span className="tb-price">{i.available ? money(i.priceFils) : t("soldOut")}</span>
                   </div>
-                  {i.available && (
-                    <div className="tb-step">
-                      {n > 0 && <button type="button" aria-label={t("less", { item: name(i) })} onClick={() => change(i.id, -1)}>−</button>}
-                      {n > 0 && <span aria-live="polite">{n}</span>}
-                      <button type="button" className="add" aria-label={t("more", { item: name(i) })} onClick={() => change(i.id, 1)}>+</button>
+                  {(i.imageUrl || i.available) && (
+                    <div className={`tb-media${i.imageUrl ? "" : " bare"}`}>
+                      {i.imageUrl && (
+                        /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
+                        <img className="tb-photo" src={i.imageUrl} alt="" width={112} height={112} loading="lazy" decoding="async" />
+                      )}
+                      {i.available && (
+                        <div className="tb-step">
+                          {n > 0 && <button type="button" aria-label={t("less", { item: name(i) })} onClick={() => change(i.id, -1)}>−</button>}
+                          {n > 0 && <span aria-live="polite">{n}</span>}
+                          <button type="button" className="add" aria-label={t("more", { item: name(i) })} onClick={() => change(i.id, 1)}>+</button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </li>

@@ -61,13 +61,15 @@ export default async function TablePage({ params, searchParams }: PageProps<"/t/
     );
   }
 
-  const [menu, tab] = await Promise.all([readMenu(table.venueId), tableView(table, cardId, sentOrders)]);
+  const [menu, tab, myCard] = await Promise.all([readMenu(table.venueId), tableView(table, cardId, sentOrders), cardId ? venueCard(table.venueId, cardId) : null]);
+  // Points are used from the guest's own card; a guest without one is offered it.
+  const cardHref = myCard ? `/card/${myCard.id}` : `/join/${encodeURIComponent(table.venueSlug)}`;
 
   return (
     <NextIntlClientProvider>
       <main className="app tb" lang={locale} dir={directionOf(locale)}>
         <LanguageSwitch languages={brandLanguages()} />
-        <TableApp token={token} label={table.label} venueName={table.venueName} venueSlug={table.venueSlug} menu={menu} initialTab={tab} poweredBy={poweredBy()} />
+        <TableApp token={token} label={table.label} venueName={table.venueName} venueSlug={table.venueSlug} menu={menu} cardHref={cardHref} initialTab={tab} poweredBy={poweredBy()} />
       </main>
     </NextIntlClientProvider>
   );
