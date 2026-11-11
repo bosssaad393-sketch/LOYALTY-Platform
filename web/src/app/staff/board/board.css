@@ -74,3 +74,6 @@
 .bd-addbar p span { color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .bd-addbar .btn { flex: none; width: auto; padding-inline: 22px; }
 .bd-find { margin-block-start: 12px; }
+
+/* A reward asked from a table: confirm (spends the points) or decline. */
+.bd-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

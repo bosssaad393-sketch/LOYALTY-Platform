@@ -5,9 +5,10 @@ import { db } from "../supabase";
 import { tapOnFor } from "../tap/client";
 import { payingNow, recentCardPayments, tabMoney } from "../tap/payments";
 import { payState } from "../tap/rules";
-import { awardTabPoints, cardNames, linkCard, pointsFor, venueRate } from "./points";
+import { redeemReward } from "../ledgerDb";
+import { awardTabPoints, cardNames, linkCard, pointsFor, rewardFor, venueRate } from "./points";
 import {
-  linesTotal, orderPatch, priceCart, salesReport, tabCanClose, waitTable,
+  linesTotal, orderPatch, priceCart, REWARD_KIND, salesReport, tabCanClose, waitTable,
   type Cart, type MenuRow, type OrderAction, type OrderStatus, type RequestKind,
 } from "./rules";
 
@@ -109,13 +110,41 @@ export async function placeOrder(table: { id: string; venueId: string }, cart: C
 }
 
 /** Coal, waiter or bill. A second tap while the first is still open changes nothing, so the clock keeps the first time. */
-export async function addRequest(table: { id: string; venueId: string }, kind: RequestKind): Promise<void> {
+export async function addRequest(table: { id: string; venueId: string }, kind: RequestKind | typeof REWARD_KIND): Promise<void> {
   const tab = await ensureTab(table.id, table.venueId);
   const open = must(await db().from("table_requests").select("id").eq("tab_id", tab.id).eq("venue_id", table.venueId).eq("kind", kind).is("handled_at", null).maybeSingle());
   if (open) return;
   const { error } = await db().from("table_requests").insert({ venue_id: table.venueId, tab_id: tab.id, table_id: table.id, kind });
   // 23505: another tap got in first, which is the same result.
   if (error && (error as { code?: string }).code !== "23505") throw new Error(error.message);
+}
+
+/**
+ * The guest asks to use their points for the venue's reward. Only for this phone's own card, only once it has reached the
+ * goal, and only when this table's bill is on that card. Nothing is spent here: staff confirm on the board.
+ */
+export async function askReward(table: { id: string; venueId: string }, phoneCard: string | null): Promise<"ok" | "no_card" | "not_enough" | "other_card"> {
+  const reward = phoneCard ? await rewardFor(table.venueId, phoneCard) : null;
+  if (!phoneCard || !reward) return "no_card";
+  if (!reward.ready) return "not_enough";
+  const tab = await ensureTab(table.id, table.venueId);
+  if ((await linkCard(table.venueId, tab.id, tab.card_id ?? null, phoneCard)) !== phoneCard) return "other_card";
+  await addRequest(table, REWARD_KIND);
+  return "ok";
+}
+
+/** Staff confirm a reward asked from a table: the points come off the tab's card and the call is closed. */
+export async function giveReward(venueId: string, requestId: string, staffId: string): Promise<{ ok: true; cardId: string; balance: number } | { ok: false; reason: "not_found" | "no_card" | "not_enough" }> {
+  const call = must(await db().from("table_requests").select("id, tab_id, kind").eq("id", requestId).eq("venue_id", venueId).is("handled_at", null).maybeSingle()) as { tab_id: string; kind: string } | null;
+  if (!call || call.kind !== REWARD_KIND) return { ok: false, reason: "not_found" };
+  const tab = must(await db().from("tabs").select("card_id").eq("id", call.tab_id).eq("venue_id", venueId).maybeSingle()) as { card_id: string | null } | null;
+  const reward = tab?.card_id ? await rewardFor(venueId, tab.card_id) : null;
+  if (!tab?.card_id || !reward) return { ok: false, reason: "no_card" };
+  if (!reward.ready) return { ok: false, reason: "not_enough" };
+  // The call is closed first, so two taps cannot spend the points twice.
+  if (!(await handleRequest(venueId, requestId, staffId))) return { ok: false, reason: "not_found" };
+  const r = await redeemReward(tab.card_id, staffId);
+  return { ok: true, cardId: tab.card_id, balance: r.new_balance };
 }
 
 /** Whose card this tab's points go to, as the guest's page may show it: theirs, someone else's (no name), or nobody's yet. */
@@ -130,7 +159,9 @@ export async function tableView(table: TableRef, phoneCard: string | null = null
   const cardOn = tapOnFor(table.venueSlug);
   const tab = await openTabOf(table.id, table.venueId);
   const none: TabPoints = { card: "none", estimate: 0 };
-  if (!tab) return { rounds: [], totalFils: 0, paidFils: 0, balanceFils: 0, pay: payState({ enabled: cardOn, balanceFils: 0, canClose: true, paying: false }), points: none, calls: [] as string[] };
+  // This phone's own card against the venue's reward, for the Redeem button.
+  const reward = phoneCard ? await rewardFor(table.venueId, phoneCard) : null;
+  if (!tab) return { rounds: [], totalFils: 0, paidFils: 0, balanceFils: 0, pay: payState({ enabled: cardOn, balanceFils: 0, canClose: true, paying: false }), points: none, reward, calls: [] as string[] };
   const orders = must(await db().from("orders").select(ORDER_COLUMNS).eq("tab_id", tab.id).eq("venue_id", table.venueId).order("created_at")) as OrderRow[];
   const lines = await linesFor(orders.map((o) => o.id), table.venueId);
   const calls = must(await db().from("table_requests").select("kind").eq("tab_id", tab.id).eq("venue_id", table.venueId).is("handled_at", null)) as { kind: string }[];
@@ -154,6 +185,7 @@ export async function tableView(table: TableRef, phoneCard: string | null = null
     balanceFils: money.balanceFils,
     pay: payState({ enabled: cardOn, balanceFils: money.balanceFils, canClose: money.canClose, paying }),
     points,
+    reward,
     calls: calls.map((c) => c.kind),
   };
 }
@@ -167,7 +199,7 @@ export async function readBoard(venueId: string) {
   const tabIds = tabs.map((t) => t.id);
   const orders = tabIds.length ? (must(await db().from("orders").select(ORDER_COLUMNS).eq("venue_id", venueId).in("tab_id", tabIds).order("created_at")) as OrderRow[]) : [];
   const lines = await linesFor(orders.map((o) => o.id), venueId);
-  const calls = must(await db().from("table_requests").select("id, table_id, kind, created_at").eq("venue_id", venueId).is("handled_at", null).order("created_at")) as { id: string; table_id: string; kind: string; created_at: string }[];
+  const calls = must(await db().from("table_requests").select("id, table_id, tab_id, kind, created_at").eq("venue_id", venueId).is("handled_at", null).order("created_at")) as { id: string; table_id: string; tab_id: string; kind: string; created_at: string }[];
   const { categories, items } = await menuRows(venueId);
   const label = (id: string) => labelOf.get(id) ?? "?";
   const money = new Map(await Promise.all(tabIds.map(async (id) => [id, { ...(await tabMoney(venueId, id)), paying: await payingNow(venueId, id) }] as const)));
@@ -180,10 +212,19 @@ export async function readBoard(venueId: string) {
   const taken = must(await db().from("audit_log").select("detail, created_at").eq("venue_id", venueId).eq("action", "order_cancelled_by_guest").gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString())) as { detail: { order?: string } | null; created_at: string }[];
   const takenAt = new Map(taken.filter((a) => a.detail?.order).map((a) => [a.detail!.order!, a.created_at]));
 
+  // A reward call says what to bring and whose points pay for it.
+  const rewardText = calls.some((c) => c.kind === REWARD_KIND)
+    ? ((must(await db().from("venues").select("reward_text").eq("id", venueId).maybeSingle()) as { reward_text: string | null } | null)?.reward_text ?? "").trim()
+    : "";
+  const cardOfTab = new Map(tabs.map((t) => [t.id, t.card_id ?? null]));
+
   return {
     now: new Date().toISOString(),
     tables,
-    calls: calls.map((c) => ({ id: c.id, table: label(c.table_id), kind: c.kind, at: c.created_at })),
+    calls: calls.map((c) => ({
+      id: c.id, table: label(c.table_id), kind: c.kind, at: c.created_at,
+      ...(c.kind === REWARD_KIND ? { reward: rewardText, guest: names.get(cardOfTab.get(c.tab_id) ?? "") ?? null } : {}),
+    })),
     orders: orders
       .filter((o) => o.status === "new" || o.status === "accepted" || o.status === "ready")
       .map((o) => ({

@@ -7,7 +7,7 @@ import { filsMoney } from "@/lib/format";
 
 type Line = { name: string; qty: number; note: string | null };
 type Order = { id: string; table: string; status: "new" | "accepted" | "ready"; source: string; at: string; acceptedAt: string | null; readyMinutes: number | null; lines: Line[] };
-type Call = { id: string; table: string; kind: string; at: string };
+type Call = { id: string; table: string; kind: string; at: string; reward?: string; guest?: string | null };
 type TabRow = { id: string; table: string; openedAt: string; totalFils: number; paidFils: number; balanceFils: number; paying: boolean; pointsTo: string | null; canClose: boolean };
 type CardPaid = { id: string; table: string; amountFils: number; method: string | null; at: string; closed: boolean };
 type GuestCancelled = { id: string; table: string; at: string; lines: { name: string; qty: number }[] };
@@ -18,7 +18,7 @@ type View = "live" | "tabs" | "add" | "soldout";
 const POLL_MS = 4000;
 /** While the board is in the background it still checks, less often, so the alert can reach a locked or switched-away screen. */
 const HIDDEN_EVERY = 4;
-const KIND: Record<string, string> = { coal: "Coal", waiter: "Waiter", bill: "Bill", cash: "Pay cash: bring the bill" };
+const KIND: Record<string, string> = { coal: "Coal", waiter: "Waiter", bill: "Bill", cash: "Pay cash: bring the bill", reward: "Reward" };
 const METHOD: Record<string, string> = { BENEFIT: "BENEFIT", APPLE_PAY: "Apple Pay", VISA: "Visa", MASTERCARD: "Mastercard", MADA: "mada", AMEX: "Amex" };
 
 /** A short two-note chime made in the browser, so there is no sound file to load. */
@@ -188,14 +188,24 @@ export default function Board({ venue }: { venue: string }) {
             {data.calls.map((c) => {
               const m = waited(c.at, now);
               return (
-                <article key={c.id} className={`bd-card${m >= 5 ? " late" : ""}${c.kind === "cash" ? " cash" : ""}`}>
+                <article key={c.id} className={`bd-card${m >= 5 ? " late" : ""}${c.kind === "cash" || c.kind === "reward" ? " cash" : ""}`}>
                   <div className="bd-row"><strong className="bd-table">Table {c.table}</strong><span className="bd-clock">{m} min</span></div>
                   <p className="bd-kind">{KIND[c.kind] ?? c.kind}</p>
                   {c.kind === "cash" && (() => {
                     const tab = data.tabs.find((x) => x.table === c.table);
                     return tab ? <p className="bd-due">To collect <b>{money(tab.balanceFils)}</b></p> : null;
                   })()}
-                  <button type="button" className="btn bd-act" onClick={() => act("request", { requestId: c.id })}>Done</button>
+                  {c.kind === "reward" ? (
+                    <>
+                      <p className="bd-due">{c.guest ? `${c.guest} pays with points: ` : "Paid with points: "}<b>{c.reward || "the reward"}</b></p>
+                      <div className="bd-two">
+                        <button type="button" className="btn primary bd-act" onClick={() => act("reward", { requestId: c.id })}>Give it, take points</button>
+                        <button type="button" className="btn bd-act" onClick={() => act("request", { requestId: c.id })}>Not now</button>
+                      </div>
+                    </>
+                  ) : (
+                    <button type="button" className="btn bd-act" onClick={() => act("request", { requestId: c.id })}>Done</button>
+                  )}
                 </article>
               );
             })}

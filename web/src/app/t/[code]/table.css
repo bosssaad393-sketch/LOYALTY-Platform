@@ -107,3 +107,12 @@ p.tb-card { cursor: default; }
   .tb-step button:active { transform: scale(0.92); }
 }
 .tb-round.fresh { border-radius: var(--r-sm); }
+
+/* Redeem points: what the guest's card can claim, opened from the top row. */
+.tb-reward { display: grid; gap: 8px; margin-block-start: 8px; padding: 14px; border: 1px solid var(--gold-dim); border-radius: var(--r-sm); }
+.tb-reward b { font-size: var(--fs-md); }
+.tb-reward small { color: var(--muted); font-size: var(--fs-sm); }
+.tb-reward .btn { margin-block-start: 4px; }
+.tb-meter { display: block; block-size: 6px; border-radius: var(--r-pill); background: var(--surface2); overflow: hidden; }
+.tb-meter i { display: block; block-size: 100%; border-radius: var(--r-pill); background: var(--gold); }
+.tb-link { color: var(--gold2); font-size: var(--fs-sm); font-weight: 600; }

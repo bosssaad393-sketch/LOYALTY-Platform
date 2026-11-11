@@ -107,6 +107,21 @@
       "other": "Points for this bill go to another guest's card at this table.",
       "joinSub": "Join now and this bill's points are added once it is paid. Nothing to download."
     },
+    "reward": {
+      "asked": "Asked. Staff will bring your reward.",
+      "askedSub": "{goal} points come off your card when staff confirm: {text}",
+      "none": "Points live on the loyalty card. Get yours, it takes a minute.",
+      "join": "Get loyalty card",
+      "generic": "Your reward",
+      "ready": "You have {points} points. This uses {goal}.",
+      "use": "Use {goal} points",
+      "progress": "{points} of {goal} points",
+      "left": "{left} more for: {text}",
+      "myCard": "Open my card",
+      "unset": "No reward is set here yet.",
+      "otherCard": "This table's bill is on another guest's card. Use your points at the counter.",
+      "notEnough": "Not enough points yet."
+    },
     "cancel": {
       "button": "Cancel this round",
       "confirm": "Cancel this round?",

@@ -11,7 +11,8 @@ import { UUID_RE as UUID } from "@/lib/ids";
 type Round = { id: string; status: string; readyMinutes: number | null; acceptedAt: string | null; canCancel?: boolean; lines: { nameEn: string; nameAr: string | null; qty: number; note: string | null }[] };
 type PayState = "off" | "nothing" | "wait" | "paying" | "ready";
 type Points = { card: "mine" | "other" | "none"; estimate: number };
-type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; calls: string[] };
+type Reward = { points: number; goal: number; text: string; ready: boolean };
+type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; reward?: Reward | null; calls: string[] };
 /** After coming back from Tap: what the payment turned out to be. */
 type PayResult = "checking" | "captured" | "failed" | "review" | "initiated" | null;
 type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string; cardHref: string };
@@ -26,6 +27,8 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
 
   const [menu, setMenu] = useState(initialMenu);
   const [tab, setTab] = useState<Tab>(initialTab);
+  const [rewardOpen, setRewardOpen] = useState(false);
+  const [rewardBusy, setRewardBusy] = useState(false);
   const [qty, setQty] = useState<Record<string, number>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -177,6 +180,20 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
   }
 
   const billAsked = tab.calls.includes("bill") || tab.calls.includes("cash");
+  const reward = tab.reward ?? null;
+  const rewardAsked = tab.calls.includes("reward");
+  /** Asks staff for the reward. The points come off the card only when staff confirm it. */
+  async function redeem() {
+    setError(null);
+    setRewardBusy(true);
+    const res = await fetch(`/api/table/${token}/redeem`, { method: "POST" }).catch(() => null);
+    setRewardBusy(false);
+    if (!res) { setError(t("errors.offline")); return; }
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.tab) { setTab(data.tab); return; }
+    const why: Record<string, string> = { other_card: t("reward.otherCard"), not_enough: t("reward.notEnough"), no_card: t("reward.none") };
+    setError(why[data.error] ?? (res.status === 429 ? t("errors.tooMany") : t("errors.server")));
+  }
   async function call(kind: RequestKind) {
     setError(null);
     const data = await post("request", { kind });
@@ -230,9 +247,42 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
         <button type="button" className={`tb-call${billAsked ? " on" : ""}`} aria-pressed={billAsked} disabled={billAsked} onClick={() => call("bill")}>
           {t("calls.bill")}{billAsked && <small>{t("calls.onTheWay")}</small>}
         </button>
-        {/* A new tab, so the table page stays open behind the card. */}
-        <a className="tb-call" href={cardHref} target="_blank" rel="noopener">{t("calls.redeem")}</a>
+        <button type="button" className={`tb-call${rewardAsked ? " on" : ""}`} aria-expanded={rewardOpen || rewardAsked} onClick={() => setRewardOpen((v) => !v)}>
+          {t("calls.redeem")}{rewardAsked && <small>{t("calls.onTheWay")}</small>}
+        </button>
       </section>
+
+      {(rewardOpen || rewardAsked) && (
+        <section className="tb-reward" aria-live="polite">
+          {rewardAsked ? (
+            <>
+              <b>{t("reward.asked")}</b>
+              {reward && <small>{t("reward.askedSub", { goal: reward.goal, text: reward.text })}</small>}
+            </>
+          ) : !reward ? (
+            <>
+              <b>{t("reward.none")}</b>
+              {/* A new tab, so the table page stays open behind the card. */}
+              <a className="btn" href={cardHref} target="_blank" rel="noopener">{t("reward.join")}</a>
+            </>
+          ) : reward.goal <= 0 ? (
+            <b>{t("reward.unset")}</b>
+          ) : reward.ready ? (
+            <>
+              <b>{reward.text || t("reward.generic")}</b>
+              <small>{t("reward.ready", { points: reward.points, goal: reward.goal })}</small>
+              <button type="button" className="btn primary" disabled={rewardBusy} onClick={redeem}>{t("reward.use", { goal: reward.goal })}</button>
+            </>
+          ) : (
+            <>
+              <b>{t("reward.progress", { points: reward.points, goal: reward.goal })}</b>
+              <span className="tb-meter" aria-hidden="true"><i style={{ inlineSize: `${Math.min(100, Math.round((reward.points / reward.goal) * 100))}%` }} /></span>
+              <small>{t("reward.left", { left: reward.goal - reward.points, text: reward.text || t("reward.generic") })}</small>
+              <a className="tb-link" href={cardHref} target="_blank" rel="noopener">{t("reward.myCard")}</a>
+            </>
+          )}
+        </section>
+      )}
 
       <div role="status">
         {payResult && (

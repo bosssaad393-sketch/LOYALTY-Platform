@@ -1,6 +1,7 @@
 import "server-only";
 import { must } from "../must";
 import { db } from "../supabase";
+import { canRedeem } from "../ledger";
 import { posSale } from "../ledgerDb";
 import { refreshWalletCards } from "../staffApi";
 
@@ -30,6 +31,20 @@ export async function venueCard(venueId: string, cardId: string): Promise<{ id: 
   const c = must(await db().from("cards").select("id, code, venue_id, members(name, deleted_at)").eq("id", cardId).eq("venue_id", venueId).maybeSingle()) as unknown as CardRow | null;
   if (!c || !c.members || c.members.deleted_at) return null;
   return { id: c.id, code: String(c.code).trim(), firstName: c.members.name.trim().split(/\s+/)[0] };
+}
+
+export type Reward = { points: number; goal: number; text: string; ready: boolean };
+
+/** What this card can claim here: its points against the venue's reward. Null when the card is not this venue's. */
+export async function rewardFor(venueId: string, cardId: string): Promise<Reward | null> {
+  if (!UUID.test(cardId)) return null;
+  const c = must(await db().from("cards").select("id, points, venue_id, members(name, deleted_at), venues(reward_goal, reward_text)").eq("id", cardId).eq("venue_id", venueId).maybeSingle()) as unknown as
+    | { points: number; members: { deleted_at: string | null } | null; venues: { reward_goal: number | null; reward_text: string | null } | null }
+    | null;
+  if (!c || !c.members || c.members.deleted_at || !c.venues) return null;
+  const points = Number(c.points ?? 0);
+  const goal = Number(c.venues.reward_goal ?? 0);
+  return { points, goal, text: (c.venues.reward_text ?? "").trim(), ready: canRedeem(points, goal) };
 }
 
 /** Links the phone's card to the open tab, once: the first card on a tab keeps it. Returns the tab's card after the attempt. */
