@@ -33,7 +33,7 @@ describe("the cards", () => {
     const cards = kitCards("https://o.test", "orbyn", tables);
     expect(cards.map((c) => (c.kind === "table" ? c.label : "join"))).toEqual(["2", "10", "Terrace 1", "join"]);
     expect(cards[0].url).toBe("https://o.test/t/tok-two-aaaaaaaaaaaa");
-    expect(cards.at(-1)!.url).toBe("https://o.test/join/orbyn");
+    expect(cards.at(-1)!.url).toBe("https://o.test/counter/orbyn");
   });
   it("prints one table on its own, without the counter card", () => {
     const cards = kitCards("https://o.test", "orbyn", tables, "t10");

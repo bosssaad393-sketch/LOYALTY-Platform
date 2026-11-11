@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { sampleMode } from "./demo";
 import { fakeDb } from "./fakeDb";
 
 let client: SupabaseClient | null = null;
@@ -7,8 +8,8 @@ let client: SupabaseClient | null = null;
 /** Server-side Supabase client using the service-role key. Never import from client components. */
 export function db(): SupabaseClient {
   if (client) return client;
-  // Design-time only: LOYALTY_FAKE_DB=1 uses an in-memory stand-in so screens can be built without Supabase keys.
-  if (process.env.LOYALTY_FAKE_DB === "1" && process.env.NODE_ENV !== "production") {
+  // Sample mode (demo.ts): an in-memory stand-in with invented guests, so the product can be seen without Supabase keys.
+  if (sampleMode()) {
     client = fakeDb() as unknown as SupabaseClient;
     return client;
   }

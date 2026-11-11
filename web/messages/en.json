@@ -150,5 +150,27 @@
     "empty": "The menu is not ready yet.",
     "soldOut": "Sold out",
     "money": "BHD {amount}"
+  },
+  "door": {
+    "menu": "Menu",
+    "card": "Loyalty rewards card",
+    "myCard": "My rewards card",
+    "getCard": "Get loyalty card",
+    "save": "Save contact",
+    "tableLine": "Table {label}",
+    "counterLine": "Rewards, contact and feedback",
+    "hello": "Welcome back, {name}",
+    "follow": "Follow us",
+    "fbTitle": "Give us feedback",
+    "fbRate": "How was your visit?",
+    "fbStar": "{n} out of 5",
+    "fbPlaceholder": "Tell us more (optional)",
+    "fbSend": "Send feedback",
+    "fbSending": "Sending…",
+    "fbThanks": "Thank you. Your feedback went straight to the owner.",
+    "fbMembers": "Feedback is for members. Get the loyalty card first, it takes a minute.",
+    "fbPick": "Choose a rating from 1 to 5 first.",
+    "fbLimit": "You have already sent feedback today. Thank you.",
+    "fbError": "That did not send. Please try again."
   }
 }

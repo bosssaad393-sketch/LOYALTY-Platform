@@ -1,5 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
+import { sampleMode } from "../demo";
 import { db } from "../supabase";
 
 // A menu item's photo. The owner's browser shrinks it first, so a good upload is small. The server checks the real file
@@ -29,7 +30,7 @@ export function parsePhoto(dataUrl: string): { bytes: Buffer; kind: Kind } | nul
 
 /** Stores the file and answers its public address. Sample-data mode keeps the picture inside the record, since there is no storage. */
 export async function storePhoto(venueId: string, itemId: string, photo: { bytes: Buffer; kind: Kind }): Promise<string> {
-  if (process.env.LOYALTY_FAKE_DB === "1" && process.env.NODE_ENV !== "production") {
+  if (sampleMode()) {
     return `data:${photo.kind.type};base64,${photo.bytes.toString("base64")}`;
   }
   // A new name each time, so a changed photo shows straight away instead of an old copy from a browser's memory.

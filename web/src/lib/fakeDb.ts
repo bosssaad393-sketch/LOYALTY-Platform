@@ -1,9 +1,12 @@
 import "server-only";
+import { SAMPLE_OWNER_PIN, SAMPLE_STAFF_PIN } from "./demo";
+import { sampleGuests } from "./fakeSeed";
+import { pinLookup } from "./pinHash";
 
 /**
- * Design-time stand-in for Supabase. Used only when LOYALTY_FAKE_DB=1, never in production (see supabase.ts).
- * It keeps a little invented data in memory (lost on restart) and understands just the query shapes the app uses.
- * It is NOT a database. The menu, tables and staff member below are sample data so the screens can be seen.
+ * Stand-in for Supabase in sample mode (demo.ts): LOYALTY_FAKE_DB=1 while developing, or ORBYN_DEMO=1 on a demo site.
+ * It keeps invented data in memory (lost on restart) and understands just the query shapes the app uses.
+ * It is NOT a database. The guests, visits, menu, tables and staff below are sample data so the screens can be seen.
  */
 
 type Row = Record<string, unknown>;
@@ -35,6 +38,18 @@ const sampleItems: [number, number, string, string, number, string][] = [
   [211, 104, "Strawberry cheesecake", "تشيز كيك بالفراولة", 2800, "cheesecake"],
 ];
 
+// Two months of invented guests and visits (fakeSeed.ts), so the owner's screens have something to show.
+const guests = sampleGuests(Date.now(), VENUE, { pointsPerBhd: 2, rewardGoal: 500, staffId: fakeId(902) });
+
+/** The sample PINs are stored hashed like real ones. Without a server secret nobody can sign in, as before. */
+function samplePin(pin: string): string | null {
+  try {
+    return pinLookup(pin);
+  } catch {
+    return null;
+  }
+}
+
 const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, Row[]> }).__fakeDb ??= {
   venues: [
     {
@@ -47,11 +62,11 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
       active: true,
     },
   ],
-  members: [],
-  cards: [],
+  ...guests,
   staff_users: [
-    { id: fakeId(900), venue_id: VENUE, name: "Saad", role: "owner", active: true },
+    { id: fakeId(900), venue_id: VENUE, name: "Saad", role: "owner", active: true, pin_lookup: samplePin(SAMPLE_OWNER_PIN) },
     { id: fakeId(901), venue_id: VENUE, name: "Saad", role: "developer", active: true },
+    { id: fakeId(902), venue_id: VENUE, name: "Sample staff", role: "staff", active: true, pin_lookup: samplePin(SAMPLE_STAFF_PIN) },
   ],
   venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `orbyn-table-code-${n}`, active: true })),
   menu_categories: sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
@@ -62,6 +77,15 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   table_requests: [],
   payments: [],
   audit_log: [],
+  // Sample feedback so the owner's Feedback screen is not empty in the demo. The words are examples, not real guests'.
+  feedback: ([
+    [5, "Sample: lovely evening, the staff remembered our usual order.", 2],
+    [4, "Sample: great coffee. The corner table by the window is a little dark.", 9],
+    [2, "Sample: waited twenty minutes for the bill on Friday night.", 26],
+    [5, "", 50],
+    [4, "Sample: the points card is easy, I showed it to my brother.", 75],
+    [3, "Sample: music was loud after ten, otherwise good.", 120],
+  ] as [number, string, number][]).map(([rating, message, hoursAgo], i) => ({ id: fakeId(700 + i), venue_id: VENUE, card_id: guests.cards[i % guests.cards.length]?.id, rating, message: message || null, created_at: new Date(Date.now() - hoursAgo * 3600_000).toISOString() })),
 };
 
 const DEFAULTS: Record<string, () => Row> = {
@@ -209,6 +233,7 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
   const ledger = (store.ledger ??= []);
   const entry = (card: Row, kind: string, points: number, bill: unknown = null) => {
     card.points = Number(card.points ?? 0) + points;
+    if (kind === "earn") card.last_visit = new Date().toISOString();
     const row = { id: ledger.length + 1, venue_id: card.venue_id, card_id: card.id, staff_id: args.p_staff, kind, points, bill_bhd: bill, created_at: new Date().toISOString() };
     ledger.push(row);
     return row;
