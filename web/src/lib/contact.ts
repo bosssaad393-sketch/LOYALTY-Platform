@@ -25,8 +25,8 @@ export function venueContact(env: Env = process.env): Contact {
 /** Text inside a vCard value: backslash, comma, semicolon and line breaks are escaped. */
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/[,;]/g, (c) => `\\${c}`).replace(/\r?\n/g, "\\n");
 
-/** A vCard 3.0 (the version every iPhone and Android opens). `fallbackSite` is used when no website is set. */
-export function vcard(name: string, c: Contact, fallbackSite?: string | null): string {
+/** A vCard 3.0 (the version every iPhone and Android opens). `fallbackSite` is used when no website is set; `instagram` is the venue's own page, when set. */
+export function vcard(name: string, c: Contact, fallbackSite?: string | null, instagram?: string | null): string {
   const lines = ["BEGIN:VCARD", "VERSION:3.0", `N:;${esc(name)};;;`, `FN:${esc(name)}`, `ORG:${esc(name)}`];
   if (c.phone) lines.push(`TEL;TYPE=WORK,VOICE:${c.phone}`);
   if (c.email) lines.push(`EMAIL;TYPE=WORK:${c.email}`);
@@ -34,6 +34,9 @@ export function vcard(name: string, c: Contact, fallbackSite?: string | null): s
   if (site) lines.push(`URL:${site}`);
   if (c.whatsapp) {
     lines.push(`item1.URL:https://wa.me/${c.whatsapp.replace(/\D/g, "")}`, "item1.X-ABLabel:WhatsApp");
+  }
+  if (instagram && /^https:\/\/(www\.)?instagram\.com\/[\w.]+\/?$/.test(instagram)) {
+    lines.push(`item2.URL:${instagram}`, "item2.X-ABLabel:Instagram");
   }
   lines.push("END:VCARD");
   return lines.join("\r\n") + "\r\n";

@@ -39,4 +39,10 @@ describe("feedback rules", () => {
     expect(v).toMatchObject({ count: 3, average: 3.7, low: 1 });
     expect(feedbackView([])).toMatchObject({ count: 0, average: null, low: 0 });
   });
+
+  it("adds the venue's Instagram page, and only a real instagram.com address", () => {
+    const none = { phone: null, whatsapp: null, email: null, website: null };
+    expect(vcard("Orbyn", none, null, "https://www.instagram.com/calabos04")).toContain("item2.URL:https://www.instagram.com/calabos04\r\nitem2.X-ABLabel:Instagram");
+    expect(vcard("Orbyn", none, null, "https://evil.test/x")).not.toContain("Instagram");
+  });
 });
