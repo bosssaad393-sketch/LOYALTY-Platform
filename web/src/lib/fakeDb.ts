@@ -247,9 +247,10 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
     const added = Math.floor(Number(args.p_bill) * Number(venue.points_per_bhd));
     return { data: [{ ledger_id: entry(card, "earn", added, args.p_bill).id, points_added: added, new_balance: card.points }], error: null };
   }
-  if (fn === "ledger_redeem") {
+  if (fn === "ledger_redeem" || fn === "ledger_redeem_guest") {
     const card = cardOf(args.p_card);
     const venue = store.venues.find((v) => v.id === card?.venue_id);
+    if (card && venue && Number(card.points) < Number(venue.reward_goal)) return { data: null, error: { code: "P0001", message: "not enough points to redeem" } };
     if (!card || !venue) return { data: null, error: { code: "P0001", message: "card not found" } };
     return { data: [{ ledger_id: entry(card, "redeem", -Number(venue.reward_goal)).id, new_balance: card.points }], error: null };
   }

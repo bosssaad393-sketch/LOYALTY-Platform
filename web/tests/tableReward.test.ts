@@ -2,13 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { FakeState } from "./helpers/fakeDb";
 import type { Staff } from "../src/lib/staffAuth";
 
-// A guest asks for the venue's reward from the table page; staff confirm it on the board, and only then are points spent.
+// A guest uses their points for the venue's reward from the table page: spent at once, and the board says what to bring.
 // Real routes against the in-memory database; the database's redeem function is replaced by a stand-in. Invented guests only.
 
 const h = vi.hoisted(() => ({
   state: undefined as unknown as FakeState,
   staff: null as Staff | null,
-  redeemed: [] as { card: string; staff: string }[],
+  redeemed: [] as string[],
+  failSpend: false,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -22,11 +23,13 @@ vi.mock("../src/lib/apns", () => ({ notifyAppleDevices: async () => {} }));
 vi.mock("../src/lib/ledgerDb", () => ({
   posSale: async () => ({}),
   posRefund: async () => ({}),
-  redeemReward: async (cardId: string, staffId: string) => {
+  redeemReward: async () => ({}),
+  redeemByGuest: async (cardId: string) => {
+    if (h.failSpend) throw new Error("not enough points to redeem");
     const card = h.state.tables.cards.find((c) => c.id === cardId)!;
     const goal = Number(h.state.tables.venues.find((v) => v.id === card.venue_id)!.reward_goal);
     card.points = Number(card.points) - goal;
-    h.redeemed.push({ card: cardId, staff: staffId });
+    h.redeemed.push(cardId);
     return { ledger_id: h.redeemed.length, new_balance: card.points };
   },
 }));
@@ -36,7 +39,6 @@ import { GET as tableGET } from "../src/app/api/table/[code]/route";
 import { POST as redeemPOST } from "../src/app/api/table/[code]/redeem/route";
 import { POST as requestPOST } from "../src/app/api/table/[code]/request/route";
 import { GET as boardGET } from "../src/app/api/staff/board/route";
-import { POST as rewardPOST } from "../src/app/api/staff/board/reward/route";
 import { POST as donePOST } from "../src/app/api/staff/board/request/route";
 
 const id = (n: number) => `aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, "0")}`;
@@ -61,6 +63,7 @@ const points = (card: string) => Number(h.state.tables.cards.find((c) => c.id ==
 beforeEach(() => {
   h.staff = staffOf(VA);
   h.redeemed = [];
+  h.failSpend = false;
   vi.stubEnv("TAP_SECRET_KEY", "");
   h.state = newState({
     venues: [
@@ -101,17 +104,29 @@ describe("what the guest sees", () => {
   });
 });
 
-describe("asking for the reward", () => {
-  it("puts one Reward call on the board and spends nothing yet", async () => {
+describe("using the reward", () => {
+  it("takes the points at once and tells the board what to bring", async () => {
     const res = await ask(RICH);
     expect(res.status).toBe(200);
     expect((await res.json()).tab.calls).toContain("reward");
-    await ask(RICH);
+    expect(points(RICH)).toBe(120);
+    expect(h.redeemed).toEqual([RICH]);
     const b = await board();
     expect(b.calls).toHaveLength(1);
     expect(b.calls[0]).toMatchObject({ table: "1", kind: "reward", reward: "A dessert on the house", guest: "Layla" });
-    expect(points(RICH)).toBe(620);
-    expect(h.redeemed).toEqual([]);
+  });
+
+  it("spends once while a reward is still to be served, and again after staff served it", async () => {
+    await ask(RICH2);
+    await ask(RICH2);
+    expect(points(RICH2)).toBe(400);
+    expect((await board()).calls).toHaveLength(1);
+    const call = (await board()).calls[0];
+    expect((await donePOST(req("POST", { requestId: call.id }))).status).toBe(200);
+    expect((await board()).calls).toEqual([]);
+    // 400 points left: below the goal of 500, so a new try is refused and nothing more is taken.
+    expect((await ask(RICH2)).status).toBe(409);
+    expect(points(RICH2)).toBe(400);
   });
 
   it("refuses without a card, without enough points, and for another venue's card", async () => {
@@ -121,6 +136,7 @@ describe("asking for the reward", () => {
       expect((await res.json()).error).toBe(why);
     }
     expect((await board()).calls).toEqual([]);
+    expect(h.redeemed).toEqual([]);
   });
 
   it("refuses when the table's bill is already on another guest's card", async () => {
@@ -128,56 +144,19 @@ describe("asking for the reward", () => {
     const res = await ask(RICH2);
     expect(res.status).toBe(409);
     expect((await res.json()).error).toBe("other_card");
+    expect(points(RICH2)).toBe(900);
+  });
+
+  it("leaves no call on the board when the database refuses the spend", async () => {
+    h.failSpend = true;
+    const res = await ask(RICH);
+    expect(res.status).toBe(409);
+    expect(points(RICH)).toBe(620);
+    expect((await board()).calls).toEqual([]);
   });
 
   it("cannot be sent through the general call route", async () => {
     const res = await requestPOST(req("POST", { kind: "reward" }, RICH), tok(TOKEN));
     expect(res.status).toBe(400);
-  });
-});
-
-describe("staff confirm it", () => {
-  it("takes the points once, records the staff member, and closes the call", async () => {
-    await ask(RICH);
-    const call = (await board()).calls[0];
-    const res = await rewardPOST(req("POST", { requestId: call.id }));
-    expect(res.status).toBe(200);
-    expect((await res.json()).calls).toEqual([]);
-    expect(points(RICH)).toBe(120);
-    expect(h.redeemed).toEqual([{ card: RICH, staff: id(99) }]);
-    // A second tap finds nothing to do.
-    expect((await rewardPOST(req("POST", { requestId: call.id }))).status).toBe(404);
-    expect(points(RICH)).toBe(120);
-  });
-
-  it("'Not now' closes the call and spends nothing", async () => {
-    await ask(RICH);
-    const call = (await board()).calls[0];
-    expect((await donePOST(req("POST", { requestId: call.id }))).status).toBe(200);
-    expect(points(RICH)).toBe(620);
-    expect((await board()).calls).toEqual([]);
-  });
-
-  it("refuses when the points went elsewhere in the meantime", async () => {
-    await ask(RICH);
-    h.state.tables.cards.find((c) => c.id === RICH)!.points = 80;
-    const call = (await board()).calls[0];
-    const res = await rewardPOST(req("POST", { requestId: call.id }));
-    expect(res.status).toBe(409);
-    expect(h.redeemed).toEqual([]);
-  });
-
-  it("is closed to another venue's staff and to a call that is not a reward", async () => {
-    await ask(RICH);
-    const call = (await board()).calls[0];
-    h.staff = staffOf(VB);
-    expect((await rewardPOST(req("POST", { requestId: call.id }))).status).toBe(404);
-    h.staff = staffOf(VA);
-    await requestPOST(req("POST", { kind: "bill" }, RICH), tok(TOKEN));
-    const bill = (await board()).calls.find((c: { kind: string }) => c.kind === "bill");
-    expect((await rewardPOST(req("POST", { requestId: bill.id }))).status).toBe(404);
-    expect(h.redeemed).toEqual([]);
-    h.staff = null;
-    expect((await rewardPOST(req("POST", { requestId: call.id }))).status).toBe(401);
   });
 });

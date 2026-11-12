@@ -182,7 +182,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
   const billAsked = tab.calls.includes("bill") || tab.calls.includes("cash");
   const reward = tab.reward ?? null;
   const rewardAsked = tab.calls.includes("reward");
-  /** Asks staff for the reward. The points come off the card only when staff confirm it. */
+  /** Uses the points for the reward: they come off the card at once, and staff are told what to bring. */
   async function redeem() {
     setError(null);
     setRewardBusy(true);

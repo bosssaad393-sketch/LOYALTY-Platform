@@ -21,6 +21,9 @@ export const earnPoints = (cardId: string, staffId: string, billBhd: number) =>
 export const redeemReward = (cardId: string, staffId: string) =>
   call<SpendResult>("ledger_redeem", { p_card: cardId, p_staff: staffId });
 
+/** The guest spends their own points from their table page: no staff member on the entry. The database checks the balance. */
+export const redeemByGuest = (cardId: string) => call<SpendResult>("ledger_redeem_guest", { p_card: cardId });
+
 export const undoEntry = (ledgerId: number, staffId: string) =>
   call<SpendResult>("ledger_undo", { p_entry: ledgerId, p_staff: staffId });
 

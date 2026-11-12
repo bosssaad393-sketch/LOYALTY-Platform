@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export const REQUEST_KINDS = ["coal", "waiter", "bill", "cash"] as const;
 export type RequestKind = (typeof REQUEST_KINDS)[number];
-/** Asked from the table page's Redeem button, only for a card that has reached the reward. Staff confirm it on the board. */
+/** Made by the table page's Redeem button once the points are spent: it tells staff what to bring. */
 export const REWARD_KIND = "reward";
 /** The call buttons on the table page. The bill is asked for from the Pay sheet (cash), so it has no button of its own. */
 

@@ -108,12 +108,12 @@
       "joinSub": "Join now and this bill's points are added once it is paid. Nothing to download."
     },
     "reward": {
-      "asked": "Asked. Staff will bring your reward.",
-      "askedSub": "{goal} points come off your card when staff confirm: {text}",
+      "asked": "Done. Staff are bringing your reward.",
+      "askedSub": "{goal} points were used from your card: {text}",
       "none": "Points live on the loyalty card. Get yours, it takes a minute.",
       "join": "Get loyalty card",
       "generic": "Your reward",
-      "ready": "You have {points} points. This uses {goal}.",
+      "ready": "You have {points} points. This uses {goal} right away.",
       "use": "Use {goal} points",
       "progress": "{points} of {goal} points",
       "left": "{left} more for: {text}",
