@@ -187,6 +187,8 @@
     "fbMembers": "Feedback is for members. Get the loyalty card first, it takes a minute.",
     "fbPick": "Choose a rating from 1 to 5 first.",
     "fbLimit": "You have already sent feedback today. Thank you.",
-    "fbError": "That did not send. Please try again."
+    "fbError": "That did not send. Please try again.",
+    "fbReviewAsk": "Glad you enjoyed it. A Google review helps us a lot.",
+    "fbReview": "Review us on Google"
   }
 }

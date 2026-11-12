@@ -15,6 +15,7 @@
 .door-label { text-align: center; font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.34em; padding-left: 0.34em; text-transform: uppercase; color: var(--dim); }
 .door-follow { margin-top: 34px; }
 .door-icons { margin-top: 14px; display: flex; justify-content: center; gap: 12px; }
+.door-icon.live { color: var(--gold2); border-color: var(--gold-dim); text-decoration: none; }
 .door-icon { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); }
 
 .door-fb { margin-top: 34px; }

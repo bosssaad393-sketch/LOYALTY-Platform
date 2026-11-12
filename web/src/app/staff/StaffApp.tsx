@@ -8,12 +8,13 @@ import PinPad from "@/components/PinPad";
 import type { SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
 import { LARGE_BILL_BHD, MAX_BILL_BHD, pointsFor, readBill } from "@/lib/tillRules";
-import { bahrainDayKey, bahrainTime, bhd as bhdNumber, bhdText } from "@/lib/format";
+import { bahrainTime, bhd as bhdNumber, bhdText } from "@/lib/format";
 
 type Me = { name: string; role: string; venue: string };
 type Guest = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd?: number };
 type Recent = { id: number; kind: string; points: number; billBhd: number | null; at: string; by: string; guest: string };
 type Perk = { id: string; title: string; note: string | null; validUntil: string | null; from: string };
+type MyDay = { entries: number; guests: number; bhd: number };
 type Tab = "guest" | "recent" | "help" | "end";
 type Res<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 
@@ -26,7 +27,6 @@ async function api<T>(path: string, body?: unknown): Promise<Res<T>> {
 
 const bhd = bhdText;
 const time = bahrainTime;
-const dayKey = bahrainDayKey;
 const QUICK = [3, 5, 10, 15, 20];
 const TABS: Tab[] = ["guest", "recent", "help", "end"];
 /** When an entry was made, for the 10-minute undo window. Only ever called from a tap, never while drawing. */
@@ -48,6 +48,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ added: number; first: string; total: number; ready: boolean } | null>(null);
   const [recent, setRecent] = useState<Recent[]>([]);
+  const [mine, setMine] = useState<MyDay>({ entries: 0, guests: 0, bhd: 0 });
   const [perks, setPerks] = useState<Perk[]>([]);
   const [loginError, setLoginError] = useState<string | null>(null);
   /** A large bill waits for one more tap ("Yes, BHD 450.000"). Cleared when the amount changes. */
@@ -57,8 +58,8 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   const signedOut = useCallback(() => { setMe(null); setGuest(null); setTab("guest"); }, []);
 
   const loadRecent = useCallback(async () => {
-    const r = await api<{ items: Recent[] }>("/api/staff/recent", undefined);
-    if (r.ok) setRecent(r.data.items); else if (r.status === 401) signedOut();
+    const r = await api<{ items: Recent[]; mine: MyDay }>("/api/staff/recent", undefined);
+    if (r.ok) { setRecent(r.data.items); setMine(r.data.mine); } else if (r.status === 401) signedOut();
   }, [signedOut]);
   const loadPerks = useCallback(async () => {
     const r = await api<{ perks: Perk[] }>("/api/staff/perks", undefined);
@@ -69,9 +70,9 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   useEffect(() => {
     if (!me) return;
     let live = true;
-    Promise.all([api<{ items: Recent[] }>("/api/staff/recent", undefined), api<{ perks: Perk[] }>("/api/staff/perks", undefined)]).then(([a, b]) => {
+    Promise.all([api<{ items: Recent[]; mine: MyDay }>("/api/staff/recent", undefined), api<{ perks: Perk[] }>("/api/staff/perks", undefined)]).then(([a, b]) => {
       if (!live) return;
-      if (a.ok) setRecent(a.data.items);
+      if (a.ok) { setRecent(a.data.items); setMine(a.data.mine); }
       if (b.ok) setPerks(b.data.perks);
     });
     return () => { live = false; };
@@ -140,10 +141,6 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   }
   const canUndo = lastEntry !== null;
 
-  const today = dayKey(new Date().toISOString());
-  const todays = recent.filter((r) => dayKey(r.at) === today && r.kind !== "undo");
-  const todayBhd = todays.reduce((s, r) => s + (r.billBhd ? Number(r.billBhd) : 0), 0);
-  const todayGuests = new Set(todays.map((r) => r.guest)).size;
 
   if (!me) return <PinPad role="staff" busy={busy} error={loginError} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} />;
 
@@ -162,9 +159,9 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
 
       {tab !== "end" && (
         <div className="st-today" aria-label="Your day so far">
-          <span><b>{todays.length}</b> entries</span>
-          <span><b>{todayGuests}</b> guests</span>
-          <span><b>{todayBhd.toFixed(1)}</b> BHD</span>
+          <span><b>{mine.entries}</b> entries</span>
+          <span><b>{mine.guests}</b> guests</span>
+          <span><b>{bhdFull(mine.bhd)}</b> BHD</span>
         </div>
       )}
 
@@ -251,7 +248,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
         <>
           <div className="eyebrow">Shift over</div>
           <h1 className="st-title">Thank you, {first}</h1>
-          <p className="sub">Today you served <b>{todayGuests}</b> {todayGuests === 1 ? "guest" : "guests"} and made <b>{todays.length}</b> {todays.length === 1 ? "entry" : "entries"}.</p>
+          <p className="sub">Today you served <b>{mine.guests}</b> {mine.guests === 1 ? "guest" : "guests"} and made <b>{mine.entries}</b> {mine.entries === 1 ? "entry" : "entries"}.</p>
           {perks.length > 0 ? perks.map((p) => (
             <section key={p.id} className="panel st-perk" aria-label="A thank-you for you">
               <div className="eyebrow">A thank-you from {p.from}</div>

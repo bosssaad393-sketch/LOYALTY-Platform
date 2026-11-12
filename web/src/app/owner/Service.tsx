@@ -4,7 +4,7 @@ import { useCallback, useState, type FormEvent } from "react";
 import { filsText, type DayPart, type WaitMeasure } from "@/lib/table/rules";
 import type { MenuView } from "@/lib/table/db";
 import QrSvg from "@/components/QrSvg";
-import { LoadError, Loading, Msg, PageHead, useGet } from "./ui";
+import { Confirm, LoadError, Loading, Msg, PageHead, useGet } from "./ui";
 import type { Call, Note } from "./types";
 import { filsMoney } from "@/lib/format";
 
@@ -117,6 +117,7 @@ function MenuEditor({ call }: { call: Call }) {
   const menu = useGet<{ menu: MenuView }>(call, "/api/owner/menu");
   const [note, setNote] = useState<Note | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const [dropping, setDropping] = useState<{ id: string; name: string } | null>(null);
 
   const send = useCallback(async (method: string, body: unknown, done: string) => {
     setNote(null);
@@ -166,6 +167,11 @@ function MenuEditor({ call }: { call: Call }) {
 
   return (
     <div className="ow-grid">
+      {dropping && (
+        <Confirm title={`Remove ${dropping.name}?`} confirmLabel="Remove it" danger onConfirm={() => { const d = dropping; setDropping(null); void send("DELETE", { id: d.id }, "Item removed from the menu."); }} onClose={() => setDropping(null)}>
+          <p className="ow-note ow-dialog-text">It leaves the guest menu and the staff board. To hide it for one evening, mark it sold out instead.</p>
+        </Confirm>
+      )}
       <Msg note={note} />
       {menu.data.menu.map((c) => (
         <section key={c.id} className="ow-panel" aria-label={c.nameEn}>
@@ -197,7 +203,7 @@ function MenuEditor({ call }: { call: Call }) {
                     <div className="ow-actions">
                       <button className="ow-btn small primary" type="submit">Save</button>
                       <button className="ow-btn small" type="button" onClick={() => setEditing(null)}>Cancel</button>
-                      <button className="ow-btn small danger" type="button" onClick={() => send("DELETE", { id: i.id }, "Item removed from the menu.")}>Remove</button>
+                      <button className="ow-btn small danger" type="button" onClick={() => setDropping({ id: i.id, name: i.nameEn })}>Remove</button>
                     </div>
                   </form>
                 ) : (
@@ -256,6 +262,7 @@ function Tables({ call }: { call: Call }) {
   const tables = useGet<{ tables: Table[] }>(call, "/api/owner/tables");
   const [note, setNote] = useState<Note | null>(null);
   const [shown, setShown] = useState<string | null>(null);
+  const [dropping, setDropping] = useState<{ id: string; label: string } | null>(null);
 
   async function add(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -277,6 +284,11 @@ function Tables({ call }: { call: Call }) {
   return (
     <div className="ow-grid ow-c2">
       <section className="ow-panel ow-flush" aria-label="Tables">
+        {dropping && (
+          <Confirm title={`Remove table ${dropping.label}?`} confirmLabel="Remove it" danger onConfirm={() => { const d = dropping; setDropping(null); void remove(d.id); }} onClose={() => setDropping(null)}>
+            <p className="ow-note ow-dialog-text">The QR code printed for this table stops working. A new table gets a new code to print.</p>
+          </Confirm>
+        )}
         <Msg note={note} />
         <ul className="ow-list">
           {tables.data.tables.map((t) => (
@@ -285,7 +297,7 @@ function Tables({ call }: { call: Call }) {
               <span className="ow-item-side ow-rowbtns">
                 <button type="button" className="ow-btn small" aria-expanded={shown === t.id} onClick={() => setShown(shown === t.id ? null : t.id)}>QR code</button>
                 <a className="ow-btn small" href={`/owner/qr-kit?table=${t.id}`} target="_blank" rel="noreferrer" aria-label={`Print the card for table ${t.label}`}>Print card</a>
-                <button type="button" className="ow-btn small danger" aria-label={`Remove table ${t.label}`} onClick={() => remove(t.id)}>Remove</button>
+                <button type="button" className="ow-btn small danger" aria-label={`Remove table ${t.label}`} onClick={() => setDropping({ id: t.id, label: t.label })}>Remove</button>
               </span>
               {shown === t.id && <TableQr token={t.token} label={t.label} />}
             </li>

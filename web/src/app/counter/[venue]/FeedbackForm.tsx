@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 type State = { kind: "idle" | "busy" | "done" } | { kind: "bad"; text: string };
 
 /** Members only (the page shows it only to a phone that remembers this venue's card; the route checks again). */
-export default function FeedbackForm({ venue }: { venue: string }) {
+export default function FeedbackForm({ venue, reviewUrl = null }: { venue: string; reviewUrl?: string | null }) {
   const t = useTranslations("door");
   const [rating, setRating] = useState(0);
   const [message, setMessage] = useState("");
@@ -25,7 +25,17 @@ export default function FeedbackForm({ venue }: { venue: string }) {
     }
   }
 
-  if (state.kind === "done") return <div className="panel"><p className="door-msg ok" role="status">{t("fbThanks")}</p></div>;
+  if (state.kind === "done") {
+    // A happy guest is offered the venue's Google review page, when the owner has set it. Their choice, one tap.
+    const happy = rating >= 4 && reviewUrl;
+    return (
+      <div className="panel">
+        <p className="door-msg ok" role="status">{t("fbThanks")}</p>
+        {happy && <p className="door-msg">{t("fbReviewAsk")}</p>}
+        {happy && <a className="btn primary" href={reviewUrl} target="_blank" rel="noopener noreferrer">{t("fbReview")}</a>}
+      </div>
+    );
+  }
 
   return (
     <form className="panel" onSubmit={send}>

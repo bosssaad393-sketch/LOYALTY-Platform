@@ -28,17 +28,19 @@ const ICONS: { name: string; d: string; stroke?: boolean }[] = [
   { name: "Facebook", d: "M13.6 21v-7.2h2.5l.4-3h-2.9V8.9c0-.9.3-1.5 1.5-1.5h1.5V4.7c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.4H8.2v3h2.5V21h2.9z" },
 ];
 
-/** "Follow us": the icons only. They are not links until the venue's accounts are set. */
-export function FollowRow({ label, i = 3 }: { label: string; i?: number }) {
+/** "Follow us": the icons. Only an account the venue has set is a link; the rest are the design alone. */
+export function FollowRow({ label, i = 3, links = {} }: { label: string; i?: number; links?: Record<string, string | null | undefined> }) {
   return (
     <section className="door-follow rv" style={{ "--i": i } as CSSProperties} aria-label={label}>
       <h2 className="door-label">{label}</h2>
       <div className="door-icons">
-        {ICONS.map((ic) => (
-          <span key={ic.name} className="door-icon" role="img" aria-label={ic.name} title={ic.name}>
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill={ic.stroke ? "none" : "currentColor"} stroke={ic.stroke ? "currentColor" : "none"} strokeWidth={ic.stroke ? 1.7 : 0} strokeLinecap="round" strokeLinejoin="round"><path d={ic.d} /></svg>
-          </span>
-        ))}
+        {ICONS.map((ic) => {
+          const svg = <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill={ic.stroke ? "none" : "currentColor"} stroke={ic.stroke ? "currentColor" : "none"} strokeWidth={ic.stroke ? 1.7 : 0} strokeLinecap="round" strokeLinejoin="round"><path d={ic.d} /></svg>;
+          const url = links[ic.name];
+          return url
+            ? <a key={ic.name} className="door-icon live" href={url} target="_blank" rel="noopener noreferrer" aria-label={ic.name} title={ic.name}>{svg}</a>
+            : <span key={ic.name} className="door-icon" role="img" aria-label={ic.name} title={ic.name}>{svg}</span>;
+        })}
       </div>
     </section>
   );

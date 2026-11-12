@@ -19,13 +19,13 @@ export function cleanOrigin(origin: string | null | undefined): string {
   return /^https?:\/\/[^/\s]+$/i.test(o) ? o : "";
 }
 
-export type ScreenLinks = { join: string; terms: string; staff: string; owner: string; dev: string };
+export type ScreenLinks = { join: string; terms: string; counter: string; staff: string; board: string; owner: string; qrKit: string; dev: string };
 
 /** Every surface of this deployment. The venue comes from the brand settings, never from a fixed name. */
 export function screenLinks(origin: string, slug: string): ScreenLinks {
   const o = cleanOrigin(origin);
   const s = SLUG.test(slug) ? slug : "orbyn";
-  return { join: `${o}/join/${s}`, terms: `${o}/join/${s}/terms`, staff: `${o}/staff`, owner: `${o}/owner`, dev: `${o}/dev` };
+  return { join: `${o}/join/${s}`, terms: `${o}/join/${s}/terms`, counter: `${o}/counter/${s}`, staff: `${o}/staff`, board: `${o}/staff/board`, owner: `${o}/owner`, qrKit: `${o}/owner/qr-kit`, dev: `${o}/dev` };
 }
 
 /** The card id inside whatever was pasted: the id itself or a whole card link. Null when there is none. */

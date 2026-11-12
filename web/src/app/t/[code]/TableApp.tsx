@@ -244,7 +244,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       </header>
 
       <section className="tb-calls rv" style={{ "--i": 1 } as CSSProperties} aria-label={t("callsLabel")}>
-        <button type="button" className={`tb-call${billAsked ? " on" : ""}`} aria-pressed={billAsked} disabled={billAsked} onClick={() => call("bill")}>
+        <button type="button" className={`tb-call${billAsked ? " on" : ""}`} aria-pressed={billAsked} disabled={billAsked || tab.totalFils <= 0} onClick={() => call("bill")}>
           {t("calls.bill")}{billAsked && <small>{t("calls.onTheWay")}</small>}
         </button>
         <button type="button" className={`tb-call${rewardAsked ? " on" : ""}`} aria-expanded={rewardOpen || rewardAsked} onClick={() => setRewardOpen((v) => !v)}>

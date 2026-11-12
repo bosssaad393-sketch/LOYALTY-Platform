@@ -7,8 +7,11 @@ describe("All screens links", () => {
     expect(screenLinks("https://rewards.example.com/", "n10")).toEqual({
       join: "https://rewards.example.com/join/n10",
       terms: "https://rewards.example.com/join/n10/terms",
+      counter: "https://rewards.example.com/counter/n10",
       staff: "https://rewards.example.com/staff",
+      board: "https://rewards.example.com/staff/board",
       owner: "https://rewards.example.com/owner",
+      qrKit: "https://rewards.example.com/owner/qr-kit",
       dev: "https://rewards.example.com/dev",
     });
   });

@@ -9,6 +9,7 @@
 .tb-calls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-block-start: 18px; }
 .tb-call { min-height: 48px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: none; border: 1px solid var(--line); border-radius: var(--r-pill); color: inherit; font-size: var(--fs-base); font-weight: 600; text-decoration: none; cursor: pointer; transition: border-color var(--t-fast) var(--ease); }
 .tb-call small { font-size: var(--fs-xs); font-weight: 500; color: var(--gold2); }
+.tb-call:disabled:not(.on) { opacity: 0.45; cursor: default; }
 .tb-call:hover:not(:disabled) { border-color: var(--gold-dim); }
 .tb-call:active:not(:disabled) { transform: scale(0.98); }
 .tb-call.on { border-color: var(--gold); cursor: default; }

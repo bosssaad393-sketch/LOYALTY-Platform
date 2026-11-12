@@ -41,6 +41,21 @@ const money = filsMoney;
 /** Whole minutes waited. Red once a call has waited 5 minutes, or a round is past its promised time. */
 const waited = (from: string, now: string) => Math.max(0, Math.floor(minutesBetween(from, now)));
 
+/** A button for something that cannot be taken back: the first tap asks, a second within four seconds does it. */
+function Sure({ label, again, className, disabled, onSure }: { label: string; again: string; className: string; disabled?: boolean; onSure: () => void }) {
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!armed) return;
+    const t = setTimeout(() => setArmed(false), 4000);
+    return () => clearTimeout(t);
+  }, [armed]);
+  return (
+    <button type="button" className={className} disabled={disabled} aria-live="polite" onBlur={() => setArmed(false)} onClick={() => { if (armed) { setArmed(false); onSure(); } else setArmed(true); }}>
+      {armed ? again : label}
+    </button>
+  );
+}
+
 export default function Board({ venue }: { venue: string }) {
   const [data, setData] = useState<BoardData | null>(null);
   const [now, setNow] = useState(() => new Date().toISOString());
@@ -250,7 +265,7 @@ export default function Board({ venue }: { venue: string }) {
                   <div className="bd-two">
                     {READY_MINUTES.map((min) => <button key={min} type="button" className="btn bd-act" onClick={() => act("order", { orderId: o.id, action: "accept", minutes: min })}>{min} min</button>)}
                   </div>
-                  <button type="button" className="bd-quiet" onClick={() => act("order", { orderId: o.id, action: "cancel" })}>Cancel this round</button>
+                  <Sure className="bd-quiet" label="Cancel this round" again="Tap again to cancel it" onSure={() => act("order", { orderId: o.id, action: "cancel" })} />
                 </article>
               );
             })}
@@ -268,7 +283,7 @@ export default function Board({ venue }: { venue: string }) {
                   {o.readyMinutes !== null && <div className="bd-prog" aria-hidden="true">{m > 0 && <i style={{ width: `${Math.min(100, Math.round((m / o.readyMinutes) * 100))}%` }} />}</div>}
                   {lines(o)}
                   <button type="button" className="btn bd-act" onClick={() => act("order", { orderId: o.id, action: "ready" })}>Ready</button>
-                  <button type="button" className="bd-quiet" onClick={() => act("order", { orderId: o.id, action: "cancel" })}>Cancel this round</button>
+                  <Sure className="bd-quiet" label="Cancel this round" again="Tap again to cancel it" onSure={() => act("order", { orderId: o.id, action: "cancel" })} />
                 </article>
               );
             })}
@@ -298,7 +313,7 @@ export default function Board({ venue }: { venue: string }) {
               <p className="bd-none">Open {waited(t.openedAt, now)} min{t.paying ? " · The guest has the card payment page open" : ""}</p>
               <p className="bd-none">{t.pointsTo ? `Points go to ${t.pointsTo}'s card when paid.` : "No guest card on this tab."}</p>
               <button type="button" className="btn primary" onClick={() => { const tb = data.tables.find((x) => x.label === t.table); if (tb) setTableId(tb.id); setError(null); setView("add"); }}>Add items</button>
-              <button type="button" className="btn" disabled={!t.canClose} onClick={() => act("close", { tabId: t.id })}>{t.paidFils > 0 ? "Rest paid in cash, close tab" : "Cash paid, close tab"}</button>
+              <Sure className="btn" disabled={!t.canClose} label={t.paidFils > 0 ? "Rest paid in cash, close tab" : "Cash paid, close tab"} again="Tap again to close the tab" onSure={() => act("close", { tabId: t.id })} />
               {!t.canClose && <p className="bd-none">A round is still open on this tab.</p>}
             </article>
           ))}
