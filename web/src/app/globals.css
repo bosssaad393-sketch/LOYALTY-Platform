@@ -705,3 +705,12 @@ textarea.ow-terms { min-height: 240px; font-size: var(--fs-md); line-height: 1.6
 .hm-team { position: relative; z-index: 1; margin-top: 26px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 22px; font-size: var(--fs-base); color: var(--dim); }
 .hm-team a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; padding: 12px 4px; }
 .hm-team a:hover { color: var(--gold2); }
+
+/* Owner: Feedback */
+.ow-fbtop { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.ow-fbtop b { display: block; margin: 6px 0 2px; font: 500 var(--fs-5xl)/1.1 var(--serif); font-variant-numeric: tabular-nums; }
+.ow-fbtop small { color: var(--dim); font-size: var(--fs-sm); }
+.ow-stars { display: inline-flex; gap: 2px; font-size: var(--fs-lg); line-height: 1; }
+.ow-stars i { font-style: normal; color: var(--dim); opacity: 0.45; }
+.ow-stars i.on { color: var(--gold); opacity: 1; }
+@media (max-width: 560px) { .ow-fbtop { grid-template-columns: 1fr; } }

@@ -7,7 +7,8 @@ import { greeting, longDate, n } from "./format";
 import PointsSummary from "./PointsSummary";
 import { RewardFields, RewardState, useRewardEditor } from "./RewardForm";
 import { Arrow, Count, Loading, LoadError, PageHead, Sheet, useGet } from "./ui";
-import type { Call, Guest, Points, Rules, Summary } from "./types";
+import { BUSY_WINDOW_DAYS, WEEKDAYS } from "@/lib/ownerInsights";
+import type { Call, Guest, Insights, Points, Rules, Summary } from "./types";
 
 type SheetName = "points" | "reward" | null;
 
@@ -17,6 +18,8 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
   const guests = useGet<{ guests: Guest[] }>(call, "/api/owner/guests?top=3");
   const week = useGet<Points>(call, "/api/owner/points?range=7d");
   const rules = useGet<Rules>(call, "/api/owner/rules");
+  const insights = useGet<Insights>(call, "/api/owner/insights");
+  const ins = insights.data;
   const [sheet, setSheet] = useState<SheetName>(null);
 
   const s = summary.data;
@@ -88,9 +91,32 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
         </div>
       </div>
 
+      {ins && !fresh && s && (
+        <section className="ow-panel ow-insights" aria-labelledby="ow-h-ins">
+          <h2 className="ow-h" id="ow-h-ins">Your guests</h2>
+          <ul className="ow-list">
+            <Fact label="Returning guests" note={ins.returningRate === null ? "No visits yet" : `${n(ins.returning)} of ${n(ins.visited)} guests who visited came back`} value={ins.returningRate === null ? "–" : `${ins.returningRate}%`} />
+            <Fact label="Not seen for 30 days or more" note="Visited before, but not in the last 30 days" value={n(ins.lapsed)} />
+            <Fact label="Near a reward" note={`Within 20% of the ${n(ins.rewardGoal)} point goal`} value={n(ins.nearReward)} />
+            <Fact label="Reward ready" note="Enough points to claim it on the next visit" value={n(ins.rewardReady)} />
+            <Fact label="Busiest day" note={ins.busiest ? `${ins.busiest.share}% of visits in the last ${BUSY_WINDOW_DAYS} days` : `No visits in the last ${BUSY_WINDOW_DAYS} days`} value={ins.busiest ? WEEKDAYS[ins.busiest.weekday] : "–"} />
+          </ul>
+          {!ins.complete && <p className="ow-note">Counted over the first 20,000 records, so these figures are a little low.</p>}
+        </section>
+      )}
+
       {sheet === "points" && <PointsSummary call={call} onClose={() => setSheet(null)} />}
       {sheet === "reward" && isOwner && <RewardSheet call={call} onSaved={rules.reload} onClose={() => setSheet(null)} />}
     </>
+  );
+}
+
+function Fact({ label, note, value }: { label: string; note: string; value: string }) {
+  return (
+    <li className="ow-item">
+      <span className="ow-item-main"><b>{label}</b><small>{note}</small></span>
+      <span className="ow-item-side ow-fig">{value}</span>
+    </li>
   );
 }
 

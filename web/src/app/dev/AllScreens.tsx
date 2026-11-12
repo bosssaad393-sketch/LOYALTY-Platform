@@ -65,6 +65,15 @@ export default function AllScreens({ brand }: { brand: BrandProps }) {
 
         <article className="sc-row">
           <div className="sc-what">
+            <h3>Till QR page</h3>
+            <p className="sc-who">For guests at the till or reception. No sign-in.</p>
+            <p className="sc-try">The rewards card, Save contact, Follow us, and feedback for members. Each table&apos;s own page opens from its QR code: print them from the owner&apos;s QR kit.</p>
+          </div>
+          <div className="sc-act">{open(links.counter)}{copyBtn("counter", links.counter)}</div>
+        </article>
+
+        <article className="sc-row">
+          <div className="sc-what">
             <h3>Member card</h3>
             <p className="sc-who">For guests. No sign-in: the card&apos;s private link is the key.</p>
             <p className="sc-try">Joining ends on the card. Paste its link or id here to open it again and check the points, the till QR and the Wallet buttons.</p>

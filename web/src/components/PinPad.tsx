@@ -12,6 +12,8 @@ type Props = {
   venueName?: string;
   venueSlug?: string;
   poweredBy?: string;
+  /** Sample mode only: a line under the keypad that says this is sample data and gives the sample PIN. */
+  note?: string;
 };
 
 const STAFF_LEN = 4;
@@ -19,7 +21,7 @@ const OWNER_LEN = 6;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"] as const;
 
 /** PIN sign-in for staff and owners: a keypad that also takes the keyboard. No email, no password. */
-export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewards", venueSlug = "orbyn", poweredBy = "Powered by Orbyn" }: Props) {
+export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewards", venueSlug = "orbyn", poweredBy = "Powered by Orbyn", note }: Props) {
   const [pin, setPin] = useState("");
   const owner = role === "owner";
   const max = owner ? OWNER_LEN : STAFF_LEN; // exactly this many digits and dots, no spare one
@@ -49,7 +51,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [press, pin, busy, send]);
+  }, [press, pin, busy, send, max]);
 
   return (
     <main className={`pp pp-${role}`}>
@@ -81,6 +83,7 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
 
         <button className="pp-go" type="button" disabled={busy || pin.length < max} onClick={send}>{busy ? "Checking…" : owner ? "Enter" : "Start my shift"}</button>
         <p className="pp-help">Forgot your PIN? {owner ? "Ask your Orbyn developer." : "Ask the owner or a manager."}</p>
+        {note && <p className="pp-note">{note}</p>}
         {poweredBy && <p className="pp-pw">{poweredBy}</p>}
         </div>
       </div>

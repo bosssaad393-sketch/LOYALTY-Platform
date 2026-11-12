@@ -1,0 +1,31 @@
+/* The first page behind a QR code (GuestDoor.tsx): logo, name, a column of buttons. */
+.door { display: flex; flex-direction: column; min-height: calc(100dvh - 120px); }
+.door-head { text-align: center; padding-top: 28px; }
+.door-crest { display: block; margin: 0 auto; width: 132px; height: auto; }
+.door-name { margin-top: 18px; font: 600 var(--fs-3xl, 30px)/1.1 var(--display, var(--serif)); letter-spacing: 0.04em; }
+.door-line { margin: 10px auto 0; max-width: 300px; color: var(--muted); font-size: var(--fs-md); line-height: 1.5; }
+
+.door-btns { margin-top: 34px; display: flex; flex-direction: column; gap: 12px; }
+.door-btns .btn { min-height: 60px; font-size: var(--fs-xl); justify-content: space-between; padding: 0 22px; }
+.door-btns .btn svg { flex: none; opacity: 0.75; }
+[dir="rtl"] .door-btns .btn svg.door-go { transform: scaleX(-1); }
+.door-btns .btn.quiet { background: transparent; }
+.door-gap { height: 10px; }
+
+.door-label { text-align: center; font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.34em; padding-left: 0.34em; text-transform: uppercase; color: var(--dim); }
+.door-follow { margin-top: 34px; }
+.door-icons { margin-top: 14px; display: flex; justify-content: center; gap: 12px; }
+.door-icon.live { color: var(--gold2); border-color: var(--gold-dim); text-decoration: none; }
+.door-icon { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); }
+
+.door-fb { margin-top: 34px; }
+.door-fb .panel { margin-top: 14px; }
+.door-stars { display: flex; justify-content: center; gap: 6px; border: 0; padding: 0; }
+.door-stars legend { width: 100%; text-align: center; margin-bottom: 10px; color: var(--muted); font-size: var(--fs-sm); }
+.door-star { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: var(--r-md); background: transparent; color: var(--dim); cursor: pointer; }
+.door-star[aria-checked="true"] { color: var(--gold2); border-color: var(--gold-dim); }
+.door-star:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.door-text { width: 100%; min-height: 104px; resize: vertical; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 14px 16px; font: inherit; font-size: var(--fs-md); line-height: 1.5; }
+.door-msg { text-align: center; font-size: var(--fs-sm); line-height: 1.45; }
+.door-msg.bad { color: var(--bad); }
+.door-msg.ok { color: var(--ok); }

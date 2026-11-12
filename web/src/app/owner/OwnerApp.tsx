@@ -5,7 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import PinPad from "@/components/PinPad";
 import type { SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
+import type { SampleNote } from "@/lib/demo";
 import { api } from "./api";
+import Feedback from "./Feedback";
 import Guests from "./Guests";
 import Assistant from "./Assistant";
 import Offers from "./Offers";
@@ -20,6 +22,7 @@ const TABS: { id: Tab; label: string; ownerOnly?: boolean }[] = [
   { id: "overview", label: "Overview" },
   { id: "service", label: "Tables and menu" },
   { id: "guests", label: "Guests" },
+  { id: "feedback", label: "Feedback" },
   { id: "rules", label: "Rules" },
   { id: "offers", label: "Offers" },
   { id: "assistant", label: "Assistant", ownerOnly: true },
@@ -29,8 +32,8 @@ const TABS: { id: Tab; label: string; ownerOnly?: boolean }[] = [
 
 type Props = {
   initialMe: Me | null;
-  /** Development only: run on fake data. page.tsx sets this, and api.ts checks the environment again. */
-  
+  /** Sample mode (lib/demo.ts): the PINs to show on the sign-in screen, and a ribbon over the data. */
+  sample?: SampleNote | null;
   initialTab?: Tab;
   /** Which sign-in design to show (A or B). */
   look?: SignInLook;
@@ -38,7 +41,7 @@ type Props = {
   brand: BrandProps;
 };
 
-export default function OwnerApp({ initialMe, initialTab = "overview", look = "a", brand }: Props) {
+export default function OwnerApp({ initialMe, initialTab = "overview", brand, sample = null }: Props) {
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>(initialTab);
   // Is 1 after "Send an update" is chosen on the Overview, so Offers opens with the form ready. Any other tab click clears it.
@@ -98,7 +101,7 @@ export default function OwnerApp({ initialMe, initialTab = "overview", look = "a
     out();
   }
 
-  if (!me) return <OwnerSignIn onSignIn={signIn} look={look} brand={brand} />;
+  if (!me) return <OwnerSignIn onSignIn={signIn} brand={brand} note={sample ? `Sample data. Owner PIN ${sample.ownerPin}` : undefined} />;
 
   const venue = me.venue;
 
@@ -124,6 +127,7 @@ export default function OwnerApp({ initialMe, initialTab = "overview", look = "a
         </aside>
 
         <main className="ow-main" id="ow-main" tabIndex={-1}>
+          {sample && canSee && <p className="ow-sample" role="note"><b>Sample data</b> These guests and visits are invented so you can see the dashboard working. Nothing here is a real customer.</p>}
           {!canSee ? (
             <section className="ow-panel">
               <p className="ow-msg bad">This login is for staff. The owner dashboard needs an owner or manager login.</p>
@@ -134,6 +138,7 @@ export default function OwnerApp({ initialMe, initialTab = "overview", look = "a
               {current === "overview" && <Overview call={call} isOwner={isOwner} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
               {current === "service" && <Service call={call} />}
               {current === "guests" && <Guests call={call} isOwner={isOwner} />}
+              {current === "feedback" && <Feedback call={call} />}
               {current === "rules" && <Rules call={call} isOwner={isOwner} />}
               {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} />}
               {current === "assistant" && isOwner && <Assistant call={call} />}
@@ -149,7 +154,7 @@ export default function OwnerApp({ initialMe, initialTab = "overview", look = "a
 }
 
 /** The owner sign-in: the shared SignIn component (look A or B). onSignIn resolves to an error text, or null when the login worked. */
-function OwnerSignIn({ onSignIn, look, brand }: { onSignIn: (pin: string) => Promise<string | null>; look: SignInLook; brand: BrandProps }) {
+function OwnerSignIn({ onSignIn, brand, note }: { onSignIn: (pin: string) => Promise<string | null>; brand: BrandProps; note?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -160,5 +165,5 @@ function OwnerSignIn({ onSignIn, look, brand }: { onSignIn: (pin: string) => Pro
     if (err) setError(err);
   }
 
-  return <PinPad role="owner" busy={busy} error={error} onSubmit={submit} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} />;
+  return <PinPad role="owner" busy={busy} error={error} onSubmit={submit} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} note={note} />;
 }

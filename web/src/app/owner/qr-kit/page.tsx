@@ -56,13 +56,13 @@ function Card({ card, venue, crest, host, arabic, credit }: { card: KitCard; ven
       <div className="qk-say">
         {table ? (
           <>
-            <p>Scan to see the menu, order and pay.</p>
-            {arabic && <p lang="ar" dir="rtl">امسح الرمز لتصفح القائمة والطلب والدفع.</p>}
+            <p>Scan for the menu, your rewards card and our contact.</p>
+            {arabic && <p lang="ar" dir="rtl">امسح الرمز للقائمة وبطاقة المكافآت وبيانات التواصل.</p>}
           </>
         ) : (
           <>
-            <p>Scan to join. Collect points in your phone&apos;s Wallet.</p>
-            {arabic && <p lang="ar" dir="rtl">امسح الرمز للانضمام واجمع النقاط في محفظتك.</p>}
+            <p>Scan for your rewards card, our contact and to tell us how we did.</p>
+            {arabic && <p lang="ar" dir="rtl">امسح الرمز لبطاقة المكافآت وبيانات التواصل ولإبداء رأيك.</p>}
           </>
         )}
       </div>

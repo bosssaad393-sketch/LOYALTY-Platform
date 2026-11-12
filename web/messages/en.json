@@ -32,8 +32,9 @@
   "table": {
     "money": "BHD {amount}",
     "tableLabel": "Table {label}",
-    "callsLabel": "Call the team",
+    "callsLabel": "Bill and points",
     "calls": {
+      "redeem": "Redeem points",
       "coal": "Coal",
       "waiter": "Waiter",
       "bill": "Bill",
@@ -106,6 +107,21 @@
       "other": "Points for this bill go to another guest's card at this table.",
       "joinSub": "Join now and this bill's points are added once it is paid. Nothing to download."
     },
+    "reward": {
+      "asked": "Done. Staff are bringing your reward.",
+      "askedSub": "{goal} points were used from your card: {text}",
+      "none": "Points live on the loyalty card. Get yours, it takes a minute.",
+      "join": "Get loyalty card",
+      "generic": "Your reward",
+      "ready": "You have {points} points. This uses {goal} right away.",
+      "use": "Use {goal} points",
+      "progress": "{points} of {goal} points",
+      "left": "{left} more for: {text}",
+      "myCard": "Open my card",
+      "unset": "No reward is set here yet.",
+      "otherCard": "This table's bill is on another guest's card. Use your points at the counter.",
+      "notEnough": "Not enough points yet."
+    },
     "cancel": {
       "button": "Cancel this round",
       "confirm": "Cancel this round?",
@@ -150,5 +166,29 @@
     "empty": "The menu is not ready yet.",
     "soldOut": "Sold out",
     "money": "BHD {amount}"
+  },
+  "door": {
+    "menu": "Menu",
+    "card": "Loyalty rewards card",
+    "myCard": "My rewards card",
+    "getCard": "Get loyalty card",
+    "save": "Save contact",
+    "tableLine": "Table {label}",
+    "counterLine": "Rewards, contact and feedback",
+    "hello": "Welcome back, {name}",
+    "follow": "Follow us",
+    "fbTitle": "Give us feedback",
+    "fbRate": "How was your visit?",
+    "fbStar": "{n} out of 5",
+    "fbPlaceholder": "Tell us more (optional)",
+    "fbSend": "Send feedback",
+    "fbSending": "Sending…",
+    "fbThanks": "Thank you. Your feedback went straight to the owner.",
+    "fbMembers": "Feedback is for members. Get the loyalty card first, it takes a minute.",
+    "fbPick": "Choose a rating from 1 to 5 first.",
+    "fbLimit": "You have already sent feedback today. Thank you.",
+    "fbError": "That did not send. Please try again.",
+    "fbReviewAsk": "Glad you enjoyed it. A Google review helps us a lot.",
+    "fbReview": "Review us on Google"
   }
 }

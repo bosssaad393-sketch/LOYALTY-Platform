@@ -45,4 +45,8 @@ export const LIMITS = {
   loginPerEmail: (email: string): Limit => ({ bucket: `login:${hashed("email", email)}`, max: 5, windowSeconds: 15 * 60 }),
   /** Email + password tries from one address, across accounts. */
   loginPerCaller: (headers: Headers): Limit => ({ bucket: `login:${callerBucket(headers)}`, max: 20, windowSeconds: 15 * 60 }),
+  /** Feedback from one loyalty card: a guest rates a visit, not every minute. */
+  feedbackPerCard: (cardId: string): Limit => ({ bucket: `feedback:${cardId}`, max: 3, windowSeconds: 24 * 60 * 60 }),
+  /** Feedback from one address, across cards. */
+  feedbackPerCaller: (headers: Headers): Limit => ({ bucket: `feedback:${callerBucket(headers)}`, max: 10, windowSeconds: 60 * 60 }),
 } as const;

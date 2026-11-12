@@ -1,4 +1,4 @@
-// The printable QR kit: one card per table, plus a counter card that opens the loyalty card sign-up.
+// The printable QR kit: one card per table, plus a counter card for the till (rewards card, contact, feedback).
 // Pure helpers, no database, so the links and the page layout can be tested on their own.
 import { qrShape as shapeOf } from "../qr";
 
@@ -27,7 +27,7 @@ export function kitCards(base: string, venueSlug: string, tables: { id: string; 
   const sorted = [...tables].sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
   const picked = only ? sorted.filter((t) => t.id === only) : sorted;
   const cards: KitCard[] = picked.map((t) => ({ kind: "table", id: t.id, label: t.label, url: `${base}/t/${encodeURIComponent(t.token)}` }));
-  if (!only) cards.push({ kind: "join", id: "join", url: `${base}/join/${encodeURIComponent(venueSlug)}` });
+  if (!only) cards.push({ kind: "join", id: "join", url: `${base}/counter/${encodeURIComponent(venueSlug)}` });
   return cards;
 }
 

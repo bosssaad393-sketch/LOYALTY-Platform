@@ -1,5 +1,6 @@
 import "server-only";
-import { createHmac, randomInt } from "node:crypto";
+import { randomInt } from "node:crypto";
+import { mac, pinLookup } from "./pinHash";
 import { db } from "./supabase";
 import { loadStaffByPin, type Staff } from "./staffAuth";
 
@@ -15,14 +16,7 @@ const WINDOW_MS = 10 * 60_000;
 const PER_CALLER = 5;
 const OVERALL = 30;
 
-function key(): string {
-  const base = process.env.STAFF_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!base) throw new Error("No secret available for PINs.");
-  return createHmac("sha256", base).update("loyalty-pin-v1").digest("hex");
-}
-const mac = (s: string) => createHmac("sha256", key()).update(s).digest("hex");
-
-export const pinLookup = (pin: string) => mac(`pin:${pin}`);
+export { pinLookup };
 
 export function minPinLength(role: Staff["role"]): number {
   return role === "staff" ? 4 : 6;

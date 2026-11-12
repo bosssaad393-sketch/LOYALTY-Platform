@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CALL_BUTTONS, filsText, linesTotal, type RequestKind } from "@/lib/table/rules";
+import { filsText, linesTotal, type RequestKind } from "@/lib/table/rules";
 import type { PayMethod } from "@/lib/tap/rules";
 import type { MenuView } from "@/lib/table/db";
 import "./table.css";
@@ -11,14 +11,15 @@ import { UUID_RE as UUID } from "@/lib/ids";
 type Round = { id: string; status: string; readyMinutes: number | null; acceptedAt: string | null; canCancel?: boolean; lines: { nameEn: string; nameAr: string | null; qty: number; note: string | null }[] };
 type PayState = "off" | "nothing" | "wait" | "paying" | "ready";
 type Points = { card: "mine" | "other" | "none"; estimate: number };
-type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; calls: string[] };
+type Reward = { points: number; goal: number; text: string; ready: boolean };
+type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; reward?: Reward | null; calls: string[] };
 /** After coming back from Tap: what the payment turned out to be. */
 type PayResult = "checking" | "captured" | "failed" | "review" | "initiated" | null;
-type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string };
+type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string; cardHref: string };
 
 const POLL_MS = 5000;
 
-export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy }: Props) {
+export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy, cardHref }: Props) {
   const t = useTranslations("table");
   const locale = useLocale();
   const ar = locale === "ar";
@@ -26,6 +27,8 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
 
   const [menu, setMenu] = useState(initialMenu);
   const [tab, setTab] = useState<Tab>(initialTab);
+  const [rewardOpen, setRewardOpen] = useState(false);
+  const [rewardBusy, setRewardBusy] = useState(false);
   const [qty, setQty] = useState<Record<string, number>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -176,6 +179,21 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
     else setError(t("errors.server"));
   }
 
+  const billAsked = tab.calls.includes("bill") || tab.calls.includes("cash");
+  const reward = tab.reward ?? null;
+  const rewardAsked = tab.calls.includes("reward");
+  /** Uses the points for the reward: they come off the card at once, and staff are told what to bring. */
+  async function redeem() {
+    setError(null);
+    setRewardBusy(true);
+    const res = await fetch(`/api/table/${token}/redeem`, { method: "POST" }).catch(() => null);
+    setRewardBusy(false);
+    if (!res) { setError(t("errors.offline")); return; }
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.tab) { setTab(data.tab); return; }
+    const why: Record<string, string> = { other_card: t("reward.otherCard"), not_enough: t("reward.notEnough"), no_card: t("reward.none") };
+    setError(why[data.error] ?? (res.status === 429 ? t("errors.tooMany") : t("errors.server")));
+  }
   async function call(kind: RequestKind) {
     setError(null);
     const data = await post("request", { kind });
@@ -226,16 +244,45 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
       </header>
 
       <section className="tb-calls rv" style={{ "--i": 1 } as CSSProperties} aria-label={t("callsLabel")}>
-        {CALL_BUTTONS.map((k) => {
-          const open = tab.calls.includes(k);
-          return (
-            <button key={k} type="button" className={`tb-call${open ? " on" : ""}`} aria-pressed={open} disabled={open} onClick={() => call(k)}>
-              <b>{t(`calls.${k}`)}</b>
-              <small>{open ? t("calls.onTheWay") : t("calls.tap")}</small>
-            </button>
-          );
-        })}
+        <button type="button" className={`tb-call${billAsked ? " on" : ""}`} aria-pressed={billAsked} disabled={billAsked || tab.totalFils <= 0} onClick={() => call("bill")}>
+          {t("calls.bill")}{billAsked && <small>{t("calls.onTheWay")}</small>}
+        </button>
+        <button type="button" className={`tb-call${rewardAsked ? " on" : ""}`} aria-expanded={rewardOpen || rewardAsked} onClick={() => setRewardOpen((v) => !v)}>
+          {t("calls.redeem")}{rewardAsked && <small>{t("calls.onTheWay")}</small>}
+        </button>
       </section>
+
+      {(rewardOpen || rewardAsked) && (
+        <section className="tb-reward" aria-live="polite">
+          {rewardAsked ? (
+            <>
+              <b>{t("reward.asked")}</b>
+              {reward && <small>{t("reward.askedSub", { goal: reward.goal, text: reward.text })}</small>}
+            </>
+          ) : !reward ? (
+            <>
+              <b>{t("reward.none")}</b>
+              {/* A new tab, so the table page stays open behind the card. */}
+              <a className="btn" href={cardHref} target="_blank" rel="noopener">{t("reward.join")}</a>
+            </>
+          ) : reward.goal <= 0 ? (
+            <b>{t("reward.unset")}</b>
+          ) : reward.ready ? (
+            <>
+              <b>{reward.text || t("reward.generic")}</b>
+              <small>{t("reward.ready", { points: reward.points, goal: reward.goal })}</small>
+              <button type="button" className="btn primary" disabled={rewardBusy} onClick={redeem}>{t("reward.use", { goal: reward.goal })}</button>
+            </>
+          ) : (
+            <>
+              <b>{t("reward.progress", { points: reward.points, goal: reward.goal })}</b>
+              <span className="tb-meter" aria-hidden="true"><i style={{ inlineSize: `${Math.min(100, Math.round((reward.points / reward.goal) * 100))}%` }} /></span>
+              <small>{t("reward.left", { left: reward.goal - reward.points, text: reward.text || t("reward.generic") })}</small>
+              <a className="tb-link" href={cardHref} target="_blank" rel="noopener">{t("reward.myCard")}</a>
+            </>
+          )}
+        </section>
+      )}
 
       <div role="status">
         {payResult && (
@@ -312,27 +359,31 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
 
       {menu.map((c) => (
         <section key={c.id} id={`c-${c.id}`} className="tb-cat" aria-labelledby={`h-${c.id}`}>
-          <h2 className="tb-cat-h" id={`h-${c.id}`}>{name(c)}</h2>
+          <h2 className="tb-cat-h" id={`h-${c.id}`}>{name(c)}<small>{c.items.length}</small></h2>
           <ul className="tb-items">
             {c.items.map((i, k) => {
               const n = qty[i.id] ?? 0;
               const note = (ar && i.noteAr) || i.noteEn;
               return (
-                <li key={i.id} className={`tb-item rv${i.available ? "" : " off"}`} style={{ "--i": 2 + Math.min(k, 6) } as CSSProperties}>
-                  {i.imageUrl && (
-                    /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
-                    <img className="tb-photo" src={i.imageUrl} alt="" width={88} height={88} loading="lazy" decoding="async" />
-                  )}
+                <li key={i.id} className={`tb-item rv${i.available ? "" : " off"}${n > 0 ? " picked" : ""}`} style={{ "--i": 2 + Math.min(k, 6) } as CSSProperties}>
                   <div className="tb-item-main">
                     <b>{name(i)}</b>
                     {note && <small>{note}</small>}
                     <span className="tb-price">{i.available ? money(i.priceFils) : t("soldOut")}</span>
                   </div>
-                  {i.available && (
-                    <div className="tb-step">
-                      {n > 0 && <button type="button" aria-label={t("less", { item: name(i) })} onClick={() => change(i.id, -1)}>−</button>}
-                      {n > 0 && <span aria-live="polite">{n}</span>}
-                      <button type="button" className="add" aria-label={t("more", { item: name(i) })} onClick={() => change(i.id, 1)}>+</button>
+                  {(i.imageUrl || i.available) && (
+                    <div className={`tb-media${i.imageUrl ? "" : " bare"}`}>
+                      {i.imageUrl && (
+                        /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
+                        <img className="tb-photo" src={i.imageUrl} alt="" width={112} height={112} loading="lazy" decoding="async" />
+                      )}
+                      {i.available && (
+                        <div className="tb-step">
+                          {n > 0 && <button type="button" aria-label={t("less", { item: name(i) })} onClick={() => change(i.id, -1)}>−</button>}
+                          {n > 0 && <span aria-live="polite">{n}</span>}
+                          <button type="button" className="add" aria-label={t("more", { item: name(i) })} onClick={() => change(i.id, 1)}>+</button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </li>
