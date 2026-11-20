@@ -1,0 +1,23 @@
+/* Spaloon brand tokens (from the shop sign and interior, 2026-11-20): charcoal, matte gold line art, serif wordmark.
+   One gold accent per screen, hairlines, no glow. Replace the drawn moustache with the real logo file when the owner sends it. */
+:root{--bg:#161615;--deep:#0F0F0E;--surface:#1F1F1D;--surface2:#282826;--line:#3A3935;--text:#F2EEE6;--muted:#CFC8BA;--dim:#8F897E;
+--gold:#C9A96E;--gold2:#DCC08A;--golddim:#7E6A45;--ok:#9DBF8F;--bad:#E08B7A;
+--serif:"Cormorant Garamond",Georgia,serif;--sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--ar:"Tajawal",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html[dir=rtl] body{font-family:var(--ar)}
+body{background:var(--bg);color:var(--text);font:16px/1.5 var(--sans)}
+.wm{font:600 22px/1 var(--serif);letter-spacing:.32em;color:var(--gold)}
+.wm small{display:block;font:700 10px var(--sans);letter-spacing:.3em;color:var(--dim);margin-top:6px}
+.btn{min-height:50px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font:600 15px inherit;font-family:inherit;padding:0 20px;cursor:pointer;letter-spacing:.02em}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#17130C}
+.btn.small{min-height:38px;padding:0 14px;font-size:13px}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.in{width:100%;height:50px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;padding:0 14px}
+.in:focus{outline:none;border-color:var(--gold)}
+select.in{appearance:none}
+.lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+html[dir=rtl] .lbl{letter-spacing:0}
+.note{color:var(--dim);font-size:13.5px}
+.tag{display:inline-block;border:1px solid var(--golddim);color:var(--gold);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px}
+.soon{display:inline-block;border:1px solid var(--line);color:var(--dim);border-radius:999px;font-size:11px;padding:2px 9px;margin-inline-start:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

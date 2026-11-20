@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#161615">
+<title>Spaloon Owner (prototype)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+/* Owner dashboard for a men's barber + spa. Fake data, clickable. Phone: tabs on top. 900px and up: side navigation.
+   Salon changes from the café template: stamps per visit (not points per BHD), barbers and chairs, services & packages editor, bookings list. Prices blank until the owner fills them. */
+.shell{max-width:1160px;margin:0 auto}
+.side{padding:max(18px,env(safe-area-inset-top)) 20px 8px}
+.nav{display:flex;gap:6px;overflow-x:auto;padding:14px 20px 4px;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
+.nav button{flex:none;border:0;background:none;color:var(--dim);font:600 14px var(--sans);padding:10px 14px;border-radius:10px;cursor:pointer}
+.nav button[aria-current=true]{color:var(--gold2);background:var(--surface2);box-shadow:inset 0 0 0 1px var(--line)}
+.main{padding:8px 20px 56px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+h1{font:600 32px/1.12 var(--serif);margin:6px 0 4px}.sub{color:var(--muted);margin-bottom:22px}
+.grid{display:grid;gap:12px}.k4{grid-template-columns:1fr 1fr}.c2{grid-template-columns:1fr}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.panel h2{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.kpi b{display:block;font:600 40px/1.05 var(--serif)}.kpi span{display:block;color:var(--dim);font-size:13px;margin-top:6px}.kpi i{font-style:normal;color:var(--ok);font-size:13px}
+.list>div{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.list>div:first-child{border-top:0}
+.list .n{font-size:16px}.list small{display:block;color:var(--dim);font-size:13px}.list .r{text-align:right;color:var(--muted);white-space:nowrap}
+.bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--golddim)}.bar i.top{background:var(--gold)}
+.chairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.chair{border:1px solid var(--line);border-radius:14px;padding:14px}.chair b{display:block;font:600 18px var(--serif)}.chair small{color:var(--dim);font-size:12.5px}
+.chair.busy{border-color:var(--golddim)}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--dim);margin-inline-end:6px}.busy .dot{background:var(--gold)}
+.sched>div{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.sched>div:first-child{border-top:0}
+.sched time{font:600 15px var(--sans);color:var(--gold2)}
+.field{margin-bottom:16px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.step{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;overflow:hidden;width:fit-content}
+.step button{width:50px;height:50px;border:0;background:var(--surface2);color:var(--gold2);font:600 22px var(--sans);cursor:pointer}.step output{min-width:70px;text-align:center;font:600 22px var(--serif)}
+.msg{border:1px solid var(--gold);color:var(--gold2);border-radius:12px;padding:10px 14px;margin-top:14px;font-size:14.5px}.msg.ok{border-color:var(--ok);color:var(--ok)}
+.pkrow{display:grid;grid-template-columns:1fr 110px auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.pkrow:first-child{border-top:0}
+.pkrow .in{height:42px}
+.pkrow small{display:block;color:var(--dim);font-size:12.5px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}.seg button{border:1px solid var(--line);background:none;color:var(--muted);border-radius:999px;padding:7px 13px;font:600 13px var(--sans);cursor:pointer}.seg button[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:#17130C}
+.phone{background:#0d0d0c;border:1px solid var(--line);border-radius:22px;padding:16px;max-width:340px}
+.notif{background:#262624;border-radius:16px;padding:12px 14px;display:flex;gap:12px}.notif i{flex:none;width:36px;height:36px;border-radius:9px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;color:var(--gold)}.notif i svg{width:22px}.notif b{display:block;font-size:14px}.notif span{display:block;font-size:13.5px;color:var(--muted)}
+textarea.in{height:100px;padding:12px 14px;resize:none;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(8,8,7,.72);display:grid;place-items:center;padding:20px;z-index:20}.modal>div{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:380px;width:100%}
+@media(min-width:900px){
+ .shell{display:grid;grid-template-columns:240px 1fr}
+ .side{grid-row:1/3;padding:32px 24px;border-right:1px solid var(--line);min-height:100vh}
+ .nav{flex-direction:column;overflow:visible;padding:28px 0 0}.nav button{text-align:left;padding:12px 14px}
+ .main{padding:32px 40px 64px}.k4{grid-template-columns:repeat(4,1fr)}.c2{grid-template-columns:1.4fr 1fr}
+}
+</style></head><body>
+<div class="shell"><aside class="side"><div class="wm">SPALOON<small>OWNER</small></div><nav class="nav" id="nav"></nav></aside><main class="main" id="m"></main></div>
+<script>
+var MARK='<svg viewBox="0 0 120 44" fill="currentColor"><path d="M60 16c-6-8-17-12-27-8C22 12 16 22 8 24c-4 1-7-1-7-4 0 6 5 11 12 11 9 0 15-7 22-10 7-3 15-2 20 3 1 1 3 1 5 0 5-5 13-6 20-3 7 3 13 10 22 10 7 0 12-5 12-11 0 3-3 5-7 4-8-2-14-12-25-16-10-4-21 0-27 8z"/></svg>';
+/* ---------- fake data (names and numbers are invented for the prototype) ---------- */
+var D={rules:{goal:10,reward:'Free haircut',bday:true},
+ chairs:[['Chair 1','Yousef','Fade + beard',true],['Chair 2','Karim','',false],['Chair 3','Hassan','Haircut',true],['Spa room','Imad','Moroccan bath',true]],
+ sched:[['17:30','Ali Rashid','The Gentleman','Yousef'],['18:00','Walk-in','Haircut','Karim'],['18:30','Hamad Salman','The Royal Hammam','Imad'],['19:15','Omar Khaled','Fade cut','Hassan'],['20:00','Khalid Mansoor','The Full Reset','Imad'],['21:00','Yusuf Ebrahim','Beard trim','Karim']],
+ services:[['Haircut',62],['Beard trim',41],['Moroccan bath',23],['Fade cut',19],['Massage',14],['Face wash & mask',11]],
+ barbers:[['Yousef',58,4.9],['Hassan',47,4.8],['Karim',39,4.7],['Imad (spa)',31,4.9]],
+ guests:[['Ali Rashid',6,'Today','The Gentleman'],['Hamad Salman',9,'Today','Moroccan bath'],['Omar Khaled',2,'3 days ago','Fade cut'],['Khalid Mansoor',12,'Yesterday','The Full Reset'],['Yusuf Ebrahim',4,'Last week','Beard trim'],['Faisal Jaber',7,'2 days ago','Haircut'],['Nasser Ali',1,'Last week','Haircut']],
+ pk:[{n:'The Royal Hammam',i:'Moroccan bath · Body scrub · Massage',p:''},{n:'The Gentleman',i:'Haircut · Beard trim · Face wash & mask',p:''},{n:'The Full Reset',i:'Moroccan bath · Massage · Haircut & blow-dry · Skin cleaning',p:''},{n:'The Groom',i:'Moroccan bath · Skin cleaning · Haircut & styling · Shave · Manicure & pedicure',p:''},{n:'Hands & Feet',i:'Manicure · Pedicure',p:''}],
+ sv:{Hair:['Haircut','Fade cut','Buzz cut','Children\'s cut','Blow-dry','Styling','Hair colouring','Hair straightening','Hair treatment'],Beard:['Shave','Beard trim','Beard dyeing','Beard conditioning'],'Spa & bath':['Moroccan bath','Massage'],Skin:['Face wash & mask','Skin cleaning','Waxing'],'Hands & feet':['Manicure','Pedicure']},
+ price:{},svTab:'Packages',
+ team:[['Yousef','Barber',true],['Hassan','Barber',true],['Karim','Barber',true],['Imad','Spa therapist',true],['Front desk','Reception',true]],
+ offer:'Quiet Tuesday: book a Moroccan bath before 5 pm and get a free face mask.',q:'',msg:null};
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var TABS=[['overview','Overview'],['today','Today'],['menu','Services & packages'],['guests','Members'],['rewards','Rewards'],['offers','Offers'],['team','Barbers & team']];
+var cur='overview';
+function msg(){return D.msg?'<div class="msg '+(D.msg.ok?'ok':'')+'" role="status">'+esc(D.msg.t)+'</div>':''}
+var V={
+overview:function(){var mx=D.services[0][1];return '<div class="eyebrow">Good evening</div><h1>Overview</h1><p class="sub">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'. Busiest hour is usually 9 pm.</p>'+
+ '<div class="grid k4"><div class="panel kpi"><b>186</b><span>Members</span><i>+11 this week</i></div><div class="panel kpi"><b>23</b><span>Visits today</span><i>+4 on the same day last week</i></div><div class="panel kpi"><b>3 / 4</b><span>Chairs busy now</span></div><div class="panel kpi"><b>9</b><span>Free haircuts given, 30 days</span></div></div>'+
+ '<div class="grid c2" style="margin-top:12px"><div class="panel"><h2>Most booked, last 30 days</h2>'+D.services.map(function(s,i){return '<div style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><span>'+s[0]+'</span><span class="note">'+s[1]+'</span></div><div class="bar"><i class="'+(i===0?'top':'')+'" style="width:'+(s[1]/mx*100)+'%"></i></div></div>'}).join('')+'</div>'+
+ '<div class="panel"><h2>Barbers this month</h2><div class="list">'+D.barbers.map(function(b){return '<div><span class="n">'+b[0]+'<small>'+b[1]+' clients</small></span><span class="r">★ '+b[2]+'</span></div>'}).join('')+'</div><p class="note" style="margin-top:10px">Ratings come from the feedback guests leave after a visit.</p></div></div>'},
+today:function(){return '<div class="eyebrow">Live</div><h1>Today</h1><p class="sub">Chairs right now and the bookings staff took on WhatsApp.</p>'+
+ '<div class="chairs">'+D.chairs.map(function(c){return '<div class="chair '+(c[3]?'busy':'')+'"><small><span class="dot"></span>'+(c[3]?'Busy':'Free')+'</small><b>'+c[0]+'</b><small>'+c[1]+(c[2]?' · '+c[2]:'')+'</small></div>'}).join('')+'</div>'+
+ '<div class="panel" style="margin-top:12px"><h2>Bookings</h2><div class="sched">'+D.sched.map(function(s){return '<div><time>'+s[0]+'</time><span>'+esc(s[1])+'<small class="note" style="display:block">'+s[2]+'</small></span><span class="tag">'+s[3]+'</span></div>'}).join('')+'</div><p class="note" style="margin-top:10px">Online booking from the guest page <span class="soon">coming soon</span>. Today guests book on WhatsApp.</p></div>'},
+menu:function(){var tabs=['Packages'].concat(Object.keys(D.sv));var h='<div class="eyebrow">What guests see</div><h1>Services & packages</h1><p class="sub">This is the menu on the guest page. Leave a price empty and guests see "Price on request".</p><div class="seg">'+tabs.map(function(t){return '<button data-sv="'+t+'" aria-pressed="'+(D.svTab===t)+'">'+t+'</button>'}).join('')+'</div><div class="panel">';
+ if(D.svTab==='Packages')h+=D.pk.map(function(p,i){return '<div class="pkrow"><span><b style="font:600 18px var(--serif)">'+esc(p.n)+'</b><small>'+esc(p.i)+'</small></span><input class="in" data-pp="'+i+'" inputmode="decimal" placeholder="BHD" value="'+esc(p.p)+'"><button class="btn small" data-a="edit" data-i="'+i+'">Edit</button></div>'}).join('')+'<div class="row" style="margin-top:14px"><button class="btn" data-a="addpk">+ New package</button><button class="btn primary" data-a="savemenu">Save menu</button></div>';
+ else h+=D.sv[D.svTab].map(function(s){return '<div class="pkrow"><span>'+esc(s)+'</span><input class="in" data-sp="'+esc(s)+'" inputmode="decimal" placeholder="BHD" value="'+esc(D.price[s]||'')+'"><button class="btn small">Hide</button></div>'}).join('')+'<div class="row" style="margin-top:14px"><button class="btn">+ Add a service</button><button class="btn primary" data-a="savemenu">Save menu</button></div>';
+ return h+msg()+'</div><p class="note" style="margin-top:10px">Package contents are drafts made from the services on your wall. Change them to match what you sell.</p>'},
+guests:function(){var q=D.q.toLowerCase(),rows=D.guests.filter(function(g){return g[0].toLowerCase().indexOf(q)>-1});
+ return '<div class="eyebrow">Club</div><h1>Members</h1><p class="sub">186 members. Phone numbers stay hidden here; export them only when you need to.</p><div class="row" style="margin-bottom:14px"><input class="in" id="q" placeholder="Search by name" value="'+esc(D.q)+'" style="flex:1;min-width:200px"><button class="btn" data-a="csv">Export CSV</button></div>'+
+ '<div class="panel list">'+(rows.map(function(g){return '<div><span class="n">'+esc(g[0])+'<small>Last visit '+g[2]+' · usually '+g[3]+'</small></span><span class="r">'+g[1]+' / '+D.rules.goal+' stamps</span></div>'}).join('')||'<p class="note">No member matches.</p>')+'</div>'+msg()},
+rewards:function(){var r=D.rules;return '<div class="eyebrow">Programme</div><h1>Rewards</h1><p class="sub">One stamp for every visit. Changes apply from the next visit; members keep their stamps.</p>'+
+ '<div class="grid c2"><div class="panel"><div class="field"><span class="lbl">Visits for a reward</span><div class="step"><button data-a="g-">−</button><output>'+r.goal+'</output><button data-a="g+">+</button></div></div>'+
+ '<div class="field"><label class="lbl" for="rw">The reward</label><input class="in" id="rw" maxlength="60" value="'+esc(r.reward)+'"></div>'+
+ '<label class="row" style="color:var(--muted);margin-bottom:18px"><input type="checkbox" id="bd" '+(r.bday?'checked':'')+' style="accent-color:var(--gold)"> Birthday gift: a free face mask in their birthday week</label><button class="btn primary" data-a="saver">Save</button>'+msg()+'</div>'+
+ '<div class="panel"><h2>On the guest card</h2><p style="font:600 22px var(--serif)">'+r.goal+' visits = '+esc(r.reward)+'</p><p class="note" style="margin-top:8px">A member who comes twice a month reaches it in about '+Math.ceil(r.goal/2)+' months.</p></div></div>'},
+offers:function(){return '<div class="eyebrow">Wallet cards</div><h1>Offers</h1><p class="sub">A short message to members\' Wallet cards. Only members who agreed receive it (164 of 186).</p>'+
+ '<div class="grid c2"><div class="panel"><div class="field"><label class="lbl" for="ot">Message</label><textarea class="in" id="ot" maxlength="200">'+esc(D.offer)+'</textarea><p class="note"><span id="cnt">'+D.offer.length+'</span> of 200 characters.</p></div><button class="btn primary" data-a="send">Review and send</button>'+msg()+'</div>'+
+ '<div class="panel"><h2>How it will appear</h2><div class="phone"><div class="notif"><i>'+MARK+'</i><div><b>Spaloon</b><span id="pv">'+esc(D.offer)+'</span></div></div></div><p class="note" style="margin-top:10px">Lock-screen alerts <span class="soon">coming soon</span>. The offer shows on the card now.</p></div></div>'},
+team:function(){return '<div class="eyebrow">Access</div><h1>Barbers & team</h1><p class="sub">Each person signs in on the staff screen with their own PIN. Remove access the day someone leaves.</p>'+
+ '<div class="panel list">'+D.team.map(function(t,i){return '<div><span class="n">'+esc(t[0])+'<small>'+t[1]+'</small></span><span class="r"><button class="btn small" data-a="tog" data-i="'+i+'">'+(t[2]?'Deactivate':'Activate')+'</button></span></div>'}).join('')+'</div>'+
+ '<div class="panel" style="margin-top:12px"><h2>Add someone</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"><div class="field"><label class="lbl" for="tn">Name</label><input class="in" id="tn"></div><div class="field"><label class="lbl" for="tr">Role</label><select class="in" id="tr"><option>Barber</option><option>Spa therapist</option><option>Reception</option><option>Manager</option></select></div></div><button class="btn primary" data-a="add">Add and create a PIN</button>'+msg()+'</div>'}
+};
+function nav(){$('nav').innerHTML=TABS.map(function(t){return '<button data-t="'+t[0]+'" aria-current="'+(cur===t[0])+'">'+t[1]+'</button>'}).join('')}
+function render(){nav();$('m').innerHTML=V[cur]()}
+function go(t){cur=t;D.msg=null;render();window.scrollTo(0,0)}
+function modal(h){var d=document.createElement('div');d.className='modal';d.innerHTML='<div>'+h+'</div>';d.onclick=function(e){if(e.target===d||e.target.closest('[data-x]'))d.remove()};document.body.appendChild(d);return d}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-t],[data-a],[data-sv]');if(!b)return;if(b.dataset.t)return go(b.dataset.t);if(b.dataset.sv){D.svTab=b.dataset.sv;D.msg=null;return render()}
+ var a=b.dataset.a,r=D.rules;
+ if(a==='g-')r.goal=Math.max(3,r.goal-1),render();else if(a==='g+')r.goal=Math.min(20,r.goal+1),render();
+ else if(a==='saver'){r.reward=$('rw').value.trim()||r.reward;r.bday=$('bd').checked;D.msg={t:'Saved. Applies from the next visit.',ok:true};render()}
+ else if(a==='savemenu'){D.msg={t:'Saved. The guest menu is updated.',ok:true};render()}
+ else if(a==='addpk'){D.pk.push({n:'New package',i:'Pick the services',p:''});render()}
+ else if(a==='edit'){var p=D.pk[b.dataset.i],m=modal('<h2 style="font:600 22px var(--serif);margin-bottom:12px">Edit package</h2><div class="field"><label class="lbl">Name</label><input class="in" id="en" value="'+esc(p.n)+'"></div><div class="field"><label class="lbl">What is inside</label><textarea class="in" id="ei">'+esc(p.i)+'</textarea></div><div class="row"><button class="btn primary" data-ok>Save</button><button class="btn" data-x>Cancel</button></div>');m.querySelector('[data-ok]').onclick=function(){p.n=$('en').value;p.i=$('ei').value;m.remove();render()}}
+ else if(a==='csv'){D.msg={t:'Prototype: the real app downloads a spreadsheet here.'};render()}
+ else if(a==='send'){var m2=modal('<h2 style="font:600 22px var(--serif);margin-bottom:8px">Send to 164 members?</h2><p class="note" style="margin:0 0 16px">It shows on their card. It cannot be recalled.</p><div class="row"><button class="btn primary" data-ok>Send now</button><button class="btn" data-x>Not yet</button></div>');m2.querySelector('[data-ok]').onclick=function(){D.msg={t:'Sent to 164 Wallet cards.',ok:true};m2.remove();render()}}
+ else if(a==='tog'){var t=D.team[b.dataset.i];t[2]=!t[2];render()}
+ else if(a==='add'){var nm=$('tn').value.trim();if(!nm){D.msg={t:'Add a name first.'};render();return}D.team.push([nm,$('tr').value,true]);D.msg={t:nm+' added. Their PIN is shown once on the staff screen.',ok:true};render()}});
+document.addEventListener('input',function(e){var el=e.target;if(el.id==='q'){D.q=el.value;var p=el.selectionStart;render();$('q').focus();$('q').setSelectionRange(p,p)}
+ if(el.id==='ot'){D.offer=el.value;$('cnt').textContent=el.value.length;$('pv').textContent=el.value}
+ if(el.dataset.pp)D.pk[el.dataset.pp].p=el.value;if(el.dataset.sp)D.price[el.dataset.sp]=el.value});
+(function(){var h=location.hash.slice(1);if(V[h])cur=h;render()})();
+</script></body></html>
