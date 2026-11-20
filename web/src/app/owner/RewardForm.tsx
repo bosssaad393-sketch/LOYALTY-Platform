@@ -31,7 +31,8 @@ export function useRewardEditor(call: Call) {
   async function save(): Promise<boolean> {
     if (!rules) return false;
     setBusy(true); setNote(null);
-    const r = await call<RulesData>("/api/owner/rules", "POST", rules);
+    const body = rules.stampTiers ? { stampTexts: rules.stampTiers.map((t) => t.text) } : rules;
+    const r = await call<RulesData>("/api/owner/rules", "POST", body);
     setBusy(false);
     if (r.ok) { setNote({ kind: "ok", text: SAVED_TEXT }); return true; }
     if (r.status !== 401) setNote({ kind: "bad", text: r.error });
@@ -55,6 +56,28 @@ export function RewardState({ editor, children }: { editor: RewardEditor; childr
 export function RewardFields({ editor, rules, isOwner, hint, onSaved }: { editor: RewardEditor; rules: RulesData; isOwner: boolean; hint?: boolean; onSaved?: () => void }) {
   const textId = useId();
   const { setRules, busy, note, save } = editor;
+  const tiers = rules.stampTiers;
+  if (tiers) {
+    // Stamp venue: one stamp per paid visit; the owner renames the rewards, the steps stay.
+    return (
+      <>
+        {tiers.map((t, i) => (
+          <label key={t.at} className="ow-field">
+            <span className="ow-lbl">At {t.at} stamps</span>
+            <input className="ow-in" value={t.text} disabled={!isOwner} maxLength={60}
+              onChange={(e) => setRules({ ...rules, stampTiers: tiers.map((x, k) => (k === i ? { ...x, text: e.target.value } : x)) })} />
+          </label>
+        ))}
+        <p className="ow-note">One stamp for every paid visit. After the last reward the card starts again.</p>
+        {isOwner ? (
+          <div className="ow-actions"><button type="button" className="ow-btn primary" disabled={busy} onClick={async () => { if (await save()) onSaved?.(); }}>{busy ? "Saving…" : "Save the rewards"}</button></div>
+        ) : (
+          <p className="ow-note">Only the owner can change the rewards.</p>
+        )}
+        <Msg note={note} />
+      </>
+    );
+  }
   return (
     <>
       <div className="ow-field">

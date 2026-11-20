@@ -5,7 +5,8 @@
  * Mirrors the database function `stamp_due`; pure so it is easy to test.
  */
 
-export type StampTier = { at: number; text: string };
+/** `ar`: the reward in Arabic, shown to guests who use the card in Arabic (optional). */
+export type StampTier = { at: number; text: string; ar?: string };
 
 /** Reads the venue's tiers; anything malformed means "not a stamp venue". */
 export function parseTiers(raw: unknown): StampTier[] | null {
@@ -16,7 +17,8 @@ export function parseTiers(raw: unknown): StampTier[] | null {
     const at = Number((t as { at?: unknown })?.at);
     const text = String((t as { text?: unknown })?.text ?? "").trim();
     if (!Number.isInteger(at) || at <= prev || !text) return null;
-    tiers.push({ at, text });
+    const ar = String((t as { ar?: unknown })?.ar ?? "").trim();
+    tiers.push(ar ? { at, text, ar } : { at, text });
     prev = at;
   }
   return tiers;

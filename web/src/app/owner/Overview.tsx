@@ -70,7 +70,7 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
             <h2 className="ow-h" id="ow-h-do">Do next</h2>
             <div className="ow-do">
               {isOwner && <Quick title="Send an update" lead="Today’s reward and bonus" onClick={onSendUpdate} />}
-              {isOwner && <Quick title="Change the reward" lead={rules.data ? `${rules.data.rewardText}, at ${n(rules.data.rewardGoal)} points` : "The reward, the goal and points per BHD"} onClick={() => setSheet("reward")} />}
+              {isOwner && <Quick title="Change the reward" lead={rules.data ? (rules.data.stampTiers ? `Rewards at ${rules.data.stampTiers.map((t) => t.at).join(", ")} stamps` : `${rules.data.rewardText}, at ${n(rules.data.rewardGoal)} points`) : "The reward, the goal and points per BHD"} onClick={() => setSheet("reward")} />}
               <Quick title="Points given out" lead={week.data ? `${n(week.data.issued)} in the last 7 days` : "Today, 7 days, 30 days or all time"} onClick={() => setSheet("points")} />
             </div>
           </section>

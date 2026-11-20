@@ -12,7 +12,11 @@ type Props = {
   code: string;
   qr: string; // data URL of the till QR
   unit?: "points" | "stamps";
+  /** Words on the card, so the card page can show it in the guest's language. */
+  labels?: { member: string; code: string; since: string; ready: string; stamps: string; points: string };
 };
+
+const EN_LABELS = { member: "Member", code: "Your code", since: "Member since", ready: "Reward ready", stamps: "Stamps", points: "Points" };
 
 const ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
 
@@ -29,7 +33,7 @@ function displayName(name: string) {
  * the venue name in gold lettering, the code in raised gold digits, the name, the points and the till QR.
  * Everything scales with the card width (container query units), so it looks the same on any phone.
  */
-export default function BlackCard({ venueName, venueSlug, memberName, since, points, goal, code, qr, unit = "points" }: Props) {
+export default function BlackCard({ venueName, venueSlug, memberName, since, points, goal, code, qr, unit = "points", labels = EN_LABELS }: Props) {
   const card = useRef<HTMLElement>(null);
   const [noCrest, setNoCrest] = useState(false);
   const ready = points >= goal;
@@ -73,15 +77,15 @@ export default function BlackCard({ venueName, venueSlug, memberName, since, poi
           // eslint-disable-next-line @next/next/no-img-element -- the venue's own logo lockup
           <img className="bc-crest" src={`/venues/${venueSlug}/crest.png`} alt={venueName} onError={() => setNoCrest(true)} />
         )}
-        <div className="bc-tag">Member</div>
+        <div className="bc-tag">{labels.member}</div>
 
-        <div className="bc-codel">Your code</div>
+        <div className="bc-codel">{labels.code}</div>
         <div className="bc-code foil">{code}</div>
 
         <div className={`bc-name ${name.size} ${arabic ? "ar" : ""}`} dir="auto" lang={arabic ? "ar" : undefined} title={memberName}>{name.short}</div>
-        {since && <div className="bc-since">Member since {since}</div>}
+        {since && <div className="bc-since">{labels.since} {since}</div>}
 
-        <div className="bc-pts"><b className="foil">{points}</b><span>{ready ? "Reward ready" : unit === "stamps" ? "Stamps" : "Points"}</span></div>
+        <div className="bc-pts"><b className="foil">{points}</b><span>{ready ? labels.ready : unit === "stamps" ? labels.stamps : labels.points}</span></div>
         {/* eslint-disable-next-line @next/next/no-img-element -- data URL QR code */}
         <img className="bc-qr" src={qr} alt={`QR code for card ${code}`} />
 

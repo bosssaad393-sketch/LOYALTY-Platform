@@ -11,7 +11,7 @@ export default function Rules({ call, isOwner }: { call: Call; isOwner: boolean 
 
   return (
     <>
-      <PageHead eyebrow="Programme" title="Rules">Changes apply from the next visit. Guests keep the points they have.</PageHead>
+      <PageHead eyebrow="Programme" title="Rules">Changes apply from the next visit. Guests keep the points or stamps they have.</PageHead>
       <RewardState editor={editor}>
         {(rules) => (
           <div className="ow-grid ow-c2">
@@ -20,11 +20,20 @@ export default function Rules({ call, isOwner }: { call: Call; isOwner: boolean 
             </section>
             <section className="ow-panel" aria-labelledby="ow-h-means">
               <h2 className="ow-h" id="ow-h-means">What this means</h2>
-              <ul className="ow-list">
-                <li className="ow-item"><span className="ow-item-main">A bill of BHD 10</span><span className="ow-item-side ow-fig">{n(10 * rules.pointsPerBhd)} points</span></li>
-                <li className="ow-item"><span className="ow-item-main">A reward is reached after about</span><span className="ow-item-side ow-fig">BHD {n(Math.ceil(rules.rewardGoal / rules.pointsPerBhd))}</span></li>
-                <li className="ow-item"><span className="ow-item-main">Reward</span><span className="ow-item-side ow-wrap">{rules.rewardText}</span></li>
-              </ul>
+              {rules.stampTiers ? (
+                <ul className="ow-list">
+                  {rules.stampTiers.map((t) => (
+                    <li key={t.at} className="ow-item"><span className="ow-item-main">{t.at} stamps</span><span className="ow-item-side ow-wrap">{t.text}</span></li>
+                  ))}
+                  <li className="ow-item"><span className="ow-item-main">A guest who comes twice a month gets a reward about every</span><span className="ow-item-side ow-fig">6 weeks</span></li>
+                </ul>
+              ) : (
+                <ul className="ow-list">
+                  <li className="ow-item"><span className="ow-item-main">A bill of BHD 10</span><span className="ow-item-side ow-fig">{n(10 * rules.pointsPerBhd)} points</span></li>
+                  <li className="ow-item"><span className="ow-item-main">A reward is reached after about</span><span className="ow-item-side ow-fig">BHD {n(Math.ceil(rules.rewardGoal / rules.pointsPerBhd))}</span></li>
+                  <li className="ow-item"><span className="ow-item-main">Reward</span><span className="ow-item-side ow-wrap">{rules.rewardText}</span></li>
+                </ul>
+              )}
             </section>
           </div>
         )}
