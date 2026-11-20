@@ -18,9 +18,10 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
   if (!isUuid(cardId)) notFound();
   const view = await getCardView(cardId);
   if (!view) notFound();
-  const { card, venue, memberName } = view;
+  const { card, venue, memberName, stamps } = view;
 
-  const goal = venue.reward_goal;
+  const goal = stamps ? stamps.cost : venue.reward_goal;
+  const rewardText = stamps ? stamps.reward : venue.reward_text;
   const qr = await QRCode.toDataURL(`LOYALTY:${venue.slug}:${card.code}`, {
     margin: 0,
     color: { dark: brandColors().bg, light: brandColors().text },
@@ -35,7 +36,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
         {welcome === "1" && (
           <p className="welcome" role="status">
             <b>Welcome, {memberName.trim().split(/\s+/)[0]}. Your card is ready.</b>
-            <span>Keep it: add it to your Wallet or bookmark this page. Show it at the till to collect points.</span>
+            <span>Keep it: add it to your Wallet or bookmark this page. Show it at the till to collect {stamps ? "stamps" : "points"}.</span>
           </p>
         )}
         <BlackCard
@@ -47,8 +48,9 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
           goal={goal}
           code={card.code}
           qr={qr}
+          unit={stamps ? "stamps" : "points"}
         />
-        <div className="rv" style={{ "--i": 2 } as CSSProperties}><CardSheet points={card.points} goal={goal} rewardText={venue.reward_text} /></div>
+        <div className="rv" style={{ "--i": 2 } as CSSProperties}><CardSheet points={card.points} goal={goal} rewardText={rewardText} ladder={stamps ? { position: stamps.position, tiers: stamps.tiers } : undefined} /></div>
 
         <div className="actions after">
           {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> Add to Apple Wallet</a>}
@@ -59,7 +61,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
             </a>
           )}
         </div>
-        <p className="note after" style={{ marginTop: 14 }}>Tip: bookmark this page. It always shows your latest points.</p>
+        <p className="note after" style={{ marginTop: 14 }}>Tip: bookmark this page. It always shows your latest {stamps ? "stamps" : "points"}.</p>
         <RememberCard cardId={card.id} />
         <p className="foot after">{footerLine(venue.name)}</p>
       </main>

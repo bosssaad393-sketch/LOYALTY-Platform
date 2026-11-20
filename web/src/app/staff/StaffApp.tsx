@@ -11,7 +11,29 @@ import { LARGE_BILL_BHD, MAX_BILL_BHD, pointsFor, readBill } from "@/lib/tillRul
 import { bahrainTime, bhd as bhdNumber, bhdText } from "@/lib/format";
 
 type Me = { name: string; role: string; venue: string };
-type Guest = { cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd?: number };
+type Guest = {
+  cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd?: number;
+  stampMode?: boolean; stamps?: { position: number; cycle: number; tiers: { at: number; text: string }[] };
+};
+
+/** Stamp venues: the full ladder, one dot per stamp, the reward under each step. */
+function StampLadder({ g }: { g: Guest }) {
+  if (!g.stamps) return null;
+  const { position, tiers } = g.stamps;
+  return (
+    <div className="st-ladder" aria-label={`${position} of ${g.stamps.cycle} stamps`}>
+      {tiers.map((t, i) => {
+        const from = i === 0 ? 0 : tiers[i - 1].at;
+        return (
+          <div key={t.at} className={`st-step${position >= t.at ? " got" : position >= from ? " next" : ""}`}>
+            <div className="st-dots">{Array.from({ length: t.at - from }, (_, k) => <i key={k} className={from + k < position ? "on" : ""} />)}</div>
+            <span>{t.text}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 type Recent = { id: number; kind: string; points: number; billBhd: number | null; at: string; by: string; guest: string };
 type Perk = { id: string; title: string; note: string | null; validUntil: string | null; from: string };
 type MyDay = { entries: number; guests: number; bhd: number };
@@ -46,7 +68,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   const setMsg = useCallback((m: { kind: "ok" | "bad"; text: string } | null) => setMsgState(m ? { ...m, id: stamp() } : null), []);
   const clearMsg = useCallback(() => setMsgState(null), []);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ added: number; first: string; total: number; ready: boolean } | null>(null);
+  const [result, setResult] = useState<{ added: number; first: string; total: number; ready: boolean; stamp?: boolean } | null>(null);
   const [recent, setRecent] = useState<Recent[]>([]);
   const [mine, setMine] = useState<MyDay>({ entries: 0, guests: 0, bhd: 0 });
   const [perks, setPerks] = useState<Perk[]>([]);
@@ -130,7 +152,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
 
   // The guest is found: the cursor goes straight to the bill, so staff type the amount without another tap.
   useEffect(() => {
-    if (guest && !result) billBox.current?.focus({ preventScroll: true });
+    if (guest && !result && !guest.stampMode) billBox.current?.focus({ preventScroll: true });
   }, [guest, result]);
 
   function addPoints() {
@@ -138,6 +160,10 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     if (billRead.state === "large" && !confirmLarge) { setConfirmLarge(true); return; }
     setConfirmLarge(false);
     void act("/api/staff/earn", { cardId: guest.cardId, billBhd: billNum }, (d) => { setBill(""); setResult({ added: d.added ?? 0, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady }); return `Added ${d.added} points for ${bhd(billNum)}. ${d.guest.firstName} now has ${d.guest.points}.`; });
+  }
+  function addStamp() {
+    if (!guest || busy) return;
+    void act("/api/staff/stamp", { cardId: guest.cardId }, (d) => { setResult({ added: 1, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady, stamp: true }); return `Stamp added. ${d.guest.firstName} now has ${d.guest.points} ${d.guest.points === 1 ? "stamp" : "stamps"}.`; });
   }
   const canUndo = lastEntry !== null;
 
@@ -187,15 +213,37 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
         ) : result ? (
           <section className="sr" role="status">
             <svg className="sr-check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" pathLength={1} /><path d="M20 33l8 8 16-17" pathLength={1} /></svg>
-            <h1 className="st-title">Points added</h1>
-            <p className="sr-fig">+<CountUp value={result.added} /><small>pts</small></p>
-            <p className="sub">{result.first} now has {result.total} points.</p>
+            <h1 className="st-title">{result.stamp ? "Stamp added" : "Points added"}</h1>
+            <p className="sr-fig">+<CountUp value={result.added} /><small>{result.stamp ? "stamp" : "pts"}</small></p>
+            <p className="sub">{result.first} now has {result.total} {result.stamp ? (result.total === 1 ? "stamp" : "stamps") : "points"}.</p>
             {canUndo && <button className="sr-undo" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); setResult(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} points.`; })}>Added by mistake? <u>Undo</u> within 10 minutes</button>}
             {result.ready && <p className="msg warn">{result.first} has a reward ready.</p>}
             {result.ready ? <button className="btn primary st-big" type="button" onClick={() => setResult(null)}>Give the reward</button> : <button className="btn primary st-big" type="button" onClick={() => { setResult(null); setGuest(null); setMsg(null); }}>Next guest</button>}
           </section>
         ) : (
           <>
+            {guest.stampMode ? (
+              <>
+                <section className={`panel st-guest st-sheet${guest.rewardReady ? " st-ready" : ""}`}>
+                  <h2 className="st-name">{guest.firstName}</h2>
+                  <p className="note st-left">Code {guest.code} · {guest.visits} {guest.visits === 1 ? "visit" : "visits"}</p>
+                  <div className="pts"><b>{guest.points}</b><span>{guest.points === 1 ? "Stamp" : "Stamps"}</span></div>
+                  <StampLadder g={guest} />
+                  <p className={guest.rewardReady ? "msg warn" : "note st-left"}>{guest.rewardReady ? `Reward ready: ${guest.rewardText}.` : `${guest.goal - guest.points} more ${guest.goal - guest.points === 1 ? "stamp" : "stamps"} to: ${guest.rewardText}.`}</p>
+                  {guest.rewardReady && (
+                    <button className="btn primary st-big" type="button" disabled={busy} onClick={() => act("/api/staff/redeem", { cardId: guest.cardId }, (d) => `Reward given. ${d.guest.firstName} has ${d.guest.points} ${d.guest.points === 1 ? "stamp" : "stamps"} left.`)}>Give: {guest.rewardText}</button>
+                  )}
+                </section>
+                <div className="panel">
+                  <button className="btn primary st-big" type="button" disabled={busy} onClick={addStamp}>{busy ? "Adding…" : "Add a stamp for this visit"}</button>
+                  <p className="note" style={{ marginTop: 8 }}>One stamp per paid visit. A second stamp within 30 minutes is refused.</p>
+                  {canUndo && (
+                    <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} stamps.`; })}>Undo my last entry (10 minutes)</button>
+                  )}
+                </div>
+                <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); }}>Done, next guest</button>
+              </>
+            ) : (<>
             <section className={`panel st-guest st-sheet${guest.rewardReady ? " st-ready" : ""}`}>
               <h2 className="st-name">{guest.firstName}</h2>
               <p className="note st-left">Code {guest.code} · {guest.visits} {guest.visits === 1 ? "visit" : "visits"}</p>
@@ -229,6 +277,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
               )}
             </form>
             <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); setConfirmLarge(false); }}>Done, next guest</button>
+            </>)}
           </>
         )
       ) : tab === "recent" ? (

@@ -714,3 +714,14 @@ textarea.ow-terms { min-height: 240px; font-size: var(--fs-md); line-height: 1.6
 .ow-stars i { font-style: normal; color: var(--dim); opacity: 0.45; }
 .ow-stars i.on { color: var(--gold); opacity: 1; }
 @media (max-width: 560px) { .ow-fbtop { grid-template-columns: 1fr; } }
+
+/* Stamp venues (0020): the reward ladder on the staff sheet and the guest card. */
+.st-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin:12px 0 10px}
+.st-step{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 6px 8px;text-align:center}
+.st-step .st-dots{display:flex;justify-content:center;gap:5px;margin-bottom:6px}
+.st-step i{width:12px;height:12px;border-radius:50%;border:1px solid var(--gold-dim)}
+.st-step i.on{background:var(--gold);border-color:var(--gold)}
+.st-step span{display:block;font-size:var(--fs-xs);line-height:1.3;color:var(--dim)}
+.st-step.next span{color:var(--text)}
+.st-step.got{border-color:var(--gold);background:rgb(var(--gold-rgb) / .08)}
+.st-step.got span{color:var(--gold2)}

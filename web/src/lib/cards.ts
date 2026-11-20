@@ -1,8 +1,10 @@
 import "server-only";
 import { randomInt } from "node:crypto";
 import { db, type Card, type Venue } from "./supabase";
+import { parseTiers, stampState, type StampState } from "./stamps";
 
-export type CardView = { card: Card; venue: Venue; memberName: string };
+/** `stamps` is set for stamp venues (0020): the reward due next and the ladder. */
+export type CardView = { card: Card; venue: Venue; memberName: string; stamps?: StampState };
 
 /** Creates a member and their card at a venue. Retries if the 4-digit code is already taken. */
 export async function createCard(
@@ -57,7 +59,7 @@ export async function hasCardAt(venueId: string, contact: { phone?: string; emai
 export async function getCardView(cardId: string): Promise<CardView | null> {
   const { data, error } = await db()
     .from("cards")
-    .select("id, venue_id, member_id, code, points, visits, created_at, members(name, deleted_at), venues(id, slug, name, points_per_bhd, reward_goal, reward_text)")
+    .select("id, venue_id, member_id, code, points, visits, rewards_given, created_at, members(name, deleted_at), venues(id, slug, name, points_per_bhd, reward_goal, reward_text, stamp_tiers)")
     .eq("id", cardId)
     .maybeSingle();
   if (error) throw error;
@@ -74,7 +76,9 @@ export async function getCardView(cardId: string): Promise<CardView | null> {
     visits: data.visits,
     created_at: data.created_at,
   };
-  return { card, venue, memberName: member.name };
+  const tiers = parseTiers((venue as { stamp_tiers?: unknown }).stamp_tiers);
+  const stamps = tiers ? stampState(tiers, data.points, Number((data as { rewards_given?: number }).rewards_given ?? 0)) : undefined;
+  return { card, venue, memberName: member.name, stamps };
 }
 
 export { isUuid } from "./ids";

@@ -18,6 +18,10 @@ async function call<T>(fn: string, args: Record<string, unknown>): Promise<T> {
 export const earnPoints = (cardId: string, staffId: string, billBhd: number) =>
   call<EarnResult>("ledger_earn", { p_card: cardId, p_staff: staffId, p_bill: billBhd });
 
+/** Stamp venues (0020): one stamp for this visit. The database refuses a second stamp within 30 minutes. */
+export const addStamp = (cardId: string, staffId: string) =>
+  call<SpendResult>("ledger_stamp", { p_card: cardId, p_staff: staffId });
+
 export const redeemReward = (cardId: string, staffId: string) =>
   call<SpendResult>("ledger_redeem", { p_card: cardId, p_staff: staffId });
 

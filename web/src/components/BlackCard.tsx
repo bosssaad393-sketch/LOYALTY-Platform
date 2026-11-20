@@ -11,6 +11,7 @@ type Props = {
   goal: number;
   code: string;
   qr: string; // data URL of the till QR
+  unit?: "points" | "stamps";
 };
 
 const ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
@@ -28,7 +29,7 @@ function displayName(name: string) {
  * the venue name in gold lettering, the code in raised gold digits, the name, the points and the till QR.
  * Everything scales with the card width (container query units), so it looks the same on any phone.
  */
-export default function BlackCard({ venueName, venueSlug, memberName, since, points, goal, code, qr }: Props) {
+export default function BlackCard({ venueName, venueSlug, memberName, since, points, goal, code, qr, unit = "points" }: Props) {
   const card = useRef<HTMLElement>(null);
   const [noCrest, setNoCrest] = useState(false);
   const ready = points >= goal;
@@ -80,7 +81,7 @@ export default function BlackCard({ venueName, venueSlug, memberName, since, poi
         <div className={`bc-name ${name.size} ${arabic ? "ar" : ""}`} dir="auto" lang={arabic ? "ar" : undefined} title={memberName}>{name.short}</div>
         {since && <div className="bc-since">Member since {since}</div>}
 
-        <div className="bc-pts"><b className="foil">{points}</b><span>{ready ? "Reward ready" : "Points"}</span></div>
+        <div className="bc-pts"><b className="foil">{points}</b><span>{ready ? "Reward ready" : unit === "stamps" ? "Stamps" : "Points"}</span></div>
         {/* eslint-disable-next-line @next/next/no-img-element -- data URL QR code */}
         <img className="bc-qr" src={qr} alt={`QR code for card ${code}`} />
 

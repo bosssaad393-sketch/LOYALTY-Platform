@@ -8,6 +8,7 @@ import { appleOfferField } from "./offers";
 import { offerStateForCard } from "./passOffer";
 import { qrStripImages } from "./qrStrip";
 import { walletColors } from "./brand";
+import { parseTiers, stampState } from "./stamps";
 
 /**
  * Apple Wallet store cards (.pkpass), signed with our Pass Type ID certificate.
@@ -155,14 +156,26 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     appleCertificates(),
     props,
   );
-  const ready = card.points >= venue.reward_goal;
+  // Stamp venues (0020): the reward due next depends on the rewards already used.
+  // Best effort: a points venue (or a failed read) simply keeps the points layout.
+  const extra = (await Promise.resolve()
+    .then(() => db().from("cards").select("rewards_given, venues(stamp_tiers)").eq("id", card.id).maybeSingle())
+    .then((r) => r.data)
+    .catch(() => null)) as { rewards_given: number | null; venues: { stamp_tiers: unknown } | null } | null;
+  const tiers = parseTiers(extra?.venues?.stamp_tiers);
+  const st = tiers ? stampState(tiers, card.points, Number(extra?.rewards_given ?? 0)) : null;
+  const goal = st ? st.cost : venue.reward_goal;
+  const rewardText = st ? st.reward : venue.reward_text;
+  const ready = card.points >= goal;
   const progress = {
     key: "progress",
     label: "TO YOUR REWARD",
-    value: ready ? "Reward ready" : venue.reward_goal - card.points,
+    value: ready ? "Reward ready" : goal - card.points,
     textAlignment: "PKTextAlignmentRight" as const,
   };
-  const pointsField = { key: "points", label: "POINTS", value: card.points, changeMessage: "You now have %@ points." };
+  const pointsField = st
+    ? { key: "points", label: "STAMPS", value: card.points, changeMessage: "You now have %@ stamps." }
+    : { key: "points", label: "POINTS", value: card.points, changeMessage: "You now have %@ points." };
   const codeField = { key: "code", label: "YOUR CODE", value: card.code };
   const poweredField = { key: "by", label: "POWERED BY", value: "Orbyn" }; // small, top right of the front (the back also says it)
   // The offer comes first on the back, but only for guests who agreed to offers (see appleOfferField in offers.ts).
@@ -172,9 +185,11 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   const backFields = [
     ...(offer ? [appleOfferField(venue.name, offer.message, offer.alert)] : []),
     { key: "open", label: "Your card", value: `Open your ${venue.name} card`, attributedValue: `<a href="${cardUrl}">Open your ${venue.name} card</a>` },
-    { key: "how", label: "How it works", value: `Show this card at the till. You earn ${venue.points_per_bhd} points for every BHD 1.` },
-    { key: "reward", label: "Your reward", value: venue.reward_text },
-    { key: "terms", label: "Terms", value: `Points have no cash value. Rewards are set by ${venue.name} and can change.` },
+    st
+      ? { key: "how", label: "How it works", value: `Show this card at the counter. Every paid visit earns a stamp. Rewards: ${st.tiers.map((t) => `${t.at} stamps: ${t.text}`).join(" · ")}.` }
+      : { key: "how", label: "How it works", value: `Show this card at the till. You earn ${venue.points_per_bhd} points for every BHD 1.` },
+    { key: "reward", label: st ? "Your next reward" : "Your reward", value: rewardText },
+    { key: "terms", label: "Terms", value: `${st ? "Stamps" : "Points"} have no cash value. Rewards are set by ${venue.name} and can change.` },
     { key: "powered", label: "Powered by", value: "Orbyn" },
   ];
 
