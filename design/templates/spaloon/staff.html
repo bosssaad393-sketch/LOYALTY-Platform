@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#161615">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0D0D0E">
 <title>Spaloon Staff (prototype)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
 /* Staff screen for the barber or reception phone/tablet. Flow: scan the guest's card → pick what was done and who did it → add the stamp.
@@ -39,7 +39,7 @@ var SVC=['Haircut','Fade cut','Beard trim','Shave','Blow-dry','Moroccan bath','M
 var TEAM=['Yousef','Hassan','Karim','Imad'];
 var S={scr:'scan',pick:['Haircut','Beard trim'],by:ME};
 function dots(n,f,next){var s='';for(var i=0;i<n;i++)s+='<i class="'+(i<f?'f':(next&&i===f?'n':''))+'"></i>';return '<div class="dots">'+s+'</div>'}
-function head(){return '<div class="top"><div class="wm">SPALOON<small>STAFF</small></div><span class="who">'+ME+'</span></div>'}
+function head(){return '<div class="top"><div class="wm" style="display:flex;align-items:center;gap:12px"><img src="brand/logo-lux.png" alt="" style="width:46px;height:46px;border-radius:10px"><span>SPALOON<small>STAFF</small></span></div><span class="who">'+ME+'</span></div>'}
 var V={
 scan:function(){return head()+'<h1>Scan the card</h1><p class="sub">Ask the guest to open their Spaloon card and show the QR code.</p><div class="scan" data-go="guest"><div class="fr"><i></i><i></i><i></i><i></i></div><span class="ln"></span></div><button class="btn primary full" data-go="guest">Simulate a scan</button><p class="or">or</p><input class="in" placeholder="Search a member by name or last 4 digits"><div class="card"><div class="lab" style="margin-top:0">Next on your chair</div><div class="queue"><div><span>Ali Rashid<small>The Gentleman</small></span><span>17:30</span></div><div><span>Omar Khaled<small>Fade cut</small></span><span>19:15</span></div></div></div>'},
 guest:function(){return head()+'<div class="card"><div class="gname">'+G.name+'</div><div class="gmeta">Member since '+G.since+' · last visit '+G.last+' · usually '+G.usual+'</div>'+dots(G.goal,G.stamps,true)+'<div class="gmeta">'+G.stamps+' of '+G.goal+' stamps. This visit '+(G.stamps+1>=G.goal?'<b style="color:var(--gold2)">unlocks a free haircut</b>':'adds one')+'.</div></div>'+

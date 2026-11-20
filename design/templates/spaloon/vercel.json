@@ -1,0 +1,9 @@
+{
+  "cleanUrls": false,
+  "rewrites": [{ "source": "/", "destination": "/guest.html" }],
+  "redirects": [
+    { "source": "/owner.html", "destination": "/", "permanent": false },
+    { "source": "/staff.html", "destination": "/", "permanent": false }
+  ],
+  "headers": [{ "source": "/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }]
+}

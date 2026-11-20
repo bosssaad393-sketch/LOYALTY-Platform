@@ -1,7 +1,7 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#161615">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0D0D0E">
 <title>Spaloon Owner (prototype)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
 <style>
 /* Owner dashboard for a men's barber + spa. Fake data, clickable. Phone: tabs on top. 900px and up: side navigation.
@@ -45,7 +45,7 @@ textarea.in{height:100px;padding:12px 14px;resize:none;line-height:1.45}
  .main{padding:32px 40px 64px}.k4{grid-template-columns:repeat(4,1fr)}.c2{grid-template-columns:1.4fr 1fr}
 }
 </style></head><body>
-<div class="shell"><aside class="side"><div class="wm">SPALOON<small>OWNER</small></div><nav class="nav" id="nav"></nav></aside><main class="main" id="m"></main></div>
+<div class="shell"><aside class="side"><div class="wm" style="display:flex;align-items:center;gap:12px"><img src="brand/logo-lux.png" alt="Spaloon" style="width:54px;height:54px;"><span>SPALOON<small>OWNER</small></span></div><nav class="nav" id="nav"></nav></aside><main class="main" id="m"></main></div>
 <script>
 var MARK='<svg viewBox="0 0 120 44" fill="currentColor"><path d="M60 16c-6-8-17-12-27-8C22 12 16 22 8 24c-4 1-7-1-7-4 0 6 5 11 12 11 9 0 15-7 22-10 7-3 15-2 20 3 1 1 3 1 5 0 5-5 13-6 20-3 7 3 13 10 22 10 7 0 12-5 12-11 0 3-3 5-7 4-8-2-14-12-25-16-10-4-21 0-27 8z"/></svg>';
 /* ---------- fake data (names and numbers are invented for the prototype) ---------- */
@@ -57,12 +57,14 @@ var D={rules:{goal:10,reward:'Free haircut',bday:true},
  guests:[['Ali Rashid',6,'Today','The Gentleman'],['Hamad Salman',9,'Today','Moroccan bath'],['Omar Khaled',2,'3 days ago','Fade cut'],['Khalid Mansoor',12,'Yesterday','The Full Reset'],['Yusuf Ebrahim',4,'Last week','Beard trim'],['Faisal Jaber',7,'2 days ago','Haircut'],['Nasser Ali',1,'Last week','Haircut']],
  pk:[{n:'The Royal Hammam',i:'Moroccan bath · Body scrub · Massage',p:''},{n:'The Gentleman',i:'Haircut · Beard trim · Face wash & mask',p:''},{n:'The Full Reset',i:'Moroccan bath · Massage · Haircut & blow-dry · Skin cleaning',p:''},{n:'The Groom',i:'Moroccan bath · Skin cleaning · Haircut & styling · Shave · Manicure & pedicure',p:''},{n:'Hands & Feet',i:'Manicure · Pedicure',p:''}],
  sv:{Hair:['Haircut','Fade cut','Buzz cut','Children\'s cut','Blow-dry','Styling','Hair colouring','Hair straightening','Hair treatment'],Beard:['Shave','Beard trim','Beard dyeing','Beard conditioning'],'Spa & bath':['Moroccan bath','Massage'],Skin:['Face wash & mask','Skin cleaning','Waxing'],'Hands & feet':['Manicure','Pedicure']},
- price:{},svTab:'Packages',
+ /* prefilled from Spaloon's Instagram price list (2023), owner confirms */
+ price:{'Haircut':'2','Beard trim':'2','Blow-dry':'3','Hair colouring':'4','Beard dyeing':'2','Hair treatment':'3','Waxing':'2.5','Moroccan bath':'12','Massage':'10','Skin cleaning':'5'},svTab:'Packages',
  team:[['Yousef','Barber',true],['Hassan','Barber',true],['Karim','Barber',true],['Imad','Spa therapist',true],['Front desk','Reception',true]],
+ wifi:{show:true,ssid:'Spaloon Guest',pass:''},
  offer:'Quiet Tuesday: book a Moroccan bath before 5 pm and get a free face mask.',q:'',msg:null};
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-var TABS=[['overview','Overview'],['today','Today'],['menu','Services & packages'],['guests','Members'],['rewards','Rewards'],['offers','Offers'],['team','Barbers & team']];
+var TABS=[['overview','Overview'],['today','Today'],['menu','Services & packages'],['guests','Members'],['rewards','Rewards'],['offers','Offers'],['guestpage','Guest page'],['team','Barbers & team']];
 var cur='overview';
 function msg(){return D.msg?'<div class="msg '+(D.msg.ok?'ok':'')+'" role="status">'+esc(D.msg.t)+'</div>':''}
 var V={
@@ -88,6 +90,12 @@ rewards:function(){var r=D.rules;return '<div class="eyebrow">Programme</div><h1
 offers:function(){return '<div class="eyebrow">Wallet cards</div><h1>Offers</h1><p class="sub">A short message to members\' Wallet cards. Only members who agreed receive it (164 of 186).</p>'+
  '<div class="grid c2"><div class="panel"><div class="field"><label class="lbl" for="ot">Message</label><textarea class="in" id="ot" maxlength="200">'+esc(D.offer)+'</textarea><p class="note"><span id="cnt">'+D.offer.length+'</span> of 200 characters.</p></div><button class="btn primary" data-a="send">Review and send</button>'+msg()+'</div>'+
  '<div class="panel"><h2>How it will appear</h2><div class="phone"><div class="notif"><i>'+MARK+'</i><div><b>Spaloon</b><span id="pv">'+esc(D.offer)+'</span></div></div></div><p class="note" style="margin-top:10px">Lock-screen alerts <span class="soon">coming soon</span>. The offer shows on the card now.</p></div></div>'},
+guestpage:function(){var w=D.wifi;return '<div class="eyebrow">What guests see</div><h1>Guest page</h1><p class="sub">The buttons on the page guests open from your QR code.</p>'+
+ '<div class="grid c2"><div class="panel"><h2>Wi-Fi</h2><label class="row" style="color:var(--muted);margin-bottom:16px"><input type="checkbox" id="ws" '+(w.show?'checked':'')+' style="accent-color:var(--gold)"> Show the Wi-Fi button to guests</label>'+
+ '<div class="field"><label class="lbl" for="wn">Network name</label><input class="in" id="wn" value="'+esc(w.ssid)+'" maxlength="32"></div>'+
+ '<div class="field"><label class="lbl" for="wp">Password</label><input class="in" id="wp" value="'+esc(w.pass)+'" maxlength="63" placeholder="Leave empty for an open network"></div>'+
+ '<button class="btn primary" data-a="savewifi">Save</button>'+msg()+'<p class="note" style="margin-top:12px">Changed the router password? Update it here the same day, and guests see the new one straight away.</p></div>'+
+ '<div class="panel"><h2>How it will appear</h2><div class="phone"><div class="notif" style="align-items:center"><i style="width:36px"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.6 16a5 5 0 0 1 6.8 0"/></svg></i><div><b id="pvn">'+(w.show?'Connect to Wi-Fi':'Hidden from guests')+'</b><span>'+esc(w.ssid||'No network set')+(w.show&&w.pass?' · password ••••':'')+'</span></div></div></div></div></div>'},
 team:function(){return '<div class="eyebrow">Access</div><h1>Barbers & team</h1><p class="sub">Each person signs in on the staff screen with their own PIN. Remove access the day someone leaves.</p>'+
  '<div class="panel list">'+D.team.map(function(t,i){return '<div><span class="n">'+esc(t[0])+'<small>'+t[1]+'</small></span><span class="r"><button class="btn small" data-a="tog" data-i="'+i+'">'+(t[2]?'Deactivate':'Activate')+'</button></span></div>'}).join('')+'</div>'+
  '<div class="panel" style="margin-top:12px"><h2>Add someone</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"><div class="field"><label class="lbl" for="tn">Name</label><input class="in" id="tn"></div><div class="field"><label class="lbl" for="tr">Role</label><select class="in" id="tr"><option>Barber</option><option>Spa therapist</option><option>Reception</option><option>Manager</option></select></div></div><button class="btn primary" data-a="add">Add and create a PIN</button>'+msg()+'</div>'}
@@ -100,6 +108,7 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-t],[
  var a=b.dataset.a,r=D.rules;
  if(a==='g-')r.goal=Math.max(3,r.goal-1),render();else if(a==='g+')r.goal=Math.min(20,r.goal+1),render();
  else if(a==='saver'){r.reward=$('rw').value.trim()||r.reward;r.bday=$('bd').checked;D.msg={t:'Saved. Applies from the next visit.',ok:true};render()}
+ else if(a==='savewifi'){var w=D.wifi;w.show=$('ws').checked;w.ssid=$('wn').value.trim();w.pass=$('wp').value;D.msg=w.show&&!w.ssid?{t:'Add the network name, or untick the button.'}:{t:'Saved. The guest page shows the new Wi-Fi now.',ok:true};render()}
  else if(a==='savemenu'){D.msg={t:'Saved. The guest menu is updated.',ok:true};render()}
  else if(a==='addpk'){D.pk.push({n:'New package',i:'Pick the services',p:''});render()}
  else if(a==='edit'){var p=D.pk[b.dataset.i],m=modal('<h2 style="font:600 22px var(--serif);margin-bottom:12px">Edit package</h2><div class="field"><label class="lbl">Name</label><input class="in" id="en" value="'+esc(p.n)+'"></div><div class="field"><label class="lbl">What is inside</label><textarea class="in" id="ei">'+esc(p.i)+'</textarea></div><div class="row"><button class="btn primary" data-ok>Save</button><button class="btn" data-x>Cancel</button></div>');m.querySelector('[data-ok]').onclick=function(){p.n=$('en').value;p.i=$('ei').value;m.remove();render()}}

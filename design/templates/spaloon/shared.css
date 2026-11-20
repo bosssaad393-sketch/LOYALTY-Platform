@@ -1,8 +1,9 @@
 /* Spaloon brand tokens (from the shop sign and interior, 2026-11-20): charcoal, matte gold line art, serif wordmark.
    One gold accent per screen, hairlines, no glow. Replace the drawn moustache with the real logo file when the owner sends it. */
-:root{--bg:#161615;--deep:#0F0F0E;--surface:#1F1F1D;--surface2:#282826;--line:#3A3935;--text:#F2EEE6;--muted:#CFC8BA;--dim:#8F897E;
---gold:#C9A96E;--gold2:#DCC08A;--golddim:#7E6A45;--ok:#9DBF8F;--bad:#E08B7A;
---serif:"Cormorant Garamond",Georgia,serif;--sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--ar:"Tajawal",system-ui,sans-serif}
+/* Colours sampled from Spaloon's own logo (2026-11-20): mustard #AB8E52, charcoal #464648, cream #FDFFF2. */
+:root{--bg:#0D0D0E;--deep:#080809;--surface:#18181B;--surface2:#222225;--line:#2E2B26;--text:#F3EDDF;--muted:#B9B1A0;--dim:#857E70;
+--gold:#C9AE74;--gold2:#E3CD9B;--golddim:#8C7647;--ok:#A8C79A;--bad:#E8907E;
+--serif:"Bodoni Moda","Cormorant Garamond",Georgia,serif;--sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--ar:"Tajawal",system-ui,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html[dir=rtl] body{font-family:var(--ar)}
 body{background:var(--bg);color:var(--text);font:16px/1.5 var(--sans)}
