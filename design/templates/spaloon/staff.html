@@ -34,7 +34,8 @@ h1{font:600 30px/1.1 var(--serif);margin-bottom:6px}.sub{color:var(--muted);marg
 <div class="app" id="app"></div>
 <script>
 var ME='Yousef';
-var G={name:'Ali Rashid',stamps:9,goal:10,since:'March 2026',usual:'The Gentleman',last:'12 days ago'};
+var REW={3:['10% off this visit'],6:['Free hair mask','20% off this visit'],9:['Free haircut, on the house']};
+var G={name:'Ali Rashid',stamps:5,goal:9,since:'March 2026',usual:'The Gentleman',last:'12 days ago'};
 var SVC=['Haircut','Fade cut','Beard trim','Shave','Blow-dry','Moroccan bath','Massage','Face wash & mask','Skin cleaning','Manicure','Pedicure','The Royal Hammam','The Gentleman','The Full Reset','The Groom'];
 var TEAM=['Yousef','Hassan','Karim','Imad'];
 var S={scr:'scan',pick:['Haircut','Beard trim'],by:ME};
@@ -42,16 +43,17 @@ function dots(n,f,next){var s='';for(var i=0;i<n;i++)s+='<i class="'+(i<f?'f':(n
 function head(){return '<div class="top"><div class="wm" style="display:flex;align-items:center;gap:12px"><img src="brand/logo-lux.png" alt="" style="width:46px;height:46px;border-radius:10px"><span>SPALOON<small>STAFF</small></span></div><span class="who">'+ME+'</span></div>'}
 var V={
 scan:function(){return head()+'<h1>Scan the card</h1><p class="sub">Ask the guest to open their Spaloon card and show the QR code.</p><div class="scan" data-go="guest"><div class="fr"><i></i><i></i><i></i><i></i></div><span class="ln"></span></div><button class="btn primary full" data-go="guest">Simulate a scan</button><p class="or">or</p><input class="in" placeholder="Search a member by name or last 4 digits"><div class="card"><div class="lab" style="margin-top:0">Next on your chair</div><div class="queue"><div><span>Ali Rashid<small>The Gentleman</small></span><span>17:30</span></div><div><span>Omar Khaled<small>Fade cut</small></span><span>19:15</span></div></div></div>'},
-guest:function(){return head()+'<div class="card"><div class="gname">'+G.name+'</div><div class="gmeta">Member since '+G.since+' · last visit '+G.last+' · usually '+G.usual+'</div>'+dots(G.goal,G.stamps,true)+'<div class="gmeta">'+G.stamps+' of '+G.goal+' stamps. This visit '+(G.stamps+1>=G.goal?'<b style="color:var(--gold2)">unlocks a free haircut</b>':'adds one')+'.</div></div>'+
+guest:function(){return head()+'<div class="card"><div class="gname">'+G.name+'</div><div class="gmeta">Member since '+G.since+' · last visit '+G.last+' · usually '+G.usual+'</div>'+dots(G.goal,G.stamps,true)+'<div class="gmeta">'+G.stamps+' of '+G.goal+' stamps. This visit '+(REW[G.stamps+1]?'<b style="color:var(--gold2)">unlocks: '+REW[G.stamps+1].join(' or ')+'</b>':'adds one')+'.</div></div>'+
  '<div class="lab">What was done</div><div class="chips">'+SVC.map(function(s){return '<button data-p="'+s+'" aria-pressed="'+(S.pick.indexOf(s)>-1)+'">'+s+'</button>'}).join('')+'</div>'+
  '<div class="lab">Done by</div><div class="chips">'+TEAM.map(function(t){return '<button data-by="'+t+'" aria-pressed="'+(S.by===t)+'">'+t+'</button>'}).join('')+'</div>'+
  '<button class="btn primary full" style="margin-top:22px" data-go="stamped" '+(S.pick.length?'':'disabled')+'>Add the stamp</button><button class="btn full" style="margin-top:10px;border:0;color:var(--dim)" data-go="scan">Cancel</button>'},
-stamped:function(){var n=G.stamps+1,full=n>=G.goal;return head()+'<div class="done"><div class="lbl">Stamp added</div><div class="big">'+n+' / '+G.goal+'</div><div style="display:flex;justify-content:center">'+dots(G.goal,n)+'</div><p class="note" style="margin-top:8px">'+G.name+' · '+S.pick.join(', ')+' · by '+S.by+'</p>'+
- (full?'<div class="reward"><b style="font:600 20px var(--serif)">Free haircut unlocked</b><p class="note" style="color:var(--muted);margin:6px 0 12px">Give it now or on the next visit. The guest\'s card updates either way.</p><button class="btn primary" data-go="given">Give it now</button></div>':'')+
+stamped:function(){var n=G.stamps+1,full=!!REW[n];S.rw=REW[n]||[];return head()+'<div class="done"><div class="lbl">Stamp added</div><div class="big">'+n+' / '+G.goal+'</div><div style="display:flex;justify-content:center">'+dots(G.goal,n)+'</div><p class="note" style="margin-top:8px">'+G.name+' · '+S.pick.join(', ')+' · by '+S.by+'</p>'+
+ (full?'<div class="reward"><b style="font:600 20px var(--serif)">Reward unlocked</b><p class="note" style="color:var(--muted);margin:6px 0 12px">'+(S.rw.length>1?'The guest picks one. ':'')+'Use it now or within 30 days.</p><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">'+S.rw.map(function(r,i){return '<button class="btn primary" data-rw="'+i+'">'+r+'</button>'}).join('')+'</div></div>':'')+
  '</div><button class="btn full" data-go="scan">Next guest</button>'},
-given:function(){return head()+'<div class="done"><div class="lbl">Reward given</div><div class="big" style="font-size:40px">Free haircut</div><p class="note" style="margin-top:10px">'+G.name+'\'s card starts again at 0 / '+G.goal+'.</p></div><button class="btn primary full" data-go="scan">Next guest</button>'}};
+given:function(){var last=G.stamps+1>=G.goal;return head()+'<div class="done"><div class="lbl">Reward given</div><div class="big" style="font-size:34px">'+S.given+'</div><p class="note" style="margin-top:10px">'+(last?G.name+'\'s card starts again at 0 / '+G.goal+'.':'Next reward at '+(Math.floor((G.stamps+1)/3)*3+3)+' stamps.')+'</p></div><button class="btn primary full" data-go="scan">Next guest</button>'}};
 function go(s){S.scr=s;document.getElementById('app').innerHTML=V[s]();window.scrollTo(0,0)}
-document.addEventListener('click',function(e){var b=e.target.closest('[data-go],[data-p],[data-by]');if(!b||b.disabled)return;
+document.addEventListener('click',function(e){var b=e.target.closest('[data-go],[data-p],[data-by],[data-rw]');if(!b||b.disabled)return;
+ if(b.dataset.rw){S.given=S.rw[+b.dataset.rw];return go('given')}
  if(b.dataset.p){var i=S.pick.indexOf(b.dataset.p);if(i>-1)S.pick.splice(i,1);else S.pick.push(b.dataset.p);return go('guest')}
  if(b.dataset.by){S.by=b.dataset.by;return go('guest')}
  go(b.dataset.go)});

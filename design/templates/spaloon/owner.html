@@ -49,7 +49,7 @@ textarea.in{height:100px;padding:12px 14px;resize:none;line-height:1.45}
 <script>
 var MARK='<svg viewBox="0 0 120 44" fill="currentColor"><path d="M60 16c-6-8-17-12-27-8C22 12 16 22 8 24c-4 1-7-1-7-4 0 6 5 11 12 11 9 0 15-7 22-10 7-3 15-2 20 3 1 1 3 1 5 0 5-5 13-6 20-3 7 3 13 10 22 10 7 0 12-5 12-11 0 3-3 5-7 4-8-2-14-12-25-16-10-4-21 0-27 8z"/></svg>';
 /* ---------- fake data (names and numbers are invented for the prototype) ---------- */
-var D={rules:{goal:10,reward:'Free haircut',bday:true},
+var D={rules:{goal:9,tiers:[{at:3,r:'10% off the visit'},{at:6,r:'Free hair mask or 20% off'},{at:9,r:'Free haircut, on the house'}],days:30,bday:true},
  chairs:[['Chair 1','Yousef','Fade + beard',true],['Chair 2','Karim','',false],['Chair 3','Hassan','Haircut',true],['Spa room','Imad','Moroccan bath',true]],
  sched:[['17:30','Ali Rashid','The Gentleman','Yousef'],['18:00','Walk-in','Haircut','Karim'],['18:30','Hamad Salman','The Royal Hammam','Imad'],['19:15','Omar Khaled','Fade cut','Hassan'],['20:00','Khalid Mansoor','The Full Reset','Imad'],['21:00','Yusuf Ebrahim','Beard trim','Karim']],
  services:[['Haircut',62],['Beard trim',41],['Moroccan bath',23],['Fade cut',19],['Massage',14],['Face wash & mask',11]],
@@ -82,11 +82,11 @@ menu:function(){var tabs=['Packages'].concat(Object.keys(D.sv));var h='<div clas
 guests:function(){var q=D.q.toLowerCase(),rows=D.guests.filter(function(g){return g[0].toLowerCase().indexOf(q)>-1});
  return '<div class="eyebrow">Club</div><h1>Members</h1><p class="sub">186 members. Phone numbers stay hidden here; export them only when you need to.</p><div class="row" style="margin-bottom:14px"><input class="in" id="q" placeholder="Search by name" value="'+esc(D.q)+'" style="flex:1;min-width:200px"><button class="btn" data-a="csv">Export CSV</button></div>'+
  '<div class="panel list">'+(rows.map(function(g){return '<div><span class="n">'+esc(g[0])+'<small>Last visit '+g[2]+' · usually '+g[3]+'</small></span><span class="r">'+g[1]+' / '+D.rules.goal+' stamps</span></div>'}).join('')||'<p class="note">No member matches.</p>')+'</div>'+msg()},
-rewards:function(){var r=D.rules;return '<div class="eyebrow">Programme</div><h1>Rewards</h1><p class="sub">One stamp for every visit. Changes apply from the next visit; members keep their stamps.</p>'+
- '<div class="grid c2"><div class="panel"><div class="field"><span class="lbl">Visits for a reward</span><div class="step"><button data-a="g-">−</button><output>'+r.goal+'</output><button data-a="g+">+</button></div></div>'+
- '<div class="field"><label class="lbl" for="rw">The reward</label><input class="in" id="rw" maxlength="60" value="'+esc(r.reward)+'"></div>'+
+rewards:function(){var r=D.rules;return '<div class="eyebrow">Programme</div><h1>Rewards</h1><p class="sub">One stamp for every paid visit. A reward every 3 stamps, growing each time; after the last one the card starts again. Members keep their stamps when you change this.</p>'+
+ '<div class="grid c2"><div class="panel">'+r.tiers.map(function(x,i){return '<div class="field"><label class="lbl" for="t'+i+'">At '+x.at+' stamps</label><input class="in" id="t'+i+'" maxlength="60" value="'+esc(x.r)+'"></div>'}).join('')+
+ '<div class="field"><span class="lbl">Rewards can be used for</span><div class="step"><button data-a="d-">−</button><output>'+r.days+'</output><button data-a="d+">+</button></div><p class="note">days after they unlock.</p></div>'+
  '<label class="row" style="color:var(--muted);margin-bottom:18px"><input type="checkbox" id="bd" '+(r.bday?'checked':'')+' style="accent-color:var(--gold)"> Birthday gift: a free face mask in their birthday week</label><button class="btn primary" data-a="saver">Save</button>'+msg()+'</div>'+
- '<div class="panel"><h2>On the guest card</h2><p style="font:600 22px var(--serif)">'+r.goal+' visits = '+esc(r.reward)+'</p><p class="note" style="margin-top:8px">A member who comes twice a month reaches it in about '+Math.ceil(r.goal/2)+' months.</p></div></div>'},
+ '<div class="panel"><h2>On the guest card</h2>'+r.tiers.map(function(x){return '<div style="display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line)"><span class="tag">'+x.at+' stamps</span><span style="font:600 18px var(--serif);text-align:right">'+esc(x.r)+'</span></div>'}).join('')+'<p class="note" style="margin-top:10px">A member who comes twice a month gets a reward about every 6 weeks.</p></div></div>'},
 offers:function(){return '<div class="eyebrow">Wallet cards</div><h1>Offers</h1><p class="sub">A short message to members\' Wallet cards. Only members who agreed receive it (164 of 186).</p>'+
  '<div class="grid c2"><div class="panel"><div class="field"><label class="lbl" for="ot">Message</label><textarea class="in" id="ot" maxlength="200">'+esc(D.offer)+'</textarea><p class="note"><span id="cnt">'+D.offer.length+'</span> of 200 characters.</p></div><button class="btn primary" data-a="send">Review and send</button>'+msg()+'</div>'+
  '<div class="panel"><h2>How it will appear</h2><div class="phone"><div class="notif"><i>'+MARK+'</i><div><b>Spaloon</b><span id="pv">'+esc(D.offer)+'</span></div></div></div><p class="note" style="margin-top:10px">Lock-screen alerts <span class="soon">coming soon</span>. The offer shows on the card now.</p></div></div>'},
@@ -106,8 +106,8 @@ function go(t){cur=t;D.msg=null;render();window.scrollTo(0,0)}
 function modal(h){var d=document.createElement('div');d.className='modal';d.innerHTML='<div>'+h+'</div>';d.onclick=function(e){if(e.target===d||e.target.closest('[data-x]'))d.remove()};document.body.appendChild(d);return d}
 document.addEventListener('click',function(e){var b=e.target.closest('[data-t],[data-a],[data-sv]');if(!b)return;if(b.dataset.t)return go(b.dataset.t);if(b.dataset.sv){D.svTab=b.dataset.sv;D.msg=null;return render()}
  var a=b.dataset.a,r=D.rules;
- if(a==='g-')r.goal=Math.max(3,r.goal-1),render();else if(a==='g+')r.goal=Math.min(20,r.goal+1),render();
- else if(a==='saver'){r.reward=$('rw').value.trim()||r.reward;r.bday=$('bd').checked;D.msg={t:'Saved. Applies from the next visit.',ok:true};render()}
+ if(a==='d-')r.days=Math.max(7,r.days-7),render();else if(a==='d+')r.days=Math.min(90,r.days+7),render();
+ else if(a==='saver'){r.tiers.forEach(function(x,i){x.r=$('t'+i).value.trim()||x.r});r.bday=$('bd').checked;D.msg={t:'Saved. Applies from the next visit.',ok:true};render()}
  else if(a==='savewifi'){var w=D.wifi;w.show=$('ws').checked;w.ssid=$('wn').value.trim();w.pass=$('wp').value;D.msg=w.show&&!w.ssid?{t:'Add the network name, or untick the button.'}:{t:'Saved. The guest page shows the new Wi-Fi now.',ok:true};render()}
  else if(a==='savemenu'){D.msg={t:'Saved. The guest menu is updated.',ok:true};render()}
  else if(a==='addpk'){D.pk.push({n:'New package',i:'Pick the services',p:''});render()}
