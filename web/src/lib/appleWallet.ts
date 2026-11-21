@@ -9,7 +9,48 @@ import { offerStateForCard } from "./passOffer";
 import { qrStripImages } from "./qrStrip";
 import { walletColors } from "./brand";
 import { parseTiers, stampState } from "./stamps";
-import { ladderRows, rgb, stampCardStyle, stampStripImages } from "./stampStrip";
+import { ladderRows, rgb, stampCardStyle, stampStripImages, type StampCardStyle } from "./stampStrip";
+import type { StampState } from "./stamps";
+
+/**
+ * The Arabic side of a stamp card (Apple's ar.lproj): iPhones set to Arabic show the Arabic strip, the Arabic logo
+ * (passes/<slug>/ar/logo*.png) and these words instead of the English ones. Field values that are names or numbers
+ * stay as they are. Keys must match the English text on the pass exactly.
+ */
+function addArabic(pass: PKPass, venue: Venue, st: StampState, look: StampCardStyle, arStrip: Record<string, Buffer> | null) {
+  if (arStrip) for (const [name, buf] of Object.entries(arStrip)) pass.addBuffer(`ar.lproj/${name}`, buf);
+  try {
+    const dir = path.join(process.cwd(), "passes", venue.slug, "ar");
+    for (const name of readdirSync(dir)) if (/^logo(@[23]x)?\.png$/.test(name)) pass.addBuffer(`ar.lproj/${name}`, readFileSync(path.join(dir, name)));
+  } catch {
+    /* no Arabic logo: the English one is used */
+  }
+  const ar = (i: number) => st.tiers[i].ar || st.tiers[i].text;
+  const strings: Record<string, string> = {
+    "STAMPS": "الأختام",
+    "MEMBER": "العضو",
+    "NEXT REWARD": "المكافأة التالية",
+    "REWARD READY": "المكافأة جاهزة",
+    "To your reward": "المتبقي لمكافأتك",
+    "Reward ready": "المكافأة جاهزة",
+    "Your card": "بطاقتك",
+    "How it works": "طريقة العمل",
+    "Your next reward": "مكافأتك التالية",
+    "Terms": "الشروط",
+    "Powered by": "مقدّم من",
+    "Your reward is ready: %@": "مكافأتك جاهزة: %@",
+    [`Open your ${venue.name} card`]: `افتح بطاقة ${venue.name}`,
+    [`Show this card at the counter. Every paid visit earns a stamp. Rewards: ${st.tiers.map((t) => `${t.at} stamps: ${t.text}`).join(" · ")}.`]:
+      `اعرض هذه البطاقة عند الكاشير. كل زيارة مدفوعة تعطيك ختماً. المكافآت: ${st.tiers.map((t, i) => `${t.at} أختام: ${ar(i)}`).join(" · ")}.`,
+    [`Stamps have no cash value. Rewards are set by ${venue.name} and can change.`]: `الأختام ليس لها قيمة نقدية. المكافآت يحددها ${venue.name} وقد تتغير.`,
+  };
+  st.tiers.forEach((t, i) => {
+    if (t.ar) strings[t.text] = t.ar;
+    const shortEn = look.short?.en?.[i], shortAr = look.short?.ar?.[i];
+    if (shortEn && shortAr) strings[shortEn] = shortAr;
+  });
+  pass.localize("ar", strings);
+}
 
 /**
  * Apple Wallet store cards (.pkpass), signed with our Pass Type ID certificate.
@@ -144,7 +185,9 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   const st = tiers ? stampState(tiers, card.points, Number(extra?.rewards_given ?? 0)) : null;
   // Stamp card look (venue has passes/<slug>/stamp-card.json): its colours and a strip drawn for this guest's stamps.
   const look = st && !preview ? stampCardStyle(venue.slug) : null;
-  const ladderStrip = look && st ? await stampStripImages(venue.slug, ladderRows(st, st.tiers.map((t) => t.text)), look) : null;
+  const ladderStrip = look && st ? await stampStripImages(venue.slug, ladderRows(st, st.tiers.map((t) => t.text)), look, "en") : null;
+  // Arabic iPhones get their own strip, logo and words (Apple's ar.lproj), from the Arabic reward names when given.
+  const arStrip = look && st && ladderStrip ? await stampStripImages(venue.slug, ladderRows(st, st.tiers.map((t) => t.ar || t.text)), look, "ar") : null;
   const colors = walletColors();
   const props = {
     ...live,
@@ -219,7 +262,8 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
       {
         key: "due",
         label: st.ready ? "REWARD READY" : "NEXT REWARD",
-        value: st.reward,
+        // short name on the front so Wallet never cuts it; the full wording is on the back
+        value: look.short?.en?.[st.index] || st.reward,
         textAlignment: "PKTextAlignmentRight" as const,
         ...(st.ready ? { changeMessage: "Your reward is ready: %@" } : {}),
       },
@@ -246,6 +290,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   } else {
     pass.types.push(storeCard);
   }
+  if (look && ladderStrip && st) addArabic(pass, venue, st, look, arStrip);
   if (preview !== "qr") pass.setBarcodes({
     format: "PKBarcodeFormatQR",
     message: `LOYALTY:${venue.slug}:${card.code}`,

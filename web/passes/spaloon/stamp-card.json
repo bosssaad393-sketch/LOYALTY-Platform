@@ -1,11 +1,14 @@
 {
-  "_": "Apple Wallet stamp card look (lib/stampStrip.ts). Spaloon's own logo colours: ochre gold and charcoal. stamp-mark.png is the moustache from their logo.",
-  "background": "#AD9152",
-  "foreground": "#2B2B2D",
-  "label": "#3B3B3D",
-  "stamp": "#3B3B3D",
-  "mark": "#AD9152",
-  "ring": "#3B3B3D",
-  "text": "#2B2B2D",
-  "sub": "#3B3B3D"
+  "_": "Apple Wallet stamp card look 'Ink & Ivory' (lib/stampStrip.ts): ivory card, charcoal ink, Spaloon ochre for numbers. stamp-mark.png is the moustache from their logo. short = reward names on the front of the card.",
+  "background": "#EFE8D8",
+  "foreground": "#2B2A27",
+  "label": "#9A7B3C",
+  "ink": "#2B2A27",
+  "accent": "#9A7B3C",
+  "soft": "#6F6A60",
+  "rule": "#CFC5AE",
+  "short": {
+    "en": ["10% off", "Hair mask or 20%", "Free haircut"],
+    "ar": ["خصم ١٠٪", "ماسك أو خصم ٢٠٪", "قصة مجانية"]
+  }
 }

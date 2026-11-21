@@ -37,8 +37,9 @@ describe("ladderRows", () => {
 describe("Spaloon stamp card", () => {
   it("has a valid colour file", () => {
     const st = stampCardStyle("spaloon");
-    expect(st?.background).toBe("#AD9152");
-    expect(rgb(st!.background)).toBe("rgb(173, 145, 82)");
+    expect(st?.background).toBe("#EFE8D8");
+    expect(rgb(st!.background)).toBe("rgb(239, 232, 216)");
+    expect(st?.short?.ar?.[1]).toBe("ماسك أو خصم ٢٠٪");
     expect(stampCardStyle("orbyn")).toBeNull();
   });
   it("draws the strip at Apple's store card size (375 x 123 pt)", async () => {
@@ -51,6 +52,11 @@ describe("Spaloon stamp card", () => {
       writeFileSync(`${process.env.STRIP_OUT}/strip-4.png`, files!["strip@3x.png"]);
       const ready = await stampStripImages("spaloon", ladderRows(stampState(tiers, 3, 0), texts), stampCardStyle("spaloon")!);
       writeFileSync(`${process.env.STRIP_OUT}/strip-ready.png`, ready!["strip@3x.png"]);
+      const arTexts = ["خصم ١٠٪ على زيارتك", "ماسك شعر أو خصم ٢٠٪", "قصة شعر مجانية"];
+      const ar4 = await stampStripImages("spaloon", ladderRows(stampState(tiers, 1, 1), arTexts), stampCardStyle("spaloon")!, "ar");
+      writeFileSync(`${process.env.STRIP_OUT}/strip-ar-4.png`, ar4!["strip@3x.png"]);
+      const arReady = await stampStripImages("spaloon", ladderRows(stampState(tiers, 3, 0), arTexts), stampCardStyle("spaloon")!, "ar");
+      writeFileSync(`${process.env.STRIP_OUT}/strip-ar-ready.png`, arReady!["strip@3x.png"]);
     }
   }, 20000);
 });
