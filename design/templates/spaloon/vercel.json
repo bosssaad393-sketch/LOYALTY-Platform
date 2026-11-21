@@ -5,5 +5,9 @@
     { "source": "/owner", "destination": "/owner.html" },
     { "source": "/staff", "destination": "/staff.html" }
   ],
-  "headers": [{ "source": "/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }]
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
+    { "source": "/spaloon.vcf", "headers": [{ "key": "Content-Type", "value": "text/vcard; charset=utf-8" }, { "key": "Content-Disposition", "value": "inline; filename=\"Spaloon.vcf\"" }] },
+    { "source": "/manifest.webmanifest", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }] }
+  ]
 }

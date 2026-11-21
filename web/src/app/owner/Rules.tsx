@@ -41,6 +41,7 @@ export default function Rules({ call, isOwner }: { call: Call; isOwner: boolean 
         )}
       </RewardState>
       <Links call={call} isOwner={isOwner} />
+      <Wifi call={call} isOwner={isOwner} />
     </>
   );
 }
@@ -80,6 +81,48 @@ function Links({ call, isOwner }: { call: Call; isOwner: boolean }) {
           </label>
           <p className="ow-note">{t("In Google Business Profile, choose “Ask for reviews” and copy the link it gives you.")}</p>
           {isOwner && <div className="ow-actions"><button className="ow-btn primary" type="submit" disabled={busy}>{busy ? t("Saving…") : t("Save links")}</button></div>}
+        </>
+      )}
+      <Msg note={note} />
+    </form>
+  );
+}
+
+type VenueWifi = { name: string | null; password: string | null };
+
+/** The guest Wi-Fi: a Wi-Fi button on the guest page with the network name and a copy-password button. Empty name = no button. */
+function Wifi({ call, isOwner }: { call: Call; isOwner: boolean }) {
+  const wifi = useGet<VenueWifi>(call, "/api/owner/wifi");
+  const t = useT();
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<Note | null>(null);
+
+  async function save(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    setBusy(true); setNote(null);
+    const r = await call<VenueWifi>("/api/owner/wifi", "POST", { name: String(f.get("name") ?? ""), password: String(f.get("password") ?? "") });
+    setBusy(false);
+    if (r.ok) { setNote({ kind: "ok", text: r.data.name ? t("Saved. The Wi-Fi button shows on the guest page within a minute.") : t("Saved. The Wi-Fi button is hidden.") }); wifi.reload(); }
+    else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
+  }
+
+  return (
+    <form className="ow-panel" style={{ marginTop: 16 }} onSubmit={save} aria-labelledby="ow-h-wifi">
+      <h2 className="ow-h" id="ow-h-wifi">{t("Guest Wi-Fi")}</h2>
+      <p className="ow-note">{t("Guests tap the Wi-Fi button on your guest page to see the network and copy the password. Leave the name empty to hide the button.")}</p>
+      {wifi.data && (
+        <>
+          <label className="ow-field">
+            <span className="ow-lbl">{t("Wi-Fi name (network)")}</span>
+            <input className="ow-in" dir="ltr" name="name" maxLength={64} defaultValue={wifi.data.name ?? ""} disabled={!isOwner} autoComplete="off" placeholder="Spaloon-Guest" />
+          </label>
+          <label className="ow-field">
+            <span className="ow-lbl">{t("Wi-Fi password")}</span>
+            <input className="ow-in" dir="ltr" name="password" maxLength={128} defaultValue={wifi.data.password ?? ""} disabled={!isOwner} autoComplete="off" />
+          </label>
+          <p className="ow-note">{t("Every guest can see this password, so use a guest network, not the one for your till or cameras.")}</p>
+          {isOwner && <div className="ow-actions"><button className="ow-btn primary" type="submit" disabled={busy}>{busy ? t("Saving…") : t("Save Wi-Fi")}</button></div>}
         </>
       )}
       <Msg note={note} />

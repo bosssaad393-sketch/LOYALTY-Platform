@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { currentStaff } from "@/lib/staffAuth";
 import { loginLook } from "@/lib/loginStyle";
 import { brandName, brandProps } from "@/lib/brand";
+import { appIcons } from "@/lib/appIcons";
 import { getLocale } from "next-intl/server";
 import StaffApp from "./StaffApp";
 
 export function generateMetadata(): Metadata {
   const title = `${brandName()} Staff`;
-  return { title, manifest: "/staff.webmanifest", appleWebApp: { capable: true, title, statusBarStyle: "black-translucent" } };
+  return { title, manifest: "/staff.webmanifest", icons: { apple: appIcons(brandProps().slug).apple }, appleWebApp: { capable: true, title, statusBarStyle: "black-translucent" } };
 }
 
 // Reads the staff session cookie on every request.

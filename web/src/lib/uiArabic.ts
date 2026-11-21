@@ -217,6 +217,16 @@ export const AR: Record<string, string> = {
   "Save the reward": "حفظ المكافأة",
   "Only the owner can change the rules.": "المالك فقط يمكنه تغيير القواعد.",
 
+  "Guest Wi-Fi": "واي فاي الضيوف",
+  "Guests tap the Wi-Fi button on your guest page to see the network and copy the password. Leave the name empty to hide the button.": "يضغط الضيوف زر الواي فاي في صفحتهم ليروا الشبكة وينسخوا كلمة السر. اترك الاسم فارغاً لإخفاء الزر.",
+  "Wi-Fi name (network)": "اسم الشبكة",
+  "Wi-Fi password": "كلمة سر الواي فاي",
+  "Every guest can see this password, so use a guest network, not the one for your till or cameras.": "كل الضيوف يرون كلمة السر هذه، فاستخدم شبكة للضيوف وليس شبكة الكاشير أو الكاميرات.",
+  "Save Wi-Fi": "حفظ الواي فاي",
+  "Saved. The Wi-Fi button shows on the guest page within a minute.": "تم الحفظ. يظهر زر الواي فاي في صفحة الضيوف خلال دقيقة.",
+  "Saved. The Wi-Fi button is hidden.": "تم الحفظ. زر الواي فاي مخفي.",
+  "Check the Wi-Fi name (up to 64 characters) and password (up to 128).": "تحقق من اسم الشبكة (حتى 64 حرفاً) وكلمة السر (حتى 128).",
+
   // ---- Guests
   "{name} was erased.": "تم حذف {name}.",
   "{n} shown. Phone numbers and emails stay hidden here; export them only when you need to.": "المعروض: {n}. أرقام الهواتف والبريد مخفية هنا؛ صدّرها فقط عند الحاجة.",

@@ -1,9 +1,11 @@
-import { brandColors, brandName } from "@/lib/brand";
+import { brandColors, brandName, brandProps } from "@/lib/brand";
+import { appIcons } from "@/lib/appIcons";
 
 // The owner app's "install to home screen" file. Name and colours come from the client's settings (src/lib/brand.ts).
 export function GET() {
   const name = `${brandName()} Owner`;
   const { bg } = brandColors();
+  const icon = appIcons(brandProps().slug);
   return Response.json(
     {
       name,
@@ -14,8 +16,8 @@ export function GET() {
       background_color: bg,
       theme_color: bg,
       icons: [
-        { src: "/staff-icon-192.png", sizes: "192x192", type: "image/png" },
-        { src: "/staff-icon-512.png", sizes: "512x512", type: "image/png" },
+        { src: icon.i192, sizes: "192x192", type: "image/png" },
+        { src: icon.i512, sizes: "512x512", type: "image/png" },
       ],
     },
     { headers: { "content-type": "application/manifest+json" } },

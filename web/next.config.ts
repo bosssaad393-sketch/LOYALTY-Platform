@@ -42,7 +42,15 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   // Apple Wallet pass images are read from disk at request time.
-  outputFileTracingIncludes: { "/api/wallet/apple/**": ["./passes/**/*"], "/api/applewallet/**": ["./passes/**/*"] },
+  // The owner and staff pages check for the venue's own home-screen icons (lib/appIcons.ts).
+  outputFileTracingIncludes: {
+    "/api/wallet/apple/**": ["./passes/**/*"],
+    "/api/applewallet/**": ["./passes/**/*"],
+    "/owner": ["./public/venues/*/app-192.png"],
+    "/staff": ["./public/venues/*/app-192.png"],
+    "/owner.webmanifest": ["./public/venues/*/app-192.png"],
+    "/staff.webmanifest": ["./public/venues/*/app-192.png"],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

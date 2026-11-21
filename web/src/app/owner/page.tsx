@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { currentStaff } from "@/lib/staffAuth";
 import { loginLook } from "@/lib/loginStyle";
 import { brandName, brandProps } from "@/lib/brand";
+import { appIcons } from "@/lib/appIcons";
 import { sampleNote } from "@/lib/demo";
 import { getLocale } from "next-intl/server";
 import OwnerApp from "./OwnerApp";
 
 export function generateMetadata(): Metadata {
   const title = `${brandName()} Owner`;
-  return { title, manifest: "/owner.webmanifest", appleWebApp: { capable: true, title, statusBarStyle: "black-translucent" } };
+  return { title, manifest: "/owner.webmanifest", icons: { apple: appIcons(brandProps().slug).apple }, appleWebApp: { capable: true, title, statusBarStyle: "black-translucent" } };
 }
 
 // Reads the session cookie on every request.
