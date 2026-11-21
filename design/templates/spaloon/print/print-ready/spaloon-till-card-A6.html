@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Inter:wght@500;600&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+<title>spaloon-till-card-A6 (print, 3 mm bleed)</title><style>
+/* Counter / table card, A6 (105 x 148 mm). Print on matte black card stock; gold can be foil.
+   QR opens https://spaloon-guest-preview.vercel.app (dark modules on a cream panel for reliable scanning). */
+@page{size:105mm 148mm;margin:0}
+:root{--bg:#0D0D0E;--gold:#C9AE74;--gold2:#E3CD9B;--cr:#F3EDDF;--mut:#B9B1A0;--dim:#857E70}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:105mm;height:148mm;background:var(--bg)}
+body{-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:"Tajawal",sans-serif;color:var(--cr)}
+.card{position:relative;width:105mm;height:148mm;overflow:hidden;background:radial-gradient(120% 60% at 50% 0%,#211D17 0%,var(--bg) 62%);display:flex;flex-direction:column;align-items:center;padding:8mm 8.5mm 7.5mm}
+.frame{position:absolute;inset:4mm;border:.3mm solid rgba(201,174,116,.55);border-radius:2mm;pointer-events:none}
+.frame::after{content:"";position:absolute;inset:1mm;border:.15mm solid rgba(201,174,116,.28);border-radius:1.4mm}
+.logo{width:33mm;height:33mm;object-fit:contain;margin-top:-1.5mm}
+h1{font:800 8mm/1.15 "Tajawal";margin-top:0;text-align:center}
+h1 em{font-style:normal;color:var(--gold2)}
+.en{font:italic 500 4.4mm/1.2 "Bodoni Moda",serif;color:var(--mut);margin-top:.6mm;letter-spacing:.02em}
+.qr{margin-top:3.5mm;background:var(--cr);border-radius:3mm;padding:3.4mm 3.4mm 2.2mm;display:flex;flex-direction:column;align-items:center}
+.qr img{width:35mm;height:35mm;display:block}
+.qr span{font:600 2.7mm "Inter";color:#4A4337;margin-top:1.6mm;letter-spacing:.14em}
+.ladder{display:flex;gap:2.2mm;margin-top:4mm;width:100%}
+.step{flex:1;text-align:center;border:.2mm solid rgba(201,174,116,.35);border-radius:2mm;padding:2.2mm 1mm 1.8mm}
+.step b{display:grid;place-items:center;width:6.4mm;height:6.4mm;margin:0 auto 1.2mm;border-radius:50%;border:.25mm solid var(--gold);font:600 3.2mm "Inter";color:var(--gold2)}
+.step.top{background:rgba(201,174,116,.10);border-color:var(--gold)}
+.step.top b{background:var(--gold);color:#151310}
+.step p{font:700 2.9mm/1.25 "Tajawal";color:var(--cr)}
+.step small{display:block;font:500 2.3mm/1.2 "Inter";color:var(--dim);margin-top:.5mm;direction:ltr}
+.foot{margin-top:auto;text-align:center}
+.foot p{font:500 2.9mm "Tajawal";color:var(--mut)}
+.foot small{display:block;font:500 2.1mm "Inter";letter-spacing:.2em;color:var(--dim);margin-top:1mm;direction:ltr}
+html.png,html.png body{width:auto;height:auto}html.png .card{zoom:3.125}
+
+/* print-ready wrapper: trim 105 x 148 mm, 3 mm bleed, crop marks */
+@page{size:121mm 164mm;margin:0}html,body{width:121mm;height:164mm;background:#fff;overflow:hidden}html.png .card{zoom:1}
+.bleed{position:absolute;left:5mm;top:5mm;width:111mm;height:154mm;background:radial-gradient(126.0mm 88.8mm at 50% 3mm,#211D17 0%,#0D0D0E 62%)}.trim{position:absolute;left:8mm;top:8mm;width:105mm;height:148mm;display:grid;place-items:center;overflow:hidden}.trim .card{zoom:1.0000}.marks{position:absolute;left:0;top:0}</style></head><body><div class="bleed"></div><div class="trim"><div class="card">
+  <div class="frame"></div>
+  <img class="logo" src="../../brand/logo-lux.png" alt="Spaloon">
+  <h1>كن ضيفنا <em>الوفي</em></h1>
+  <div class="en">Become a Loyal Guest</div>
+  <div class="qr"><img src="../qr.svg" alt="QR"><span>امسح · SCAN ME</span></div>
+  <div class="ladder">
+    <div class="step"><b>3</b><p>خصم ١٠٪</p><small>10% off</small></div>
+    <div class="step"><b>6</b><p>ماسك شعر أو ٢٠٪</p><small>Hair mask or 20%</small></div>
+    <div class="step top"><b>9</b><p>قصة مجانية</p><small>Free haircut</small></div>
+  </div>
+  <div class="foot"><p>المنيو · احجز جلستك · قيّمنا في Google</p><small>POWERED BY ORBYN</small></div>
+</div></div><svg class="marks" width="121mm" height="164mm" viewBox="0 0 121 164" stroke="#000" stroke-width=".12"><line x1="8" y1="0" x2="8" y2="4.5"/><line x1="8" y1="159.5" x2="8" y2="164"/><line x1="113" y1="0" x2="113" y2="4.5"/><line x1="113" y1="159.5" x2="113" y2="164"/><line x1="0" y1="8" x2="4.5" y2="8"/><line x1="116.5" y1="8" x2="121" y2="8"/><line x1="0" y1="156" x2="4.5" y2="156"/><line x1="116.5" y1="156" x2="121" y2="156"/></svg></body></html>
