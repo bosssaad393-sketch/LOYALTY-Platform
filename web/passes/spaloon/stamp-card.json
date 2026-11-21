@@ -1,0 +1,11 @@
+{
+  "_": "Apple Wallet stamp card look (lib/stampStrip.ts). Spaloon's own logo colours: ochre gold and charcoal. stamp-mark.png is the moustache from their logo.",
+  "background": "#AD9152",
+  "foreground": "#2B2B2D",
+  "label": "#3B3B3D",
+  "stamp": "#3B3B3D",
+  "mark": "#AD9152",
+  "ring": "#3B3B3D",
+  "text": "#2B2B2D",
+  "sub": "#3B3B3D"
+}

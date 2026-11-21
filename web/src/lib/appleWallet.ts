@@ -9,6 +9,7 @@ import { offerStateForCard } from "./passOffer";
 import { qrStripImages } from "./qrStrip";
 import { walletColors } from "./brand";
 import { parseTiers, stampState } from "./stamps";
+import { ladderRows, rgb, stampCardStyle, stampStripImages } from "./stampStrip";
 
 /**
  * Apple Wallet store cards (.pkpass), signed with our Pass Type ID certificate.
@@ -86,6 +87,7 @@ function venueImages(slug: string, poster: boolean): Record<string, Buffer> {
   for (const name of readdirSync(dir)) {
     if (!name.endsWith(".png")) continue;
     if (!poster && /^(artwork|primaryLogo)/.test(name)) continue; // poster artwork only travels with poster passes
+    if (name === "stamp-mark.png") continue; // drawing material for the stamp strip, not a pass image
     files[name] = readFileSync(path.join(dir, name));
   }
   // A strip of the wrong size is still drawn (Wallet crops or stretches it), so only warn, once per venue.
@@ -132,6 +134,17 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   const live = preview
     ? {}
     : { webServiceURL: `${process.env.PUBLIC_BASE_URL ?? baseUrl}/api/applewallet`, authenticationToken: await authTokenFor(card.id) };
+  // Stamp venues (0020): the reward due next depends on the rewards already used.
+  // Best effort: a points venue (or a failed read) simply keeps the points layout.
+  const extra = (await Promise.resolve()
+    .then(() => db().from("cards").select("rewards_given, venues(stamp_tiers)").eq("id", card.id).maybeSingle())
+    .then((r) => r.data)
+    .catch(() => null)) as { rewards_given: number | null; venues: { stamp_tiers: unknown } | null } | null;
+  const tiers = parseTiers(extra?.venues?.stamp_tiers);
+  const st = tiers ? stampState(tiers, card.points, Number(extra?.rewards_given ?? 0)) : null;
+  // Stamp card look (venue has passes/<slug>/stamp-card.json): its colours and a strip drawn for this guest's stamps.
+  const look = st && !preview ? stampCardStyle(venue.slug) : null;
+  const ladderStrip = look && st ? await stampStripImages(venue.slug, ladderRows(st, st.tiers.map((t) => t.text)), look) : null;
   const colors = walletColors();
   const props = {
     ...live,
@@ -141,9 +154,9 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     organizationName: venue.name,
     description: preview ? `${venue.name} Loyalty Rewards (preview)` : `${venue.name} Loyalty Rewards`,
     // Live card: tinted black, which shows around the card artwork (its strip has transparent margins). Previews keep their own colour.
-    backgroundColor: preview ? colors.applePreviewBackground : colors.appleBackground,
-    foregroundColor: colors.appleForeground,
-    labelColor: colors.appleLabel,
+    backgroundColor: ladderStrip && look ? rgb(look.background) : preview ? colors.applePreviewBackground : colors.appleBackground,
+    foregroundColor: ladderStrip && look ? rgb(look.foreground) : colors.appleForeground,
+    labelColor: ladderStrip && look ? rgb(look.label) : colors.appleLabel,
     sharingProhibited: true,
   };
 
@@ -151,19 +164,12 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   const images = venueImages(venue.slug, poster);
   if (preview === "qr") Object.assign(images, await qrStripImages(venue.slug, `LOYALTY:${venue.slug}:${card.code}`));
   if (preview === "card") Object.assign(images, cardStripImages(venue.slug));
+  if (ladderStrip) Object.assign(images, ladderStrip);
   const pass = new PKPass(
     images,
     appleCertificates(),
     props,
   );
-  // Stamp venues (0020): the reward due next depends on the rewards already used.
-  // Best effort: a points venue (or a failed read) simply keeps the points layout.
-  const extra = (await Promise.resolve()
-    .then(() => db().from("cards").select("rewards_given, venues(stamp_tiers)").eq("id", card.id).maybeSingle())
-    .then((r) => r.data)
-    .catch(() => null)) as { rewards_given: number | null; venues: { stamp_tiers: unknown } | null } | null;
-  const tiers = parseTiers(extra?.venues?.stamp_tiers);
-  const st = tiers ? stampState(tiers, card.points, Number(extra?.rewards_given ?? 0)) : null;
   const goal = st ? st.cost : venue.reward_goal;
   const rewardText = st ? st.reward : venue.reward_text;
   const ready = card.points >= goal;
@@ -203,6 +209,23 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     storeCard.secondaryFields.push({ key: "member", label: "MEMBER", value: memberName }, progress);
     storeCard.auxiliaryFields.push(codeField);
     storeCard.backFields.push(...backFields);
+  } else if (look && ladderStrip && st) {
+    // Stamp card: the count in the header, the ladder in the strip, the member and the reward due below it, the code
+    // under the QR (Apple's altText). Wallet buzzes only when a reward becomes ready (Apple: change messages are for
+    // time-sensitive news), so the change message is only on the pass while the reward is ready.
+    storeCard.headerFields.push({ key: "stamps", label: "STAMPS", value: `${st.position} / ${st.cycle}`, textAlignment: "PKTextAlignmentRight" as const });
+    storeCard.secondaryFields.push(
+      { key: "member", label: "MEMBER", value: memberName },
+      {
+        key: "due",
+        label: st.ready ? "REWARD READY" : "NEXT REWARD",
+        value: st.reward,
+        textAlignment: "PKTextAlignmentRight" as const,
+        ...(st.ready ? { changeMessage: "Your reward is ready: %@" } : {}),
+      },
+    );
+    const togo = { key: "togo", label: "To your reward", value: progress.value };
+    storeCard.backFields.push(...(offer ? [backFields[0], togo, ...backFields.slice(1)] : [togo, ...backFields]));
   } else {
     storeCard.headerFields.push(poweredField);
     storeCard.secondaryFields.push({ key: "member", label: "MEMBER", value: memberName }, { ...pointsField, textAlignment: "PKTextAlignmentCenter" as const });
