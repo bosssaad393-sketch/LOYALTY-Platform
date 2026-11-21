@@ -60,14 +60,14 @@ const stamp = () => Date.now();
 /** 1250 -> "1,250.000": three decimals like the receipt, with thousands marked so a typo stands out. */
 const bhdFull = bhdNumber;
 
-type StaffProps = { initialMe: Me | null; look?: SignInLook; brand: BrandProps; lang?: UiLang };
+type StaffProps = { initialMe: Me | null; look?: SignInLook; brand: BrandProps; lang?: UiLang; stampVenue?: boolean };
 
 /** The staff screen in the venue's language (Arabic or English). */
 export default function StaffApp({ lang = "en", ...props }: StaffProps) {
   return <UiLangProvider lang={lang}><StaffScreen {...props} /></UiLangProvider>;
 }
 
-function StaffScreen({ initialMe, brand }: StaffProps) {
+function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>("guest");
@@ -190,7 +190,7 @@ function StaffScreen({ initialMe, brand }: StaffProps) {
         {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
         <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, ${t("staff")}`} width={96} height={96} />
         <div className="st-actions">
-          <a className="chip" href="/staff/board">{t("Table board")}</a>
+          {!stampVenue && <a className="chip" href="/staff/board">{t("Table board")}</a>}
           <LangToggle />
           <button className="chip" type="button" onClick={lock}>{t("Lock")}</button>
         </div>
@@ -200,7 +200,7 @@ function StaffScreen({ initialMe, brand }: StaffProps) {
         <div className="st-today" aria-label={t("Your day so far")}>
           <span><b>{mine.entries}</b> {t("entries")}</span>
           <span><b>{mine.guests}</b> {t("guests")}</span>
-          <span><b>{bhdFull(mine.bhd)}</b> {t("BHD")}</span>
+          {!stampVenue && <span><b>{bhdFull(mine.bhd)}</b> {t("BHD")}</span>}
         </div>
       )}
 
@@ -329,7 +329,7 @@ function StaffScreen({ initialMe, brand }: StaffProps) {
           <ol className="panel st-help">
             <li>{t("Scan the QR on the guest's card, or type the card code.")}</li>
             <li>{t("Check the first name with the guest.")}</li>
-            <li>{t("Stamp venues: tap Add a stamp once per paid visit. Points venues: type the bill and tap Add points.")}</li>
+            <li>{stampVenue ? t("Tap Add a stamp once for each paid visit.") : t("Type the bill and tap Add points.")}</li>
             <li>{t("If a reward is ready, tap Give.")}</li>
             <li>{t("Made a mistake? Undo works for 10 minutes.")}</li>
             <li>{t("At the end of your shift, open End to see your day and any thank-you waiting for you.")}</li>

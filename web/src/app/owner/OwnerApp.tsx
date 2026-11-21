@@ -20,17 +20,23 @@ import type { Call, Me, Tab } from "./types";
 import { LangToggle, UiLangProvider, useT, type UiLang } from "@/lib/uiLang";
 import { tx } from "@/lib/uiArabic";
 
-const TABS: { id: Tab; label: string; ownerOnly?: boolean }[] = [
+/** pointsOnly: tables, table orders and the points assistant; hidden for stamp venues (salons, barbers, spas). */
+const TABS: { id: Tab; label: string; ownerOnly?: boolean; pointsOnly?: boolean }[] = [
   { id: "overview", label: tx("Overview") },
-  { id: "service", label: tx("Tables and menu") },
+  { id: "service", label: tx("Tables and menu"), pointsOnly: true },
   { id: "guests", label: tx("Guests") },
   { id: "feedback", label: tx("Feedback") },
   { id: "rules", label: tx("Rules") },
   { id: "offers", label: tx("Offers") },
-  { id: "assistant", label: tx("Assistant"), ownerOnly: true },
+  { id: "assistant", label: tx("Assistant"), ownerOnly: true, pointsOnly: true },
   { id: "team", label: tx("Team"), ownerOnly: true },
   { id: "privacy", label: tx("Data and privacy"), ownerOnly: true },
 ];
+
+/** The sections this person sees: owner-only ones for the owner, points-only ones not at stamp venues. */
+export function visibleTabs(isOwner: boolean, stampVenue: boolean) {
+  return TABS.filter((x) => (!x.ownerOnly || isOwner) && !(stampVenue && x.pointsOnly));
+}
 
 type Props = {
   initialMe: Me | null;
@@ -43,6 +49,8 @@ type Props = {
   brand: BrandProps;
   /** The venue's language for these screens. */
   lang?: UiLang;
+  /** Stamp venue (salon, barber, spa): no tables, no bills, no points per BHD. */
+  stampVenue?: boolean;
 };
 
 /** The owner dashboard in the venue's language (Arabic or English). */
@@ -50,7 +58,7 @@ export default function OwnerApp({ lang = "en", ...props }: Props) {
   return <UiLangProvider lang={lang}><OwnerScreen {...props} /></UiLangProvider>;
 }
 
-function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null }: Props) {
+function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null, stampVenue = false }: Props) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -69,7 +77,7 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null 
     [out],
   );
 
-  const tabs = TABS.filter((x) => !x.ownerOnly || isOwner);
+  const tabs = visibleTabs(isOwner, stampVenue);
   // A manager cannot open owner-only sections, even through a stale tab value.
   const current: Tab = tabs.some((x) => x.id === tab) ? tab : "overview";
   const label = t(TABS.find((x) => x.id === current)?.label ?? "Overview");
@@ -146,13 +154,13 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null 
             </section>
           ) : (
             <>
-              {current === "overview" && <Overview call={call} isOwner={isOwner} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
-              {current === "service" && <Service call={call} />}
+              {current === "overview" && <Overview call={call} isOwner={isOwner} stampVenue={stampVenue} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
+              {current === "service" && !stampVenue && <Service call={call} />}
               {current === "guests" && <Guests call={call} isOwner={isOwner} />}
-              {current === "feedback" && <Feedback call={call} />}
+              {current === "feedback" && <Feedback call={call} stampVenue={stampVenue} />}
               {current === "rules" && <Rules call={call} isOwner={isOwner} />}
               {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} />}
-              {current === "assistant" && isOwner && <Assistant call={call} />}
+              {current === "assistant" && isOwner && !stampVenue && <Assistant call={call} />}
               {current === "team" && isOwner && <Team call={call} />}
               {current === "privacy" && isOwner && <Privacy call={call} venue={venue} />}
             </>

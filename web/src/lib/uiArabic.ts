@@ -227,6 +227,10 @@ export const AR: Record<string, string> = {
   "Saved. The Wi-Fi button is hidden.": "تم الحفظ. زر الواي فاي مخفي.",
   "Check the Wi-Fi name (up to 64 characters) and password (up to 128).": "تحقق من اسم الشبكة (حتى 64 حرفاً) وكلمة السر (حتى 128).",
 
+  "What your guests say about you on Google.": "ما يقوله ضيوفك عنك على Google.",
+  "Tap Add a stamp once for each paid visit.": "اضغط «أضف ختماً» مرة واحدة لكل زيارة مدفوعة.",
+  "Type the bill and tap Add points.": "اكتب الفاتورة واضغط «أضف النقاط».",
+
   // ---- Guests
   "{name} was erased.": "تم حذف {name}.",
   "{n} shown. Phone numbers and emails stay hidden here; export them only when you need to.": "المعروض: {n}. أرقام الهواتف والبريد مخفية هنا؛ صدّرها فقط عند الحاجة.",

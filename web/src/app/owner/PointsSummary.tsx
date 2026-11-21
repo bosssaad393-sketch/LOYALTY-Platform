@@ -35,7 +35,7 @@ function period(p: Points, t: T): string {
 }
 
 /** The "Points given out" sheet: one total, four quieter figures, a chart and a paragraph the owner can copy. */
-export default function PointsSummary({ call, onClose }: { call: Call; onClose: () => void }) {
+export default function PointsSummary({ call, onClose, stampVenue = false }: { call: Call; onClose: () => void; stampVenue?: boolean }) {
   const [range, setRange] = useState<PointsRange>("7d");
   const t = useT();
   const loaded = useGet<Points>(call, `/api/owner/points?range=${range}`);
@@ -94,10 +94,12 @@ export default function PointsSummary({ call, onClose }: { call: Call; onClose: 
               <dt>{t("Visits")}</dt>
               <dd><b><Count id="pts-visits" value={p.visits} /></b><small>{p.visits > 0 ? t("about {n} a visit", { n: n(Math.round(p.issued / p.visits)) }) : t("no visits yet")}</small></dd>
             </div>
-            <div>
-              <dt>{t("Total of bills")}</dt>
-              <dd><b><Count id="pts-bills" value={p.billBhd} format={bhd} /></b><small>{t("BHD")}</small></dd>
-            </div>
+            {!stampVenue && (
+              <div>
+                <dt>{t("Total of bills")}</dt>
+                <dd><b><Count id="pts-bills" value={p.billBhd} format={bhd} /></b><small>{t("BHD")}</small></dd>
+              </div>
+            )}
             <div>
               <dt>{t("Still held by guests")}</dt>
               <dd><b><Count id="pts-held" value={p.held} /></b><small>{t("right now, any period")}</small></dd>

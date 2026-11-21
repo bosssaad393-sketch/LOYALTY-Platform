@@ -16,7 +16,7 @@ const WEEKDAY_EN = [tx("Sunday"), tx("Monday"), tx("Tuesday"), tx("Wednesday"), 
 
 type SheetName = "points" | "reward" | null;
 
-export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; isOwner: boolean; onSendUpdate: () => void }) {
+export default function Overview({ call, isOwner, onSendUpdate, stampVenue = false }: { call: Call; isOwner: boolean; onSendUpdate: () => void; stampVenue?: boolean }) {
   const summary = useGet<Summary>(call, "/api/owner/summary");
   // The top-guests list and the quick-action previews are extras: if one fails the rest of the page still works.
   const guests = useGet<{ guests: Guest[] }>(call, "/api/owner/guests?top=3");
@@ -47,7 +47,7 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
             <li><b>{t("Guests scan it")}</b> {t("and get their card in under a minute.")}</li>
             <li><b>{t("Staff sign in")}</b> {t("with their PIN and stamp the card after each paid visit.")}</li>
           </ol>
-          <div className="ow-actions"><a className="ow-btn primary" href="/owner/qr-kit" target="_blank" rel="noreferrer">{t("Open the QR kit")}</a></div>
+          {!stampVenue && <div className="ow-actions"><a className="ow-btn primary" href="/owner/qr-kit" target="_blank" rel="noreferrer">{t("Open the QR kit")}</a></div>}
         </section>
       )}
       {s && !fresh && (
@@ -110,7 +110,7 @@ export default function Overview({ call, isOwner, onSendUpdate }: { call: Call; 
         </section>
       )}
 
-      {sheet === "points" && <PointsSummary call={call} onClose={() => setSheet(null)} />}
+      {sheet === "points" && <PointsSummary call={call} stampVenue={stampVenue} onClose={() => setSheet(null)} />}
       {sheet === "reward" && isOwner && <RewardSheet call={call} onSaved={rules.reload} onClose={() => setSheet(null)} />}
     </>
   );

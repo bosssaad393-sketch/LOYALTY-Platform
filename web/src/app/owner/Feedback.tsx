@@ -69,15 +69,25 @@ function GoogleReviews({ call }: { call: Call }) {
 }
 
 /** What members wrote on the counter page, plus the public Google reviews. Read only: the owner answers in person. */
-export default function Feedback({ call }: { call: Call }) {
+export default function Feedback({ call, stampVenue = false }: { call: Call; stampVenue?: boolean }) {
+  const t = useT();
+  return (
+    <>
+      <PageHead eyebrow={t("From your guests")} title={t("Feedback")}>{stampVenue ? t("What your guests say about you on Google.") : t("Your public Google reviews, and what card members rated from the QR code at the counter.")}</PageHead>
+      <GoogleReviews call={call} />
+      {!stampVenue && <MemberFeedback call={call} />}
+    </>
+  );
+}
+
+/** Ratings card members leave on the counter page (points venues with a counter QR). */
+function MemberFeedback({ call }: { call: Call }) {
   const fb = useGet<View>(call, "/api/owner/feedback");
   const v = fb.data;
   const t = useT();
 
   return (
     <>
-      <PageHead eyebrow={t("From your guests")} title={t("Feedback")}>{t("Your public Google reviews, and what card members rated from the QR code at the counter.")}</PageHead>
-      <GoogleReviews call={call} />
       {fb.error && <LoadError text={fb.error} onRetry={fb.reload} />}
       {!v && !fb.error && <Loading />}
       {v && (
