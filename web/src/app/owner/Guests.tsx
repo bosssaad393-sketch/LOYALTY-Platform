@@ -5,6 +5,7 @@ import QrSvg from "@/components/QrSvg";
 import { ago, n } from "./format";
 import { Confirm, Loading, LoadError, Msg, PageHead, Sheet, useDebounced, useGet } from "./ui";
 import type { Call, Guest, Note } from "./types";
+import { useT } from "@/lib/uiLang";
 
 export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean }) {
   const [q, setQ] = useState("");
@@ -14,6 +15,7 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
   const [showing, setShowing] = useState<Guest | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
+  const t = useT();
 
   const guests = list.data?.guests ?? [];
 
@@ -24,54 +26,54 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
     setBusy(false);
     const name = target.name;
     setTarget(null);
-    if (r.ok) { setNote({ kind: "ok", text: `${name} was erased.` }); list.reload(); }
+    if (r.ok) { setNote({ kind: "ok", text: t("{name} was erased.", { name }) }); list.reload(); }
     else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
   }
 
   return (
     <>
-      <PageHead eyebrow="Members" title="Guests">{n(guests.length)} shown. Phone numbers and emails stay hidden here; export them only when you need to.</PageHead>
+      <PageHead eyebrow={t("Members")} title={t("Guests")}>{t("{n} shown. Phone numbers and emails stay hidden here; export them only when you need to.", { n: n(guests.length) })}</PageHead>
       <div className="ow-bar-row">
         <form className="ow-search" role="search" onSubmit={(e) => e.preventDefault()}>
           <label>
-            <span className="ow-sr">Search guests by name or code</span>
-            <input className="ow-in" type="search" placeholder="Search by name or code" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
+            <span className="ow-sr">{t("Search guests by name or code")}</span>
+            <input className="ow-in" type="search" placeholder={t("Search by name or code")} value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
           </label>
         </form>
         {isOwner && (
-          <a className="ow-btn" href="/api/owner/export" download>Export CSV</a>
+          <a className="ow-btn" href="/api/owner/export" download>{t("Export CSV")}</a>
         )}
       </div>
       <Msg note={note} />
       {list.error && <LoadError text={list.error} onRetry={list.reload} />}
       {!list.data && !list.error && <Loading />}
       {list.data && (
-        <section className="ow-panel ow-flush" aria-label="Guests">
+        <section className="ow-panel ow-flush" aria-label={t("Guests")}>
           {guests.length === 0 ? (
-            <p className="ow-note ow-pad">{dq ? "No guest matches." : "No guests yet."}</p>
+            <p className="ow-note ow-pad">{dq ? t("No guest matches.") : t("No guests yet.")}</p>
           ) : (
             <table className="ow-table">
               <thead>
                 <tr>
-                  <th scope="col">Guest</th>
-                  <th scope="col" className="ow-c-code">Code</th>
-                  <th scope="col" className="ow-c-visits">Visits</th>
-                  <th scope="col" className="ow-c-last">Last visit</th>
-                  <th scope="col" className="ow-c-pts">Points</th>
-                  <th scope="col" className="ow-c-act"><span className="ow-sr">Actions</span></th>
+                  <th scope="col">{t("Guest")}</th>
+                  <th scope="col" className="ow-c-code">{t("Code")}</th>
+                  <th scope="col" className="ow-c-visits">{t("Visits")}</th>
+                  <th scope="col" className="ow-c-last">{t("Last visit")}</th>
+                  <th scope="col" className="ow-c-pts">{t("Balance")}</th>
+                  <th scope="col" className="ow-c-act"><span className="ow-sr">{t("Actions")}</span></th>
                 </tr>
               </thead>
               <tbody>
                 {guests.map((g) => (
                   <tr key={g.cardId}>
-                    <th scope="row" className="ow-c-name"><span>{g.name}</span><small className="ow-c-meta">Code {g.code} · {n(g.visits)} visits · last visit {ago(g.lastVisit)}</small></th>
+                    <th scope="row" className="ow-c-name"><span>{g.name}</span><small className="ow-c-meta">{t("Code {code} · visits: {n} · last visit {when}", { code: g.code, n: n(g.visits), when: ago(g.lastVisit, t) })}</small></th>
                     <td className="ow-c-code">{g.code}</td>
                     <td className="ow-c-visits">{n(g.visits)}</td>
-                    <td className="ow-c-last">{ago(g.lastVisit)}</td>
-                    <td className="ow-c-pts">{n(g.points)}<span> pts</span></td>
+                    <td className="ow-c-last">{ago(g.lastVisit, t)}</td>
+                    <td className="ow-c-pts">{n(g.points)}</td>
                     <td className="ow-c-act">
-                      <button type="button" className="ow-btn small" onClick={() => setShowing(g)} aria-label={`Show ${g.name}'s card`}>Show card</button>
-                      {isOwner && <button type="button" className="ow-btn small" onClick={() => { setNote(null); setTarget(g); }} aria-label={`Delete ${g.name}`}>Delete</button>}
+                      <button type="button" className="ow-btn small" onClick={() => setShowing(g)} aria-label={t("Show the card of {name}", { name: g.name })}>{t("Show card")}</button>
+                      {isOwner && <button type="button" className="ow-btn small" onClick={() => { setNote(null); setTarget(g); }} aria-label={t("Delete {name}", { name: g.name })}>{t("Delete")}</button>}
                     </td>
                   </tr>
                 ))}
@@ -81,13 +83,13 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
         </section>
       )}
       {showing && (
-        <Sheet eyebrow={`Code ${showing.code}`} title={`${showing.name}'s card`} onClose={() => setShowing(null)}>
+        <Sheet eyebrow={t("Code {code}", { code: showing.code })} title={t("Card of {name}", { name: showing.name })} onClose={() => setShowing(null)}>
           <CardQr cardId={showing.cardId} name={showing.name} />
         </Sheet>
       )}
       {target && (
-        <Confirm title={`Delete ${target.name}?`} confirmLabel="Delete for good" danger busy={busy} onConfirm={erase} onClose={() => setTarget(null)}>
-          <p className="ow-note ow-dialog-text">Their name, phone, email, card and points are erased for good. This cannot be undone.</p>
+        <Confirm title={t("Delete {name}?", { name: target.name })} confirmLabel={t("Delete for good")} danger busy={busy} onConfirm={erase} onClose={() => setTarget(null)}>
+          <p className="ow-note ow-dialog-text">{t("Their name, phone, email, card and points are erased for good. This cannot be undone.")}</p>
         </Confirm>
       )}
     </>
@@ -100,10 +102,11 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
  */
 function CardQr({ cardId, name }: { cardId: string; name: string }) {
   const [url] = useState(() => `${window.location.origin}/card/${cardId}`);
+  const t = useT();
   return (
     <div style={{ display: "grid", gap: 12, justifyItems: "center", paddingBlock: 8 }}>
-      <QrSvg text={url} label={`QR code for ${name}'s card`} size={220} />
-      <p className="ow-note" style={{ textAlign: "center" }}>Ask the guest to scan this with their phone camera. Their card opens with all their points. Check it is really them first: this code opens their card.</p>
+      <QrSvg text={url} label={t("QR code for the card of {name}", { name })} size={220} />
+      <p className="ow-note" style={{ textAlign: "center" }}>{t("Ask the guest to scan this with their phone camera. Their card opens with everything on it. Check it is really them first: this code opens their card.")}</p>
     </div>
   );
 }

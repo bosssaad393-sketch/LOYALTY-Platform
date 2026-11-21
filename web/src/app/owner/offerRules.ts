@@ -1,5 +1,6 @@
 // Pure rules for withdrawing a sent message and for resending it with an edit (round 3). No React, no network: unit tested.
 import type { Audience, Offer } from "./types";
+import { tx } from "@/lib/uiArabic";
 
 /** Longest message a Wallet notification may carry (same limit as the offers API). */
 export const MESSAGE_LIMIT = 200;
@@ -28,15 +29,15 @@ export function oneLine(raw: string): string {
 export function withdrawEffect(audience: Audience): { before: string; after: string; original: string } {
   if (audience === "apple") {
     return {
-      before: "It will disappear from guests’ cards.",
-      after: "It no longer shows on guests’ cards.",
-      original: "The original message will then be withdrawn from the cards.",
+      before: tx("It will disappear from guests’ cards."),
+      after: tx("It no longer shows on guests’ cards."),
+      original: tx("The original message will then be withdrawn from the cards."),
     };
   }
   return {
-    before: "It will disappear from iPhone cards. On Android cards it stays until the 14 days end.",
-    after: "It no longer shows on iPhone cards. On Android cards it stays until the 14 days end.",
-    original: "The original message will then be withdrawn: it disappears from iPhone cards, and on Android cards it stays until the 14 days end.",
+    before: tx("It will disappear from iPhone cards. On Android cards it stays until the 14 days end."),
+    after: tx("It no longer shows on iPhone cards. On Android cards it stays until the 14 days end."),
+    original: tx("The original message will then be withdrawn: it disappears from iPhone cards, and on Android cards it stays until the 14 days end."),
   };
 }
 

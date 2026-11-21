@@ -5,12 +5,15 @@ import QrSvg from "@/components/QrSvg";
 import { bahrainDay } from "@/lib/format";
 import { Loading, LoadError, Msg, PageHead, useGet } from "./ui";
 import type { Call, Member, Note } from "./types";
+import { useT } from "@/lib/uiLang";
+import { tx } from "@/lib/uiArabic";
 
 type Shown = { who: string; pin: string; what: "new" | "reset" };
 type Perk = { id: string; staffId: string; staffName: string; title: string; note: string | null; validUntil: string | null; status: string; createdAt: string; claimedAt: string | null };
 
-const IDEAS = ["Free meal after your shift", "20% off your next visit", "Early finish on your next shift", "A voucher to spend with us"];
-const STATUS: Record<string, string> = { ready: "Waiting for them", claimed: "Used", cancelled: "Taken back" };
+const IDEAS = [tx("Free meal after your shift"), tx("20% off your next visit"), tx("Early finish on your next shift"), tx("A voucher to spend with us")];
+const STATUS: Record<string, string> = { ready: tx("Waiting for them"), claimed: tx("Used"), cancelled: tx("Taken back") };
+const ROLE: Record<string, string> = { owner: tx("owner"), manager: tx("manager"), staff: tx("staff"), developer: tx("developer") };
 const day = bahrainDay;
 
 export default function Team({ call }: { call: Call }) {
@@ -21,6 +24,7 @@ export default function Team({ call }: { call: Call }) {
   const [busy, setBusy] = useState(false);
   const [rewardFor, setRewardFor] = useState<string | "all" | null>(null);
   const [title, setTitle] = useState("");
+  const t = useT();
 
   const people = (team.data?.team ?? []).filter((m) => m.active && m.role !== "owner");
 
@@ -36,7 +40,7 @@ export default function Team({ call }: { call: Call }) {
   }
 
   async function resetPin(m: Member) {
-    if (!window.confirm(`Make a new PIN for ${m.name}? The old one stops working at once.`)) return;
+    if (!window.confirm(t("Make a new PIN for {name}? The old one stops working at once.", { name: m.name }))) return;
     setNote(null); setShown(null);
     const r = await call<{ pin: string }>("/api/owner/team/pin", "POST", { id: m.id });
     if (r.ok) { setShown({ who: m.name, pin: r.data.pin, what: "reset" }); team.reload(); }
@@ -51,7 +55,7 @@ export default function Team({ call }: { call: Call }) {
   }
 
   async function decline(m: Member) {
-    if (!window.confirm(`Turn down ${m.name}? They will be removed.`)) return;
+    if (!window.confirm(t("Turn down {name}? They will be removed.", { name: m.name }))) return;
     setNote(null);
     const r = await call("/api/owner/team", "DELETE", { id: m.id });
     if (r.ok) team.setData((t) => (t ? { team: t.team.filter((x) => x.id !== m.id) } : t));
@@ -67,7 +71,7 @@ export default function Team({ call }: { call: Call }) {
       staffIds, title: String(f.get("title") ?? "").trim(), note: String(f.get("note") ?? "").trim() || undefined, validUntil: String(f.get("until") ?? "") || undefined,
     });
     setBusy(false);
-    if (r.ok) { setNote({ kind: "ok", text: r.data.given === 1 ? "Reward given. They will see it on their staff screen." : `Reward given to ${r.data.given} people.` }); setRewardFor(null); setTitle(""); perks.reload(); }
+    if (r.ok) { setNote({ kind: "ok", text: r.data.given === 1 ? t("Reward given. They will see it on their staff screen.") : t("Reward given to {n} people.", { n: r.data.given }) }); setRewardFor(null); setTitle(""); perks.reload(); }
     else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
   }
 
@@ -77,37 +81,37 @@ export default function Team({ call }: { call: Call }) {
     if (r.ok) perks.reload(); else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
   }
 
-  const target = rewardFor === "all" ? "the whole team" : people.find((p) => p.id === rewardFor)?.name;
+  const target = rewardFor === "all" ? t("the whole team") : people.find((p) => p.id === rewardFor)?.name;
 
   return (
     <>
-      <PageHead eyebrow="Access and thanks" title="Team">Everyone signs in with their own PIN. Give a thank-you to the people who earned it, and remove access the day someone leaves.</PageHead>
+      <PageHead eyebrow={t("Access and thanks")} title={t("Team")}>{t("Everyone signs in with their own PIN. Give a thank-you to the people who earned it, and remove access the day someone leaves.")}</PageHead>
       {team.error && <LoadError text={team.error} onRetry={team.reload} />}
       {!team.data && !team.error && <Loading />}
       {shown && (
         <div className="ow-msg ok" role="status">
-          <p>{shown.what === "new" ? `Added ${shown.who}.` : `New PIN for ${shown.who}.`} Hand it over in person.</p>
-          <p className="ow-pin">{shown.pin}</p>
-          <p>It is shown only once. They can change it with you at any time.</p>
+          <p>{shown.what === "new" ? t("Added {name}.", { name: shown.who }) : t("New PIN for {name}.", { name: shown.who })} {t("Hand it over in person.")}</p>
+          <p className="ow-pin" dir="ltr">{shown.pin}</p>
+          <p>{t("It is shown only once. They can change it with you at any time.")}</p>
         </div>
       )}
       <Msg note={note} />
       <div className="ow-grid ow-c2">
         {team.data && (
-          <section className="ow-panel ow-flush" aria-label="Team members">
+          <section className="ow-panel ow-flush" aria-label={t("Team members")}>
             <ul className="ow-list">
               {[...team.data.team].sort((a, b) => Number(!!b.waiting) - Number(!!a.waiting)).map((m) => (
                 <li key={m.id} className="ow-item">
                   <span className="ow-item-main">
-                    <span className="ow-namerow"><b>{m.name}{m.me ? " (you)" : ""}</b><em className="ow-tag">{m.role}</em>{!m.active && !m.waiting && <span className="ow-off">deactivated</span>}</span>
-                    <small>{m.waiting ? "Joined by link, waiting for you" : m.hasPin ? "PIN set" : "No PIN yet"}</small>
+                    <span className="ow-namerow"><b>{m.name}{m.me ? ` (${t("you")})` : ""}</b><em className="ow-tag">{t(ROLE[m.role] ?? m.role)}</em>{!m.active && !m.waiting && <span className="ow-off">{t("deactivated")}</span>}</span>
+                    <small>{m.waiting ? t("Joined by link, waiting for you") : m.hasPin ? t("PIN set") : t("No PIN yet")}</small>
                   </span>
                   <span className="ow-item-side ow-rowbtns">
-                    {m.waiting && <button type="button" className="ow-btn small primary" onClick={() => toggle(m)} aria-label={`Approve ${m.name}`}>Approve</button>}
-                    {m.waiting && <button type="button" className="ow-btn small" onClick={() => decline(m)} aria-label={`Turn down ${m.name}`}>Turn down</button>}
-                    {m.active && m.role !== "owner" && <button type="button" className="ow-btn small primary" onClick={() => { setRewardFor(m.id); setNote(null); }} aria-label={`Give ${m.name} a reward`}>Give a reward</button>}
-                    {m.role !== "owner" && !m.waiting && <button type="button" className="ow-btn small" onClick={() => resetPin(m)} aria-label={`New PIN for ${m.name}`}>New PIN</button>}
-                    {!m.me && m.role !== "owner" && !m.waiting && <button type="button" className="ow-btn small" onClick={() => toggle(m)} aria-label={`${m.active ? "Deactivate" : "Activate"} ${m.name}`}>{m.active ? "Deactivate" : "Activate"}</button>}
+                    {m.waiting && <button type="button" className="ow-btn small primary" onClick={() => toggle(m)} aria-label={t("Approve {name}", { name: m.name })}>{t("Approve")}</button>}
+                    {m.waiting && <button type="button" className="ow-btn small" onClick={() => decline(m)} aria-label={t("Turn down {name}", { name: m.name })}>{t("Turn down")}</button>}
+                    {m.active && m.role !== "owner" && <button type="button" className="ow-btn small primary" onClick={() => { setRewardFor(m.id); setNote(null); }} aria-label={t("Give {name} a reward", { name: m.name })}>{t("Give a reward")}</button>}
+                    {m.role !== "owner" && !m.waiting && <button type="button" className="ow-btn small" onClick={() => resetPin(m)} aria-label={t("New PIN for {name}", { name: m.name })}>{t("New PIN")}</button>}
+                    {!m.me && m.role !== "owner" && !m.waiting && <button type="button" className="ow-btn small" onClick={() => toggle(m)} aria-label={`${m.active ? t("Deactivate") : t("Activate")} ${m.name}`}>{m.active ? t("Deactivate") : t("Activate")}</button>}
                   </span>
                 </li>
               ))}
@@ -117,43 +121,43 @@ export default function Team({ call }: { call: Call }) {
         <div className="ow-stack">
         <JoinLink call={call} />
         <form className="ow-panel" onSubmit={invite} aria-labelledby="ow-h-add">
-          <h2 className="ow-h" id="ow-h-add">Add someone yourself</h2>
-          <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-name">Name</label><input className="ow-in" id="ow-t-name" name="name" required maxLength={60} autoComplete="off" /></div>
-          <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-role">Role</label><select className="ow-in ow-select" id="ow-t-role" name="role" defaultValue="staff"><option value="staff">Staff (4-digit PIN)</option><option value="manager">Manager (6-digit PIN)</option></select></div>
-          <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-pin">PIN (optional)</label><input className="ow-in" id="ow-t-pin" name="pin" inputMode="numeric" pattern="[0-9]{4,6}" maxLength={6} autoComplete="off" /><small>Staff 4 digits, manager 6. Leave empty for a random one. It stays the same until you press New PIN.</small></div>
-          <div className="ow-actions"><button className="ow-btn primary" type="submit" disabled={busy}>{busy ? "Adding…" : "Add to team"}</button></div>
+          <h2 className="ow-h" id="ow-h-add">{t("Add someone yourself")}</h2>
+          <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-name">{t("Name")}</label><input className="ow-in" id="ow-t-name" name="name" required maxLength={60} autoComplete="off" /></div>
+          <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-role">{t("Role")}</label><select className="ow-in ow-select" id="ow-t-role" name="role" defaultValue="staff"><option value="staff">{t("Staff (4-digit PIN)")}</option><option value="manager">{t("Manager (6-digit PIN)")}</option></select></div>
+          <div className="ow-field"><label className="ow-lbl" htmlFor="ow-t-pin">{t("PIN (optional)")}</label><input className="ow-in" id="ow-t-pin" name="pin" inputMode="numeric" pattern="[0-9]{4,6}" maxLength={6} autoComplete="off" /><small>{t("Staff 4 digits, manager 6. Leave empty for a random one. It stays the same until you press New PIN.")}</small></div>
+          <div className="ow-actions"><button className="ow-btn primary" type="submit" disabled={busy}>{busy ? t("Adding…") : t("Add to team")}</button></div>
         </form>
         </div>
       </div>
 
       <section className="ow-panel" aria-labelledby="ow-h-thanks">
-        <h2 className="ow-h" id="ow-h-thanks">Thank your team</h2>
+        <h2 className="ow-h" id="ow-h-thanks">{t("Thank your team")}</h2>
         {rewardFor ? (
           <form onSubmit={give}>
-            <p className="ow-sub">A reward for <b>{target}</b>. They see it at the end of their shift.</p>
-            <div className="ow-field"><label className="ow-lbl" htmlFor="ow-r-title">What do they get?</label><input className="ow-in" id="ow-r-title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} required minLength={2} maxLength={80} placeholder="For example: free meal after your shift" autoComplete="off" /></div>
-            <div className="ow-chips" role="group" aria-label="Ideas">{IDEAS.map((t) => <button key={t} type="button" className="ow-chip" onClick={() => setTitle(t)}>{t}</button>)}</div>
-            <div className="ow-field"><label className="ow-lbl" htmlFor="ow-r-note">A short thank-you note (optional)</label><input className="ow-in" id="ow-r-note" name="note" maxLength={200} placeholder="Thank you for a great Friday" autoComplete="off" /></div>
-            <div className="ow-field"><label className="ow-lbl" htmlFor="ow-r-until">Last day to use it (optional)</label><input className="ow-in" id="ow-r-until" name="until" type="date" /></div>
+            <p className="ow-sub">{t("A reward for {name}. They see it at the end of their shift.", { name: target ?? "" })}</p>
+            <div className="ow-field"><label className="ow-lbl" htmlFor="ow-r-title">{t("What do they get?")}</label><input className="ow-in" id="ow-r-title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} required minLength={2} maxLength={80} placeholder={t("For example: free meal after your shift")} autoComplete="off" /></div>
+            <div className="ow-chips" role="group" aria-label={t("Ideas")}>{IDEAS.map((idea) => <button key={idea} type="button" className="ow-chip" onClick={() => setTitle(t(idea))}>{t(idea)}</button>)}</div>
+            <div className="ow-field"><label className="ow-lbl" htmlFor="ow-r-note">{t("A short thank-you note (optional)")}</label><input className="ow-in" id="ow-r-note" name="note" maxLength={200} placeholder={t("Thank you for a great Friday")} autoComplete="off" /></div>
+            <div className="ow-field"><label className="ow-lbl" htmlFor="ow-r-until">{t("Last day to use it (optional)")}</label><input className="ow-in" id="ow-r-until" name="until" type="date" /></div>
             <div className="ow-actions">
-              <button className="ow-btn primary" type="submit" disabled={busy}>{busy ? "Giving…" : "Give reward"}</button>
-              <button className="ow-btn" type="button" onClick={() => setRewardFor(null)}>Cancel</button>
+              <button className="ow-btn primary" type="submit" disabled={busy}>{busy ? t("Giving…") : t("Give reward")}</button>
+              <button className="ow-btn" type="button" onClick={() => setRewardFor(null)}>{t("Cancel")}</button>
             </div>
           </form>
         ) : (
           <>
-            <p className="ow-sub">Choose a person above with “Give a reward”, or thank everyone at once.</p>
-            <div className="ow-actions"><button className="ow-btn" type="button" disabled={people.length === 0} onClick={() => { setRewardFor("all"); setNote(null); }}>Reward the whole team</button></div>
+            <p className="ow-sub">{t("Choose a person above with “Give a reward”, or thank everyone at once.")}</p>
+            <div className="ow-actions"><button className="ow-btn" type="button" disabled={people.length === 0} onClick={() => { setRewardFor("all"); setNote(null); }}>{t("Reward the whole team")}</button></div>
           </>
         )}
         {perks.data && perks.data.perks.length > 0 && (
           <>
-            <h3 className="ow-h">Given so far</h3>
+            <h3 className="ow-h">{t("Given so far")}</h3>
             <ul className="ow-list">
               {perks.data.perks.slice(0, 12).map((p) => (
                 <li key={p.id} className="ow-item">
-                  <span className="ow-item-main ow-wrap"><b>{p.title}</b> · {p.staffName}<br /><small>{day(p.createdAt)}{p.validUntil ? ` · until ${day(p.validUntil)}` : ""}</small></span>
-                  <span className="ow-item-side">{STATUS[p.status] ?? p.status}{p.status === "ready" && <><br /><button type="button" className="ow-btn small" onClick={() => takeBack(p)}>Take back</button></>}</span>
+                  <span className="ow-item-main ow-wrap"><b>{p.title}</b> · {p.staffName}<br /><small>{day(p.createdAt)}{p.validUntil ? ` · ${t("until {date}", { date: day(p.validUntil) })}` : ""}</small></span>
+                  <span className="ow-item-side">{STATUS[p.status] ? t(STATUS[p.status]) : p.status}{p.status === "ready" && <><br /><button type="button" className="ow-btn small" onClick={() => takeBack(p)}>{t("Take back")}</button></>}</span>
                 </li>
               ))}
             </ul>
@@ -169,6 +173,7 @@ function JoinLink({ call }: { call: Call }) {
   const [link, setLink] = useState<{ url: string; until: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
+  const t = useT();
 
   async function make() {
     setBusy(true); setNote(null);
@@ -181,24 +186,24 @@ function JoinLink({ call }: { call: Call }) {
 
   async function share(url: string) {
     setNote(null);
-    if (navigator.share) { await navigator.share({ title: "Join the team", url }).catch(() => {}); return; }
+    if (navigator.share) { await navigator.share({ title: t("Join the team"), url }).catch(() => {}); return; }
     const copied = await navigator.clipboard?.writeText(url).then(() => true, () => false);
-    setNote(copied ? { kind: "ok", text: "Link copied." } : { kind: "bad", text: "Could not copy. Press and hold the QR code instead." });
+    setNote(copied ? { kind: "ok", text: t("Link copied.") } : { kind: "bad", text: t("Could not copy. Press and hold the QR code instead.") });
   }
 
   return (
     <section className="ow-panel" aria-labelledby="ow-h-link">
-      <h2 className="ow-h" id="ow-h-link">Team join link</h2>
-      <p className="ow-sub">Share one link. People add themselves and get their own PIN, then you approve them with one tap.</p>
+      <h2 className="ow-h" id="ow-h-link">{t("Team join link")}</h2>
+      <p className="ow-sub">{t("Share one link. People add themselves and get their own PIN, then you approve them with one tap.")}</p>
       <Msg note={note} />
       {link ? (
         <div className="ow-joinlink">
-          <QrSvg text={link.url} label="QR code for the team join link" />
-          <p className="ow-note">Works until {link.until}.</p>
-          <div className="ow-actions"><button type="button" className="ow-btn primary" onClick={() => share(link.url)}>Share link</button></div>
+          <QrSvg text={link.url} label={t("QR code for the team join link")} />
+          <p className="ow-note">{t("Works until {date}.", { date: link.until })}</p>
+          <div className="ow-actions"><button type="button" className="ow-btn primary" onClick={() => share(link.url)}>{t("Share link")}</button></div>
         </div>
       ) : (
-        <div className="ow-actions"><button type="button" className="ow-btn primary" disabled={busy} onClick={make}>{busy ? "Making…" : "Make join link"}</button></div>
+        <div className="ow-actions"><button type="button" className="ow-btn primary" disabled={busy} onClick={make}>{busy ? t("Making…") : t("Make join link")}</button></div>
       )}
     </section>
   );

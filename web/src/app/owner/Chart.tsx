@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { n } from "./format";
 import type { PointsDay } from "./types";
+import { useT } from "@/lib/uiLang";
 
 type Day = { day: string; visits: number };
 
@@ -10,7 +11,7 @@ const PAD_L = 32;
 const PAD_B = 28;
 const PAD_T = 8;
 
-const label = (d: string, opts: Intl.DateTimeFormatOptions) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { ...opts, timeZone: "UTC" });
+const label = (d: string, opts: Intl.DateTimeFormatOptions, locale = "en-GB") => new Date(d + "T12:00:00Z").toLocaleDateString(locale, { ...opts, timeZone: "UTC" });
 
 /** Top of the scale: an even number, so the middle line is a whole number too. */
 function top(max: number): number {
@@ -24,6 +25,7 @@ function top(max: number): number {
  * Today is the last bar and is the only one in full gold.
  */
 export default function VisitsChart({ days }: { days: Day[] }) {
+  const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   useEffect(() => {
@@ -42,10 +44,10 @@ export default function VisitsChart({ days }: { days: Day[] }) {
   const plotH = H - PAD_B - PAD_T;
   const total = days.reduce((s, d) => s + d.visits, 0);
   const busiest = days.reduce((a, b) => (b.visits > a.visits ? b : a), days[0]);
-  const summary = total === 0 ? "No visits in the last 14 days." : `Visits per day, last 14 days. ${n(total)} in total. Busiest day: ${label(busiest.day, { weekday: "long", day: "numeric", month: "long" })}, ${n(busiest.visits)} visits.`;
+  const summary = total === 0 ? t("No visits in the last 14 days.") : t("Visits per day, last 14 days. {total} in total. Busiest day: {day}, {n} visits.", { total: n(total), day: label(busiest.day, { weekday: "long", day: "numeric", month: "long" }, t.locale), n: n(busiest.visits) });
 
   return (
-    <div ref={box} className="ow-chart">
+    <div ref={box} className="ow-chart" dir="ltr">
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label={summary}>
         {[0, max / 2, max].map((g) => {
           const y = H - PAD_B - (plotH * g) / max;
@@ -63,9 +65,9 @@ export default function VisitsChart({ days }: { days: Day[] }) {
           return (
             <g key={d.day}>
               <rect className={`ow-bar${today ? " today" : ""}`} x={x} y={H - PAD_B - h} width={bw * 0.6} height={h} rx={2}>
-                <title>{`${label(d.day, { weekday: "short", day: "numeric", month: "short" })}: ${n(d.visits)} visits`}</title>
+                <title>{t("{day}: {n} visits", { day: label(d.day, { weekday: "short", day: "numeric", month: "short" }, t.locale), n: n(d.visits) })}</title>
               </rect>
-              <text className={`ow-tick${today ? " today" : ""}`} x={x + bw * 0.3} y={H - 9} textAnchor="middle">{label(d.day, { weekday: "narrow" })}</text>
+              <text className={`ow-tick${today ? " today" : ""}`} x={x + bw * 0.3} y={H - 9} textAnchor="middle">{label(d.day, { weekday: "narrow" }, t.locale)}</text>
             </g>
           );
         })}
@@ -79,16 +81,16 @@ const MAX_GROUPS = 31;
 
 type Group = { start: string; label: string; issued: number; redeemed: number };
 
-function group(days: PointsDay[]): { groups: Group[]; weekly: boolean } {
+function group(days: PointsDay[], locale: string, weekOf: (d: string) => string): { groups: Group[]; weekly: boolean } {
   if (days.length <= MAX_GROUPS) {
-    return { groups: days.map((d) => ({ start: d.day, label: label(d.day, { weekday: "short", day: "numeric", month: "short" }), issued: d.issued, redeemed: d.redeemed })), weekly: false };
+    return { groups: days.map((d) => ({ start: d.day, label: label(d.day, { weekday: "short", day: "numeric", month: "short" }, locale), issued: d.issued, redeemed: d.redeemed })), weekly: false };
   }
   const groups: Group[] = [];
   for (let i = 0; i < days.length; i += 7) {
     const part = days.slice(i, i + 7);
     groups.push({
       start: part[0].day,
-      label: `Week of ${label(part[0].day, { day: "numeric", month: "short" })}`,
+      label: weekOf(label(part[0].day, { day: "numeric", month: "short" }, locale)),
       issued: part.reduce((s, d) => s + d.issued, 0),
       redeemed: part.reduce((s, d) => s + d.redeemed, 0),
     });
@@ -101,6 +103,7 @@ function group(days: PointsDay[]): { groups: Group[]; weekly: boolean } {
  * Drawn at the real width of the box like the visits chart, so text stays 11 px on a phone.
  */
 export function PointsChart({ days }: { days: PointsDay[] }) {
+  const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   useEffect(() => {
@@ -111,7 +114,7 @@ export function PointsChart({ days }: { days: PointsDay[] }) {
     return () => ro.disconnect();
   }, []);
 
-  const { groups, weekly } = group(days);
+  const { groups, weekly } = group(days, t.locale, (d) => t("Week of {date}", { date: d }));
   const W = width || 320;
   const H = Math.round(Math.min(220, Math.max(176, W * 0.3)));
   const max = top(Math.max(0, ...groups.map((g) => Math.max(g.issued, g.redeemed))));
@@ -125,11 +128,11 @@ export function PointsChart({ days }: { days: PointsDay[] }) {
   const redeemed = days.reduce((s, d) => s + d.redeemed, 0);
   const best = groups.reduce((a, b) => (b.issued > a.issued ? b : a), groups[0]);
   const summary = issued === 0 && redeemed === 0
-    ? "No points given out in this period."
-    : `Points given out and spent on rewards, per ${weekly ? "week" : "day"}. ${n(issued)} given out and ${n(redeemed)} spent in total. Busiest ${weekly ? "week" : "day"}: ${best.label}, ${n(best.issued)} points.`;
+    ? t("Nothing given out in this period.")
+    : t("Given out and spent on rewards. {issued} given out and {redeemed} spent in total. Busiest: {best}, {n}.", { issued: n(issued), redeemed: n(redeemed), best: best.label, n: n(best.issued) });
 
   return (
-    <div ref={box} className="ow-chart">
+    <div ref={box} className="ow-chart" dir="ltr">
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label={summary}>
         {[0, max / 2, max].map((g) => {
           const y = H - PAD_B - (plotH * g) / max;
@@ -149,20 +152,20 @@ export function PointsChart({ days }: { days: PointsDay[] }) {
           return (
             <g key={g.start}>
               <rect className="ow-bar issued" x={x0} y={H - PAD_B - hi} width={bar} height={hi} rx={1}>
-                <title>{`${g.label}: ${n(g.issued)} given out, ${n(g.redeemed)} spent`}</title>
+                <title>{t("{label}: {issued} given out, {redeemed} spent", { label: g.label, issued: n(g.issued), redeemed: n(g.redeemed) })}</title>
               </rect>
               <rect className="ow-bar spent" x={x0 + bar + 1} y={H - PAD_B - hr} width={bar} height={hr} rx={1}>
-                <title>{`${g.label}: ${n(g.issued)} given out, ${n(g.redeemed)} spent`}</title>
+                <title>{t("{label}: {issued} given out, {redeemed} spent", { label: g.label, issued: n(g.issued), redeemed: n(g.redeemed) })}</title>
               </rect>
-              {tick && <text className="ow-tick" x={tx} y={H - 9} textAnchor="middle">{label(g.start, { day: "numeric", month: "short" })}</text>}
+              {tick && <text className="ow-tick" x={tx} y={H - 9} textAnchor="middle">{label(g.start, { day: "numeric", month: "short" }, t.locale)}</text>}
             </g>
           );
         })}
       </svg>
       <ul className="ow-legend" aria-hidden="true">
-        <li><i />Given out</li>
-        <li><i className="spent" />Spent on rewards</li>
-        {weekly && <li className="ow-legend-note">Added up per week</li>}
+        <li><i />{t("Given out")}</li>
+        <li><i className="spent" />{t("Spent on rewards")}</li>
+        {weekly && <li className="ow-legend-note">{t("Added up per week")}</li>}
       </ul>
     </div>
   );

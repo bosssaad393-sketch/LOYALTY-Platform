@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { n } from "./format";
 import type { Call, Note, Res } from "./types";
+import { useT } from "@/lib/uiLang";
 
 /** Eyebrow, page title and one line of explanation. The title takes focus when the section changes. */
 export function PageHead({ eyebrow, title, children }: { eyebrow: string; title: string; children?: React.ReactNode }) {
@@ -17,22 +18,25 @@ export function PageHead({ eyebrow, title, children }: { eyebrow: string; title:
 
 /** Result of an action. The wrapper stays in the page so screen readers announce what appears inside it. */
 export function Msg({ note }: { note: Note | null }) {
+  const t = useT();
   return (
     <div role={note?.kind === "bad" ? "alert" : "status"} className="ow-live">
-      {note && <p className={`ow-msg ${note.kind}`}>{note.text}</p>}
+      {note && <p className={`ow-msg ${note.kind}`}>{t(note.text)}</p>}
     </div>
   );
 }
 
 export function Loading() {
-  return <p className="ow-note" role="status">Loading…</p>;
+  const t = useT();
+  return <p className="ow-note" role="status">{t("Loading…")}</p>;
 }
 
 export function LoadError({ text, onRetry }: { text: string; onRetry: () => void }) {
+  const t = useT();
   return (
     <div className="ow-panel" role="alert">
-      <p className="ow-msg bad">{text}</p>
-      <div className="ow-actions"><button type="button" className="ow-btn" onClick={onRetry}>Try again</button></div>
+      <p className="ow-msg bad">{t(text)}</p>
+      <div className="ow-actions"><button type="button" className="ow-btn" onClick={onRetry}>{t("Try again")}</button></div>
     </div>
   );
 }
@@ -119,13 +123,14 @@ export function Count({ id, value, format = n }: { id: string; value: number; fo
 
 export function Stepper({ label, value, step, min, max, disabled, onChange }: { label: string; value: number; step: number; min: number; max: number; disabled?: boolean; onChange: (v: number) => void }) {
   const id = useId();
+  const t = useT();
   return (
     <div className="ow-field" role="group" aria-labelledby={id}>
       <span className="ow-lbl" id={id}>{label}</span>
-      <div className="ow-step">
-        <button type="button" disabled={disabled || value <= min} onClick={() => onChange(Math.max(min, value - step))} aria-label={`Less: ${label}`}>−</button>
+      <div className="ow-step" dir="ltr">
+        <button type="button" disabled={disabled || value <= min} onClick={() => onChange(Math.max(min, value - step))} aria-label={t("Less: {label}", { label })}>−</button>
         <output aria-label={label}>{n(value)}</output>
-        <button type="button" disabled={disabled || value >= max} onClick={() => onChange(Math.min(max, value + step))} aria-label={`More: ${label}`}>+</button>
+        <button type="button" disabled={disabled || value >= max} onClick={() => onChange(Math.min(max, value + step))} aria-label={t("More: {label}", { label })}>+</button>
       </div>
     </div>
   );
@@ -136,6 +141,7 @@ export function Stepper({ label, value, step, min, max, disabled, onChange }: { 
  * Focus stays inside, Esc and the dark area close it, and focus returns to what opened it. Mount it only while it is open.
  */
 export function Sheet({ eyebrow, title, children, onClose }: { eyebrow: string; title: string; children: React.ReactNode; onClose: () => void }) {
+  const t = useT();
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const id = useId();
@@ -147,14 +153,14 @@ export function Sheet({ eyebrow, title, children, onClose }: { eyebrow: string; 
     return () => { opener.current?.focus?.(); };
   }, []);
   return (
-    <dialog ref={ref} className="ow-dialog ow-sheet" aria-labelledby={id} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
+    <dialog ref={ref} dir={t.dir} lang={t.lang} className="ow-dialog ow-sheet" aria-labelledby={id} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
       <div className="ow-box ow-sheet-box">
         <header className="ow-sheet-head">
           <div>
             <div className="ow-eyebrow">{eyebrow}</div>
             <h2 className="ow-sheet-title" id={id}>{title}</h2>
           </div>
-          <button type="button" className="ow-x" aria-label="Close" onClick={onClose}><Cross /></button>
+          <button type="button" className="ow-x" aria-label={t("Close")} onClick={onClose}><Cross /></button>
         </header>
         {children}
       </div>
@@ -166,7 +172,8 @@ export function Sheet({ eyebrow, title, children, onClose }: { eyebrow: string; 
  * A confirmation step on a native modal dialog: focus stays inside, Esc and the dark area cancel.
  * Mount it only while it is open. The safer button ("Keep") has the focus.
  */
-export function Confirm({ title, children, confirmLabel, cancelLabel = "Keep", danger, busy, onConfirm, onClose }: { title: string; children: React.ReactNode; confirmLabel: string; cancelLabel?: string; danger?: boolean; busy?: boolean; onConfirm: () => void; onClose: () => void }) {
+export function Confirm({ title, children, confirmLabel, cancelLabel, danger, busy, onConfirm, onClose }: { title: string; children: React.ReactNode; confirmLabel: string; cancelLabel?: string; danger?: boolean; busy?: boolean; onConfirm: () => void; onClose: () => void }) {
+  const t = useT();
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const id = useId();
@@ -180,13 +187,13 @@ export function Confirm({ title, children, confirmLabel, cancelLabel = "Keep", d
     return () => { opener.current?.focus?.(); };
   }, []);
   return (
-    <dialog ref={ref} className="ow-dialog" aria-labelledby={id} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
+    <dialog ref={ref} dir={t.dir} lang={t.lang} className="ow-dialog" aria-labelledby={id} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
       <div className="ow-box ow-dialog-box">
         <h2 className="ow-dialog-title" id={id}>{title}</h2>
         {children}
         <div className="ow-actions">
           <button type="button" className={`ow-btn ${danger ? "danger" : "primary"}`} disabled={busy} onClick={onConfirm}>{confirmLabel}</button>
-          <button type="button" className="ow-btn" data-first onClick={onClose}>{cancelLabel}</button>
+          <button type="button" className="ow-btn" data-first onClick={onClose}>{cancelLabel ?? t("Keep")}</button>
         </div>
       </div>
     </dialog>

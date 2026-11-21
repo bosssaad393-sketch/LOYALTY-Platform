@@ -26,7 +26,7 @@ export type Insights = {
 };
 
 export type Guest ={ cardId: string; code: string; name: string; points: number; visits: number; lastVisit: string | null; joined: string };
-export type Rules = { pointsPerBhd: number; rewardGoal: number; rewardText: string; stampTiers?: { at: number; text: string }[] | null };
+export type Rules = { pointsPerBhd: number; rewardGoal: number; rewardText: string; stampTiers?: { at: number; text: string; ar?: string }[] | null };
 export type Member = { id: string; name: string; role: string; active: boolean; hasPin: boolean; me: boolean; waiting?: boolean };
 
 export type Audience = "all" | "apple" | "google";

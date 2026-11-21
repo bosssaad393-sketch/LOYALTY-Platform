@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Msg, PageHead } from "./ui";
 import type { Call, Note } from "./types";
+import { useT } from "@/lib/uiLang";
+import { tx } from "@/lib/uiArabic";
 
 type Line = { who: "you" | "bot"; text: string };
 type Reply = { reply: string; pending?: { id: string; summary: string }; forwarded?: boolean };
 type Request = { id: string; message: string; status: string; result: string | null; createdAt: string };
 
-const START: Line = { who: "bot", text: "Hello! Tell me what you would like to change: the reward, the points per BHD, a notification to your guests, or points for one guest. Anything else, I pass to our development team." };
+const START: Line = { who: "bot", text: tx("Hello! Tell me what you would like to change: the reward, the points per BHD, a notification to your guests, or points for one guest. Anything else, I pass to our development team.") };
 
 const IDEAS = [
   "Change the points per BHD to 3",
@@ -18,7 +20,7 @@ const IDEAS = [
   "Change the card design following the season we're in and update it for all customers",
 ];
 
-const statusLabel = (s: string) => (s === "done" ? "Done" : s === "in_progress" ? "Being worked on" : "With our team");
+const statusLabel = (s: string) => (s === "done" ? tx("Done") : s === "in_progress" ? tx("Being worked on") : tx("With our team"));
 
 /** The owner's chat: ask for a change in plain words, say yes, and it is done. What the assistant cannot do goes to the development team. */
 export default function Assistant({ call }: { call: Call }) {
@@ -29,6 +31,7 @@ export default function Assistant({ call }: { call: Call }) {
   const [note, setNote] = useState<Note | null>(null);
   const [requests, setRequests] = useState<Request[]>([]);
   const end = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   const loadRequests = useCallback(async () => {
     const r = await call<{ requests: Request[] }>("/api/owner/assistant");
@@ -52,7 +55,7 @@ export default function Assistant({ call }: { call: Call }) {
     const r = await call<Reply>("/api/owner/assistant", "POST", { message: m });
     setBusy(false);
     if (!r.ok) {
-      setNote({ kind: "bad", text: r.error });
+      setNote({ kind: "bad", text: t(r.error) });
       return;
     }
     setLines((l) => [...l, { who: "bot", text: r.data.reply }]);
@@ -67,43 +70,43 @@ export default function Assistant({ call }: { call: Call }) {
 
   return (
     <>
-      <PageHead eyebrow="Assistant" title="Ask for a change">Write what you need in plain words. I show you the change first, and nothing happens until you say yes.</PageHead>
+      <PageHead eyebrow={t("Assistant")} title={t("Ask for a change")}>{t("Write what you need in plain words. I show you the change first, and nothing happens until you say yes.")}</PageHead>
       <div className="ow-grid ow-c2">
-        <section className="ow-panel" aria-label="Chat with the assistant">
-          <div className="as-log" role="log" aria-live="polite" aria-label="Conversation">
-            {lines.map((l, i) => <p key={i} className={`as-msg ${l.who}`}><span className="sr-only">{l.who === "you" ? "You: " : "Assistant: "}</span>{l.text}</p>)}
+        <section className="ow-panel" aria-label={t("Chat with the assistant")}>
+          <div className="as-log" role="log" aria-live="polite" aria-label={t("Conversation")}>
+            {lines.map((l, i) => <p key={i} className={`as-msg ${l.who}`} dir="auto"><span className="sr-only">{l.who === "you" ? t("You: ") : t("Assistant: ")}</span>{t(l.text)}</p>)}
             {busy && <p className="as-msg bot as-wait">…</p>}
             <div ref={end} />
           </div>
           {pending && !busy && (
-            <div className="ow-actions" role="group" aria-label="Confirm the change">
-              <button className="ow-btn primary" type="button" onClick={() => void send("yes")}>Yes, do it</button>
-              <button className="ow-btn" type="button" onClick={() => void send("no")}>No, cancel</button>
+            <div className="ow-actions" role="group" aria-label={t("Confirm the change")}>
+              <button className="ow-btn primary" type="button" onClick={() => void send("yes")}>{t("Yes, do it")}</button>
+              <button className="ow-btn" type="button" onClick={() => void send("no")}>{t("No, cancel")}</button>
             </div>
           )}
           <form className="ow-field" onSubmit={submit}>
-            <label className="sr-only" htmlFor="as-in">Your message</label>
-            <input id="as-in" className="ow-in" value={text} onChange={(e) => setText(e.target.value)} maxLength={1000} placeholder="For example: change the points per BHD to 3" autoComplete="off" />
+            <label className="sr-only" htmlFor="as-in">{t("Your message")}</label>
+            <input id="as-in" className="ow-in" dir="auto" value={text} onChange={(e) => setText(e.target.value)} maxLength={1000} placeholder={t("For example: change the points per BHD to 3")} autoComplete="off" />
             <div className="ow-actions">
-              <button className="ow-btn primary" type="submit" disabled={busy || !text.trim()}>Send</button>
+              <button className="ow-btn primary" type="submit" disabled={busy || !text.trim()}>{t("Send")}</button>
             </div>
           </form>
           <Msg note={note} />
-          <div className="ow-chips" role="group" aria-label="Ideas">
-            {IDEAS.map((t) => <button key={t} type="button" className="ow-chip" onClick={() => setText(t)}>{t}</button>)}
+          <div className="ow-chips" role="group" aria-label={t("Ideas")} dir="ltr" lang="en">
+            {IDEAS.map((idea) => <button key={idea} type="button" className="ow-chip" onClick={() => setText(idea)}>{idea}</button>)}
           </div>
         </section>
 
         <section className="ow-panel" aria-labelledby="as-h-req">
-          <h2 className="ow-h" id="as-h-req">Requests with our team</h2>
+          <h2 className="ow-h" id="as-h-req">{t("Requests with our team")}</h2>
           {requests.length === 0 ? (
-            <p className="ow-sub">Nothing yet. If you ask for something I cannot do myself, it appears here and our team takes care of it.</p>
+            <p className="ow-sub">{t("Nothing yet. If you ask for something I cannot do myself, it appears here and our team takes care of it.")}</p>
           ) : (
             <ul className="ow-list">
               {requests.map((r) => (
                 <li key={r.id} className="ow-item">
                   <span className="ow-item-main ow-wrap">{r.message}{r.result ? <><br /><small>{r.result}</small></> : null}</span>
-                  <span className="ow-item-side">{statusLabel(r.status)}</span>
+                  <span className="ow-item-side">{t(statusLabel(r.status))}</span>
                 </li>
               ))}
             </ul>

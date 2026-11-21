@@ -9,6 +9,8 @@ import type { SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
 import { LARGE_BILL_BHD, MAX_BILL_BHD, pointsFor, readBill } from "@/lib/tillRules";
 import { bahrainTime, bhd as bhdNumber, bhdText } from "@/lib/format";
+import { LangToggle, UiLangProvider, useT, type UiLang } from "@/lib/uiLang";
+import { tx } from "@/lib/uiArabic";
 
 type Me = { name: string; role: string; venue: string };
 type Guest = {
@@ -18,16 +20,17 @@ type Guest = {
 
 /** Stamp venues: the full ladder, one dot per stamp, the reward under each step. */
 function StampLadder({ g }: { g: Guest }) {
+  const t = useT();
   if (!g.stamps) return null;
   const { position, tiers } = g.stamps;
   return (
-    <div className="st-ladder" aria-label={`${position} of ${g.stamps.cycle} stamps`}>
-      {tiers.map((t, i) => {
+    <div className="st-ladder" aria-label={t("{n} of {total} stamps", { n: position, total: g.stamps.cycle })}>
+      {tiers.map((tier, i) => {
         const from = i === 0 ? 0 : tiers[i - 1].at;
         return (
-          <div key={t.at} className={`st-step${position >= t.at ? " got" : position >= from ? " next" : ""}`}>
-            <div className="st-dots">{Array.from({ length: t.at - from }, (_, k) => <i key={k} className={from + k < position ? "on" : ""} />)}</div>
-            <span>{t.text}</span>
+          <div key={tier.at} className={`st-step${position >= tier.at ? " got" : position >= from ? " next" : ""}`}>
+            <div className="st-dots">{Array.from({ length: tier.at - from }, (_, k) => <i key={k} className={from + k < position ? "on" : ""} />)}</div>
+            <span>{tier.text}</span>
           </div>
         );
       })}
@@ -42,21 +45,30 @@ type Res<T> = { ok: true; data: T } | { ok: false; error: string; status: number
 
 async function api<T>(path: string, body?: unknown): Promise<Res<T>> {
   const res = await fetch(path, body === undefined ? undefined : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
-  if (!res) return { ok: false, error: "No connection. Try again.", status: 0 };
+  if (!res) return { ok: false, error: tx("No connection. Try again."), status: 0 };
   const data = await res.json().catch(() => ({}));
-  return res.ok ? { ok: true, data } : { ok: false, error: data.error ?? "Something went wrong.", status: res.status };
+  return res.ok ? { ok: true, data } : { ok: false, error: data.error ?? tx("Something went wrong."), status: res.status };
 }
 
 const bhd = bhdText;
 const time = bahrainTime;
 const QUICK = [3, 5, 10, 15, 20];
 const TABS: Tab[] = ["guest", "recent", "help", "end"];
+const TAB_LABEL: Record<Tab, string> = { guest: tx("Guest"), recent: tx("Recent"), help: tx("Help"), end: tx("End") };
 /** When an entry was made, for the 10-minute undo window. Only ever called from a tap, never while drawing. */
 const stamp = () => Date.now();
 /** 1250 -> "1,250.000": three decimals like the receipt, with thousands marked so a typo stands out. */
 const bhdFull = bhdNumber;
 
-export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; look?: SignInLook; brand: BrandProps }) {
+type StaffProps = { initialMe: Me | null; look?: SignInLook; brand: BrandProps; lang?: UiLang };
+
+/** The staff screen in the venue's language (Arabic or English). */
+export default function StaffApp({ lang = "en", ...props }: StaffProps) {
+  return <UiLangProvider lang={lang}><StaffScreen {...props} /></UiLangProvider>;
+}
+
+function StaffScreen({ initialMe, brand }: StaffProps) {
+  const t = useT();
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>("guest");
   const [guest, setGuest] = useState<Guest | null>(null);
@@ -104,7 +116,7 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     setBusy(true); setLoginError(null);
     const r = await api<Me>("/api/staff/pin-login", { pin, area: "staff", venue: brand.slug });
     setBusy(false);
-    if (r.ok) setMe(r.data); else setLoginError(r.error);
+    if (r.ok) setMe(r.data); else setLoginError(t(r.error));
   }
 
   async function lock() {
@@ -118,14 +130,14 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     setBusy(false);
     if (r.ok) { setGuest(r.data); setBill(""); setConfirmLarge(false); setLastEntry(null); setResult(null); }
     else if (r.status === 401) signedOut();
-    else setMsg({ kind: "bad", text: r.error });
-  }, [signedOut, setMsg]);
+    else setMsg({ kind: "bad", text: t(r.error) });
+  }, [signedOut, setMsg, t]);
 
   async function act(path: string, body: unknown, success: (d: { guest: Guest; ledgerId?: number; added?: number }) => string) {
     setBusy(true); setMsg(null);
     const r = await api<{ guest: Guest; ledgerId?: number; added?: number }>(path, body);
     setBusy(false);
-    if (!r.ok) { if (r.status === 401) signedOut(); else setMsg({ kind: "bad", text: r.error }); return; }
+    if (!r.ok) { if (r.status === 401) signedOut(); else setMsg({ kind: "bad", text: t(r.error) }); return; }
     setGuest(r.data.guest);
     if (r.data.ledgerId) setLastEntry({ id: r.data.ledgerId, at: stamp() });
     setMsg({ kind: "ok", text: success(r.data) });
@@ -134,15 +146,15 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
 
   async function claim(p: Perk) {
     const r = await api("/api/staff/perks", { id: p.id });
-    if (r.ok) { setPerks((l) => l.filter((x) => x.id !== p.id)); setMsg({ kind: "ok", text: "Marked as used. Enjoy!" }); }
-    else setMsg({ kind: "bad", text: r.error });
+    if (r.ok) { setPerks((l) => l.filter((x) => x.id !== p.id)); setMsg({ kind: "ok", text: t("Marked as used. Enjoy!") }); }
+    else setMsg({ kind: "bad", text: t(r.error) });
   }
 
   // The undo button disappears when the 10-minute window closes.
   useEffect(() => {
     if (!lastEntry) return;
-    const t = setTimeout(() => setLastEntry(null), Math.max(0, lastEntry.at + 10 * 60_000 - Date.now()));
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setLastEntry(null), Math.max(0, lastEntry.at + 10 * 60_000 - Date.now()));
+    return () => clearTimeout(timer);
   }, [lastEntry]);
 
   const billRead = readBill(bill);
@@ -159,11 +171,11 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
     if (!guest || !canAdd || busy) return;
     if (billRead.state === "large" && !confirmLarge) { setConfirmLarge(true); return; }
     setConfirmLarge(false);
-    void act("/api/staff/earn", { cardId: guest.cardId, billBhd: billNum }, (d) => { setBill(""); setResult({ added: d.added ?? 0, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady }); return `Added ${d.added} points for ${bhd(billNum)}. ${d.guest.firstName} now has ${d.guest.points}.`; });
+    void act("/api/staff/earn", { cardId: guest.cardId, billBhd: billNum }, (d) => { setBill(""); setResult({ added: d.added ?? 0, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady }); return t("Added {n} points for {bill}. {name} now has {total}.", { n: d.added ?? 0, bill: bhd(billNum), name: d.guest.firstName, total: d.guest.points }); });
   }
   function addStamp() {
     if (!guest || busy) return;
-    void act("/api/staff/stamp", { cardId: guest.cardId }, (d) => { setResult({ added: 1, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady, stamp: true }); return `Stamp added. ${d.guest.firstName} now has ${d.guest.points} ${d.guest.points === 1 ? "stamp" : "stamps"}.`; });
+    void act("/api/staff/stamp", { cardId: guest.cardId }, (d) => { setResult({ added: 1, first: d.guest.firstName, total: d.guest.points, ready: d.guest.rewardReady, stamp: true }); return t("Stamp added. {name} now has {n} stamps on the card.", { name: d.guest.firstName, n: d.guest.points }); });
   }
   const canUndo = lastEntry !== null;
 
@@ -173,52 +185,53 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
   const first = me.name.split(" ")[0];
 
   return (
-    <main className="app staff">
+    <main className="app staff" dir={t.dir} lang={t.lang}>
       <header className="st-head">
         {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
-        <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, staff`} width={96} height={96} />
+        <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, ${t("staff")}`} width={96} height={96} />
         <div className="st-actions">
-          <a className="chip" href="/staff/board">Table board</a>
-          <button className="chip" type="button" onClick={lock}>Lock</button>
+          <a className="chip" href="/staff/board">{t("Table board")}</a>
+          <LangToggle />
+          <button className="chip" type="button" onClick={lock}>{t("Lock")}</button>
         </div>
       </header>
 
       {tab !== "end" && (
-        <div className="st-today" aria-label="Your day so far">
-          <span><b>{mine.entries}</b> entries</span>
-          <span><b>{mine.guests}</b> guests</span>
-          <span><b>{bhdFull(mine.bhd)}</b> BHD</span>
+        <div className="st-today" aria-label={t("Your day so far")}>
+          <span><b>{mine.entries}</b> {t("entries")}</span>
+          <span><b>{mine.guests}</b> {t("guests")}</span>
+          <span><b>{bhdFull(mine.bhd)}</b> {t("BHD")}</span>
         </div>
       )}
 
       {tab === "guest" ? (
         !guest ? (
           <>
-            <div className="eyebrow">Hello {first}</div>
-            <h1 className="st-title">Find the guest</h1>
-            <p className="sub">Scan the QR on the guest&apos;s Wallet card, or type the 4-digit code under it.</p>
+            <div className="eyebrow">{t("Hello {name}", { name: first })}</div>
+            <h1 className="st-title">{t("Find the guest")}</h1>
+            <p className="sub">{t("Scan the QR on the guest's Wallet card, or type the 4-digit code under it.")}</p>
             {scanning ? <div className="panel"><QrScanner onCode={find} onClose={() => setScanning(false)} /></div> : (
               <button className="sc" type="button" onClick={() => setScanning(true)}>
                 <span className="sc-box" aria-hidden="true"><i /><i /><i /><i /><span className="sc-line" /></span>
-                <span className="sc-go">Scan the QR</span>
+                <span className="sc-go">{t("Scan the QR")}</span>
               </button>
             )}
             <div className="panel st-or">
               <form className="row" onSubmit={(e) => { e.preventDefault(); const c = new FormData(e.currentTarget).get("code"); if (c) find(String(c)); }}>
-                <label className="field"><span className="lbl">Card code (4 digits)</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="4827" autoComplete="off" required onChange={(e) => { const c = e.target.value.replace(/\D/g, ""); if (c.length === 4 && !busy) find(c); }} /></label>
-                <button className="btn" type="submit" disabled={busy}>Find</button>
+                <label className="field"><span className="lbl">{t("Card code (4 digits)")}</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="4827" autoComplete="off" required onChange={(e) => { const c = e.target.value.replace(/\D/g, ""); if (c.length === 4 && !busy) find(c); }} /></label>
+                <button className="btn" type="submit" disabled={busy}>{t("Find")}</button>
               </form>
             </div>
           </>
         ) : result ? (
           <section className="sr" role="status">
             <svg className="sr-check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" pathLength={1} /><path d="M20 33l8 8 16-17" pathLength={1} /></svg>
-            <h1 className="st-title">{result.stamp ? "Stamp added" : "Points added"}</h1>
-            <p className="sr-fig">+<CountUp value={result.added} /><small>{result.stamp ? "stamp" : "pts"}</small></p>
-            <p className="sub">{result.first} now has {result.total} {result.stamp ? (result.total === 1 ? "stamp" : "stamps") : "points"}.</p>
-            {canUndo && <button className="sr-undo" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); setResult(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} points.`; })}>Added by mistake? <u>Undo</u> within 10 minutes</button>}
-            {result.ready && <p className="msg warn">{result.first} has a reward ready.</p>}
-            {result.ready ? <button className="btn primary st-big" type="button" onClick={() => setResult(null)}>Give the reward</button> : <button className="btn primary st-big" type="button" onClick={() => { setResult(null); setGuest(null); setMsg(null); }}>Next guest</button>}
+            <h1 className="st-title">{result.stamp ? t("Stamp added") : t("Points added")}</h1>
+            <p className="sr-fig">+<CountUp value={result.added} /><small>{result.stamp ? t("stamp") : t("pts")}</small></p>
+            <p className="sub">{result.stamp ? t("{name} now has {n} stamps on the card.", { name: result.first, n: result.total }) : t("{name} now has {n} points.", { name: result.first, n: result.total })}</p>
+            {canUndo && <button className="sr-undo" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); setResult(null); return t("Undone. {name} has {n} on the card.", { name: d.guest.firstName, n: d.guest.points }); })}>{t("Added by mistake?")} <u>{t("Undo")}</u> {t("within 10 minutes")}</button>}
+            {result.ready && <p className="msg warn">{t("{name} has a reward ready.", { name: result.first })}</p>}
+            {result.ready ? <button className="btn primary st-big" type="button" onClick={() => setResult(null)}>{t("Give the reward")}</button> : <button className="btn primary st-big" type="button" onClick={() => { setResult(null); setGuest(null); setMsg(null); }}>{t("Next guest")}</button>}
           </section>
         ) : (
           <>
@@ -226,68 +239,68 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
               <>
                 <section className={`panel st-guest st-sheet${guest.rewardReady ? " st-ready" : ""}`}>
                   <h2 className="st-name">{guest.firstName}</h2>
-                  <p className="note st-left">Code {guest.code} · {guest.visits} {guest.visits === 1 ? "visit" : "visits"}</p>
-                  <div className="pts"><b>{guest.points}</b><span>{guest.points === 1 ? "Stamp" : "Stamps"}</span></div>
+                  <p className="note st-left">{t("Code {code} · visits: {n}", { code: guest.code, n: guest.visits })}</p>
+                  <div className="pts"><b>{guest.points}</b><span>{t("Stamps")}</span></div>
                   <StampLadder g={guest} />
-                  <p className={guest.rewardReady ? "msg warn" : "note st-left"}>{guest.rewardReady ? `Reward ready: ${guest.rewardText}.` : `${guest.goal - guest.points} more ${guest.goal - guest.points === 1 ? "stamp" : "stamps"} to: ${guest.rewardText}.`}</p>
+                  <p className={guest.rewardReady ? "msg warn" : "note st-left"}>{guest.rewardReady ? t("Reward ready: {reward}.", { reward: guest.rewardText }) : t("Stamps left to {reward}: {n}", { reward: guest.rewardText, n: guest.goal - guest.points })}</p>
                   {guest.rewardReady && (
-                    <button className="btn primary st-big" type="button" disabled={busy} onClick={() => act("/api/staff/redeem", { cardId: guest.cardId }, (d) => `Reward given. ${d.guest.firstName} has ${d.guest.points} ${d.guest.points === 1 ? "stamp" : "stamps"} left.`)}>Give: {guest.rewardText}</button>
+                    <button className="btn primary st-big" type="button" disabled={busy} onClick={() => act("/api/staff/redeem", { cardId: guest.cardId }, (d) => t("Reward given. {name} has {n} stamps left.", { name: d.guest.firstName, n: d.guest.points }))}>{t("Give: {reward}", { reward: guest.rewardText })}</button>
                   )}
                 </section>
                 <div className="panel">
-                  <button className="btn primary st-big" type="button" disabled={busy} onClick={addStamp}>{busy ? "Adding…" : "Add a stamp for this visit"}</button>
-                  <p className="note" style={{ marginTop: 8 }}>One stamp per paid visit. A second stamp within 30 minutes is refused.</p>
+                  <button className="btn primary st-big" type="button" disabled={busy} onClick={addStamp}>{busy ? t("Adding…") : t("Add a stamp for this visit")}</button>
+                  <p className="note" style={{ marginTop: 8 }}>{t("One stamp per paid visit. A second stamp within 30 minutes is refused.")}</p>
                   {canUndo && (
-                    <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} stamps.`; })}>Undo my last entry (10 minutes)</button>
+                    <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return t("Undone. {name} has {n} stamps.", { name: d.guest.firstName, n: d.guest.points }); })}>{t("Undo my last entry (10 minutes)")}</button>
                   )}
                 </div>
-                <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); }}>Done, next guest</button>
+                <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); }}>{t("Done, next guest")}</button>
               </>
             ) : (<>
             <section className={`panel st-guest st-sheet${guest.rewardReady ? " st-ready" : ""}`}>
               <h2 className="st-name">{guest.firstName}</h2>
-              <p className="note st-left">Code {guest.code} · {guest.visits} {guest.visits === 1 ? "visit" : "visits"}</p>
-              <div className="pts"><b>{guest.points}</b><span>Points</span></div>
+              <p className="note st-left">{t("Code {code} · visits: {n}", { code: guest.code, n: guest.visits })}</p>
+              <div className="pts"><b>{guest.points}</b><span>{t("Points")}</span></div>
               <div className="bar" aria-hidden="true">{guest.points > 0 && <i style={{ width: `${Math.min(100, Math.round((guest.points / guest.goal) * 100))}%` }} />}</div>
-              <p className={guest.rewardReady ? "msg warn" : "note st-left"}>{guest.rewardReady ? `Reward ready: ${guest.rewardText}. Give it and take ${guest.goal} points.` : `${guest.goal - guest.points} points to the reward.`}</p>
+              <p className={guest.rewardReady ? "msg warn" : "note st-left"}>{guest.rewardReady ? t("Reward ready: {reward}. Give it and take {n} points.", { reward: guest.rewardText, n: guest.goal }) : t("Points to the reward: {n}", { n: guest.goal - guest.points })}</p>
               {guest.rewardReady && (
-                <button className="btn primary st-big" type="button" disabled={busy} onClick={() => act("/api/staff/redeem", { cardId: guest.cardId }, (d) => `Reward given. ${d.guest.firstName} now has ${d.guest.points} points.`)}>Give reward and take {guest.goal} points</button>
+                <button className="btn primary st-big" type="button" disabled={busy} onClick={() => act("/api/staff/redeem", { cardId: guest.cardId }, (d) => t("Reward given. {name} now has {n} points.", { name: d.guest.firstName, n: d.guest.points }))}>{t("Give reward and take {n} points", { n: guest.goal })}</button>
               )}
             </section>
             <form className="panel" onSubmit={(e) => { e.preventDefault(); addPoints(); }}>
               <label className="field">
-                <span className="lbl">Bill total (BHD)</span>
+                <span className="lbl">{t("Bill total (BHD)")}</span>
                 <input ref={billBox} className="in st-code" inputMode="decimal" enterKeyHint="done" placeholder="12.500" value={bill} onChange={(e) => { setBill(e.target.value); setConfirmLarge(false); }} autoComplete="off" aria-invalid={billRead.state === "bad" || billRead.state === "too_large" || undefined} aria-describedby="st-bill-note" />
               </label>
-              <div className="st-quick" role="group" aria-label="Common bill amounts">
+              <div className="st-quick" role="group" aria-label={t("Common bill amounts")}>
                 {QUICK.map((q) => <button key={q} type="button" className={`chip${billNum === q ? " on" : ""}`} aria-pressed={billNum === q} onClick={() => { setBill(String(q)); setConfirmLarge(false); }}>{q}</button>)}
               </div>
               <p id="st-bill-note" className={`st-billnote${billRead.state === "bad" || billRead.state === "too_large" ? " bad" : confirmLarge ? " warn" : ""}`} aria-live="polite">
-                {billRead.state === "bad" ? "Type the amount in BHD, for example 12.500."
-                  : billRead.state === "too_large" ? `The most for one bill is BHD ${MAX_BILL_BHD.toLocaleString("en-GB")}.`
-                  : confirmLarge ? `BHD ${bhdFull(billNum)} is more than ${LARGE_BILL_BHD}. Tap again if that is right.`
-                  : canAdd && preview > 0 ? `${guest.firstName} will get ${preview} ${preview === 1 ? "point" : "points"}.`
-                  : canAdd ? "Too small for a point." : " "}
+                {billRead.state === "bad" ? t("Type the amount in BHD, for example 12.500.")
+                  : billRead.state === "too_large" ? t("The most for one bill is BHD {max}.", { max: MAX_BILL_BHD.toLocaleString("en-GB") })
+                  : confirmLarge ? t("BHD {bill} is more than {limit}. Tap again if that is right.", { bill: bhdFull(billNum), limit: LARGE_BILL_BHD })
+                  : canAdd && preview > 0 ? t("{name} will get {n} points.", { name: guest.firstName, n: preview })
+                  : canAdd ? t("Too small for a point.") : " "}
               </p>
               <button className={`btn primary st-big${confirmLarge ? " st-confirm" : ""}`} type="submit" disabled={busy || !canAdd || preview < 1}>
-                {busy ? "Adding…" : confirmLarge ? `Yes, BHD ${bhdFull(billNum)}` : preview > 0 ? `Add ${preview} ${preview === 1 ? "point" : "points"}` : "Add points"}
+                {busy ? t("Adding…") : confirmLarge ? t("Yes, BHD {bill}", { bill: bhdFull(billNum) }) : preview > 0 ? t("Add {n} points", { n: preview }) : t("Add points")}
               </button>
               {canUndo && (
-                <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return `Undone. ${d.guest.firstName} has ${d.guest.points} points.`; })}>Undo my last entry (10 minutes)</button>
+                <button className="btn danger" type="button" disabled={busy} onClick={() => act("/api/staff/undo", { ledgerId: lastEntry?.id }, (d) => { setLastEntry(null); return t("Undone. {name} has {n} points.", { name: d.guest.firstName, n: d.guest.points }); })}>{t("Undo my last entry (10 minutes)")}</button>
               )}
             </form>
-            <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); setConfirmLarge(false); }}>Done, next guest</button>
+            <button className="btn" type="button" onClick={() => { setGuest(null); setMsg(null); setConfirmLarge(false); }}>{t("Done, next guest")}</button>
             </>)}
           </>
         )
       ) : tab === "recent" ? (
         <>
-          <div className="eyebrow">Today</div>
-          <h1 className="st-title">Recent actions</h1>
+          <div className="eyebrow">{t("Today")}</div>
+          <h1 className="st-title">{t("Recent actions")}</h1>
           <section className="panel feed">
-            {recent.length === 0 ? <p className="note">Nothing yet.</p> : recent.map((r) => (
+            {recent.length === 0 ? <p className="note">{t("Nothing yet.")}</p> : recent.map((r) => (
               <div key={r.id}>
-                <span><b className={r.points >= 0 ? "st-plus" : "st-minus"}>{r.points > 0 ? "+" : ""}{r.points}</b> {r.guest}{r.billBhd ? ` · ${bhd(Number(r.billBhd))}` : ""}{r.kind === "undo" ? " · undo" : r.kind === "redeem" ? " · reward" : ""}{r.by ? ` · ${r.by}` : ""}</span>
+                <span><b className={r.points >= 0 ? "st-plus" : "st-minus"}>{r.points > 0 ? "+" : ""}{r.points}</b> {r.guest}{r.billBhd ? ` · ${bhd(Number(r.billBhd))}` : ""}{r.kind === "undo" ? ` · ${t("undo")}` : r.kind === "redeem" ? ` · ${t("reward")}` : ""}{r.by ? ` · ${r.by}` : ""}</span>
                 <span>{time(r.at)}</span>
               </div>
             ))}
@@ -295,45 +308,45 @@ export default function StaffApp({ initialMe, brand }: { initialMe: Me | null; l
         </>
       ) : tab === "end" ? (
         <>
-          <div className="eyebrow">Shift over</div>
-          <h1 className="st-title">Thank you, {first}</h1>
-          <p className="sub">Today you served <b>{mine.guests}</b> {mine.guests === 1 ? "guest" : "guests"} and made <b>{mine.entries}</b> {mine.entries === 1 ? "entry" : "entries"}.</p>
+          <div className="eyebrow">{t("Shift over")}</div>
+          <h1 className="st-title">{t("Thank you, {name}", { name: first })}</h1>
+          <p className="sub">{t("Guests served today: {guests} · entries: {entries}", { guests: mine.guests, entries: mine.entries })}</p>
           {perks.length > 0 ? perks.map((p) => (
-            <section key={p.id} className="panel st-perk" aria-label="A thank-you for you">
-              <div className="eyebrow">A thank-you from {p.from}</div>
+            <section key={p.id} className="panel st-perk" aria-label={t("A thank-you for you")}>
+              <div className="eyebrow">{t("A thank-you from {name}", { name: p.from })}</div>
               <h2 className="st-name">{p.title}</h2>
               {p.note && <p className="note st-left">“{p.note}”</p>}
-              {p.validUntil && <p className="note st-left">Use it by {new Date(p.validUntil).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}.</p>}
-              <button className="btn primary st-big" type="button" onClick={() => claim(p)}>Show it and mark as used</button>
+              {p.validUntil && <p className="note st-left">{t("Use it by {date}.", { date: new Date(p.validUntil).toLocaleDateString(t.locale, { day: "numeric", month: "long" }) })}</p>}
+              <button className="btn primary st-big" type="button" onClick={() => claim(p)}>{t("Show it and mark as used")}</button>
             </section>
-          )) : <section className="panel"><p className="note st-left">Nothing waiting for you today. Have a good evening.</p></section>}
-          <button className="btn" type="button" onClick={lock}>Lock and finish</button>
+          )) : <section className="panel"><p className="note st-left">{t("Nothing waiting for you today. Have a good evening.")}</p></section>}
+          <button className="btn" type="button" onClick={lock}>{t("Lock and finish")}</button>
         </>
       ) : (
         <>
-          <div className="eyebrow">Help</div>
-          <h1 className="st-title">How it works</h1>
+          <div className="eyebrow">{t("Help")}</div>
+          <h1 className="st-title">{t("How it works")}</h1>
           <ol className="panel st-help">
-            <li>Scan the QR on the guest&apos;s card, or type the card code.</li>
-            <li>Check the first name with the guest.</li>
-            <li>Type the bill and tap <b>Add points</b>.</li>
-            <li>If a reward is ready, tap <b>Give reward</b>.</li>
-            <li>Made a mistake? <b>Undo</b> works for 10 minutes.</li>
-            <li>At the end of your shift, open <b>End</b> to see your day and any thank-you waiting for you.</li>
+            <li>{t("Scan the QR on the guest's card, or type the card code.")}</li>
+            <li>{t("Check the first name with the guest.")}</li>
+            <li>{t("Stamp venues: tap Add a stamp once per paid visit. Points venues: type the bill and tap Add points.")}</li>
+            <li>{t("If a reward is ready, tap Give.")}</li>
+            <li>{t("Made a mistake? Undo works for 10 minutes.")}</li>
+            <li>{t("At the end of your shift, open End to see your day and any thank-you waiting for you.")}</li>
           </ol>
         </>
       )}
 
       <Island message={msg} onGone={clearMsg} />
-      <nav className="dock" aria-label="Staff sections" style={{ "--n": TABS.length, "--at": TABS.indexOf(tab) } as CSSProperties}>
-        {TABS.map((t, i) => (
-          <button key={t} type="button" style={{ gridColumn: i + 1 }} aria-current={tab === t ? "page" : undefined} onClick={() => { setTab(t); setMsg(null); if (t === "recent") void loadRecent(); if (t === "end") { void loadRecent(); void loadPerks(); } }}>
-            {t === "end" ? "End" : t[0].toUpperCase() + t.slice(1)}
-            {t === "end" && perks.length > 0 && <i className="st-dot" aria-label={`${perks.length} reward waiting`} />}
+      <nav className="dock" aria-label={t("Staff sections")} style={{ "--n": TABS.length, "--at": TABS.indexOf(tab) } as CSSProperties}>
+        {TABS.map((id, i) => (
+          <button key={id} type="button" style={{ gridColumn: i + 1 }} aria-current={tab === id ? "page" : undefined} onClick={() => { setTab(id); setMsg(null); if (id === "recent") void loadRecent(); if (id === "end") { void loadRecent(); void loadPerks(); } }}>
+            {t(TAB_LABEL[id])}
+            {id === "end" && perks.length > 0 && <i className="st-dot" aria-label={t("Rewards waiting: {n}", { n: perks.length })} />}
           </button>
         ))}
       </nav>
-      <p className="foot">{[`Signed in as ${me.name}`, brand.poweredBy].filter(Boolean).join(" · ")}</p>
+      <p className="foot">{[t("Signed in as {name}", { name: me.name }), brand.poweredBy].filter(Boolean).join(" · ")}</p>
     </main>
   );
 }

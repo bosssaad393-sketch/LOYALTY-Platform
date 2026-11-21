@@ -6,6 +6,8 @@ import { OFFER_TEMPLATES, fillTemplate, type OfferField, type OfferTemplate } fr
 import { MESSAGE_LIMIT, WITHDRAW_DAYS, canWithdraw, checkResend, withdrawEffect } from "./offerRules";
 import { Arrow, Confirm, Loading, LoadError, Msg, PageHead, useGet } from "./ui";
 import type { Audience, Call, Note, Offer, Offers as OffersData } from "./types";
+import { localTemplate } from "./offerTemplatesAr";
+import { useT, type T } from "@/lib/uiLang";
 
 const LIMIT = MESSAGE_LIMIT;
 /** The form the owner sees first, and the one "Send an update" on the Overview opens. */
@@ -13,9 +15,9 @@ const MAIN_ID = "todays-update";
 
 const withdrawPath = (id: string) => `/api/owner/offers/${encodeURIComponent(id)}/withdraw`;
 
-function audienceText(a: Audience, o: OffersData): string {
+function audienceText(a: Audience, o: OffersData, t: T): string {
   const count = a === "all" ? o.eligible : a === "apple" ? o.eligibleApple : o.eligibleGoogle;
-  return count === undefined ? AUDIENCE_LABEL[a] : `${AUDIENCE_LABEL[a]} (${n(count)})`;
+  return count === undefined ? t(AUDIENCE_LABEL[a]) : `${t(AUDIENCE_LABEL[a])} (${n(count)})`;
 }
 
 /** The sender in the Today's update message. It is always the business name, so the owner never fills it in. */
@@ -30,10 +32,13 @@ function startValues(t: OfferTemplate, venue: string): Record<string, string> {
 
 export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { call: Call; isOwner: boolean; venue: string; composeSignal?: number }) {
   const loaded = useGet<OffersData>(call, "/api/owner/offers");
-  const main = OFFER_TEMPLATES.find((t) => t.id === MAIN_ID) ?? OFFER_TEMPLATES[0];
-  const others = OFFER_TEMPLATES.filter((t) => t.id !== main.id);
+  const t = useT();
+  // The templates in the screen's language (Arabic venues get Arabic messages).
+  const templates = OFFER_TEMPLATES.map((x) => localTemplate(x, t.lang));
+  const main = templates.find((x) => x.id === MAIN_ID) ?? templates[0];
+  const others = templates.filter((x) => x.id !== main.id);
   const [templateId, setTemplateId] = useState(main.id);
-  const template = OFFER_TEMPLATES.find((t) => t.id === templateId) ?? main;
+  const template = templates.find((x) => x.id === templateId) ?? main;
   // What has been typed, kept per form, so going to another message and back loses nothing.
   const [typed, setTyped] = useState<Record<string, Record<string, string>>>({});
   const values = typed[template.id] ?? startValues(template, venue);
@@ -128,7 +133,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
   function ask() {
     setNote(null);
     if (!ready) {
-      setNote({ kind: "bad", text: check ? (check.same ? "Change the words first." : "Shorten the message first.") : incomplete ? `Fill in every field before you send: ${missing.map((f) => f.label).join(", ")}.` : "Shorten the message first." });
+      setNote({ kind: "bad", text: check ? (check.same ? t("Change the words first.") : t("Shorten the message first.")) : incomplete ? t("Fill in every field before you send: {fields}.", { fields: missing.map((f) => f.label).join(t.lang === "ar" ? "، " : ", ") }) : t("Shorten the message first.") });
       return;
     }
     setReview(true);
@@ -140,19 +145,19 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
     if (!r.ok) {
       setBusy(false);
       setReview(false);
-      if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+      if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
       return;
     }
-    const sent = `Sent to ${n(r.data.recipients)} Wallet card${r.data.recipients === 1 ? "" : "s"}.`;
+    const sent = t("Sent to {n} Wallet cards.", { n: n(r.data.recipients) });
     // Send first, then withdraw, so the cards are never empty.
     if (live && dropping) {
       const w = await call(withdrawPath(live.id), "POST");
       if (w.ok || w.status === 409) {
         setStuckId(null);
-        setNote({ kind: "ok", text: `${sent} The original message is withdrawn. ${withdrawEffect(live.audience).after}` });
+        setNote({ kind: "ok", text: `${sent} ${t("The original message is withdrawn.")} ${t(withdrawEffect(live.audience).after)}` });
       } else if (w.status !== 401) {
         setStuckId(live.id);
-        setNote({ kind: "bad", text: `${sent} But the original message could not be withdrawn: ${w.error.replace(/\.$/, "")}. It is still on the cards.` });
+        setNote({ kind: "bad", text: `${sent} ${t("But the original message could not be withdrawn: {why}. It is still on the cards.", { why: t(w.error).replace(/\.$/, "") })}` });
       }
     } else {
       setNote({ kind: "ok", text: sent });
@@ -183,13 +188,13 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
       markWithdrawn(x.id, r.data.withdrawnAt);
       if (stuckId === x.id) {
         setStuckId(null);
-        setNote({ kind: "ok", text: `The original message is now withdrawn. ${withdrawEffect(x.audience).after}` });
+        setNote({ kind: "ok", text: `${t("The original message is now withdrawn.")} ${t(withdrawEffect(x.audience).after)}` });
       }
-      setListNote({ kind: "ok", text: `Withdrawn. ${withdrawEffect(x.audience).after}` });
+      setListNote({ kind: "ok", text: `${t("Withdrawn.")} ${t(withdrawEffect(x.audience).after)}` });
       // The button that opened the dialog is gone now: land on the row instead.
       requestAnimationFrame(() => document.getElementById(`${ids.row}-${x.id}`)?.focus({ preventScroll: true }));
     } else if (r.status !== 401) {
-      setListNote({ kind: "bad", text: r.error });
+      setListNote({ kind: "bad", text: t(r.error) });
       if (r.status === 404 || r.status === 409) loaded.reload();
     }
   }
@@ -203,20 +208,20 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
     if (r.ok) {
       markWithdrawn(x.id, r.data.withdrawnAt);
       setStuckId(null);
-      setNote({ kind: "ok", text: `The original message is now withdrawn. ${withdrawEffect(x.audience).after}` });
+      setNote({ kind: "ok", text: `${t("The original message is now withdrawn.")} ${t(withdrawEffect(x.audience).after)}` });
     } else if (r.status === 409) {
       loaded.reload();
       setStuckId(null);
-      setNote({ kind: "ok", text: "The original message is withdrawn." });
+      setNote({ kind: "ok", text: t("The original message is withdrawn.") });
     } else if (r.status !== 401) {
-      setNote({ kind: "bad", text: `The original message could not be withdrawn: ${r.error.replace(/\.$/, "")}. It is still on the cards.` });
+      setNote({ kind: "bad", text: t("The original message could not be withdrawn: {why}. It is still on the cards.", { why: t(r.error).replace(/\.$/, "") }) });
     }
   }
 
   return (
     <>
-      <PageHead eyebrow="Wallet cards" title="Offers">
-        Send a short message to the Wallet cards. Only guests who agreed to notifications receive it{o ? ` (${n(o.eligible)} of ${n(o.total)})` : ""}.
+      <PageHead eyebrow={t("Wallet cards")} title={t("Offers")}>
+        {t("Send a short message to the Wallet cards. Only guests who agreed to notifications receive it.")}{o ? ` (${t("{n} of {total}", { n: n(o.eligible), total: n(o.total) })})` : ""}
       </PageHead>
       {loaded.error && <LoadError text={loaded.error} onRetry={loaded.reload} />}
       {!o && !loaded.error && <Loading />}
@@ -229,29 +234,29 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
                   <>
                     <div className="ow-compose-head ow-resend-head">
                       <div>
-                        <h2 className="ow-h" id="ow-h-compose">Edit and resend</h2>
-                        <p className="ow-note">Based on the message sent {stamp(live.sentAt)}.</p>
+                        <h2 className="ow-h" id="ow-h-compose">{t("Edit and resend")}</h2>
+                        <p className="ow-note">{t("Based on the message sent {date}.", { date: stamp(live.sentAt) })}</p>
                       </div>
-                      <button type="button" className="ow-link" onClick={backToUpdate}>Back to {main.title}<Arrow /></button>
+                      <button type="button" className="ow-link" onClick={backToUpdate}>{t("Back to {name}", { name: main.title })}<Arrow /></button>
                     </div>
 
                     <div className="ow-field">
-                      <span className="ow-lbl">Original message</span>
-                      <p className="ow-quote">{live.message}</p>
+                      <span className="ow-lbl">{t("Original message")}</span>
+                      <p className="ow-quote" dir="auto">{live.message}</p>
                     </div>
                     <div className="ow-field">
-                      <label className="ow-lbl" htmlFor={ids.text}>Message</label>
-                      <textarea className="ow-in" id={ids.text} rows={4} value={draft} aria-describedby={`${ids.count} ${ids.alert}`} autoComplete="off" onChange={(e) => { setNote(null); setDraft(e.target.value); }} />
+                      <label className="ow-lbl" htmlFor={ids.text}>{t("Message")}</label>
+                      <textarea className="ow-in" dir="auto" id={ids.text} rows={4} value={draft} aria-describedby={`${ids.count} ${ids.alert}`} autoComplete="off" onChange={(e) => { setNote(null); setDraft(e.target.value); }} />
                     </div>
                     <p className={`ow-note ow-count${check.over > 0 ? " bad" : ""}`} id={ids.count}>
-                      {check.length} of {LIMIT} characters.{" "}
-                      {check.over > 0 ? `Shorten it by ${check.over}.` : check.length === 0 ? "Write the new message." : check.same ? "Change the words to send it again." : "Keep it short and warm."}
+                      {t("{n} of {limit} characters.", { n: check.length, limit: LIMIT })}{" "}
+                      {check.over > 0 ? t("Shorten it by {n}.", { n: check.over }) : check.length === 0 ? t("Write the new message.") : check.same ? t("Change the words to send it again.") : t("Keep it short and warm.")}
                     </p>
-                    <p className="ow-note ow-lead" id={ids.alert}>Change the words: guests are alerted only when the text is different.</p>
+                    <p className="ow-note ow-lead" id={ids.alert}>{t("Change the words: guests are alerted only when the text is different.")}</p>
                     {canDrop && (
                       <label className="ow-check">
                         <input type="checkbox" checked={dropOriginal} onChange={(e) => setDropOriginal(e.target.checked)} />
-                        <span>Withdraw the original when I send this</span>
+                        <span>{t("Withdraw the original when I send this")}</span>
                       </label>
                     )}
                   </>
@@ -272,72 +277,72 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
                           <span className="ow-lblrow">
                             <label className="ow-lbl" htmlFor={fid}>{f.label}</label>
                           </span>
-                          <input className="ow-in" id={fid} value={values[f.key] ?? ""} maxLength={f.maxLength} placeholder={f.example} autoComplete="off" aria-describedby={ids.count} onChange={(e) => setField(f.key, e.target.value)} />
+                          <input className="ow-in" dir="auto" id={fid} value={values[f.key] ?? ""} maxLength={f.maxLength} placeholder={f.example} autoComplete="off" aria-describedby={ids.count} onChange={(e) => setField(f.key, e.target.value)} />
                         </div>
                       );
                     })}
 
                     <p className={`ow-note ow-count${over > 0 ? " bad" : ""}`} id={ids.count}>
-                      {message.length} of {LIMIT} characters.{" "}
-                      {over > 0 ? `Shorten it by ${over}.` : incomplete ? "Fill in every field before you send." : missing.length ? "The grey words are examples. This sample may be sent as it is." : "Keep it short and warm."}
+                      {t("{n} of {limit} characters.", { n: message.length, limit: LIMIT })}{" "}
+                      {over > 0 ? t("Shorten it by {n}.", { n: over }) : incomplete ? t("Fill in every field before you send.") : missing.length ? t("The grey words are examples. This sample may be sent as it is.") : t("Keep it short and warm.")}
                     </p>
                   </>
                 )}
 
                 <div className="ow-field">
-                  <label className="ow-lbl" htmlFor={ids.audience}>Send to</label>
+                  <label className="ow-lbl" htmlFor={ids.audience}>{t("Send to")}</label>
                   <select className="ow-in ow-select" id={ids.audience} value={audience} onChange={(e) => setAudience(e.target.value as Audience)}>
-                    {(["all", "apple", "google"] as const).map((a) => <option key={a} value={a}>{audienceText(a, o)}</option>)}
+                    {(["all", "apple", "google"] as const).map((a) => <option key={a} value={a}>{audienceText(a, o, t)}</option>)}
                   </select>
                 </div>
-                <div className="ow-actions"><button type="button" className="ow-btn primary" disabled={nobody || !ready} onClick={ask}>Review and send</button></div>
-                {nobody && <p className="ow-note">Nobody has agreed to notifications yet, so there is no one to send to.</p>}
+                <div className="ow-actions"><button type="button" className="ow-btn primary" disabled={nobody || !ready} onClick={ask}>{t("Review and send")}</button></div>
+                {nobody && <p className="ow-note">{t("Nobody has agreed to notifications yet, so there is no one to send to.")}</p>}
                 <Msg note={note} />
                 {stuck && (
                   <div className="ow-actions">
-                    <button type="button" className="ow-btn small" disabled={wbusy} onClick={() => retryWithdraw(stuck)}>{wbusy ? "Withdrawing…" : "Withdraw the original"}</button>
+                    <button type="button" className="ow-btn small" disabled={wbusy} onClick={() => retryWithdraw(stuck)}>{wbusy ? t("Withdrawing…") : t("Withdraw the original")}</button>
                   </div>
                 )}
               </section>
 
               <section className="ow-panel ow-more" aria-labelledby="ow-h-more">
-                <h2 className="ow-h" id="ow-h-more">More messages</h2>
-                <p className="ow-note">Choose one to write it in the form above. You see it before anything is sent.</p>
-                <div className="ow-chips" role="group" aria-label="Message templates">
-                  {others.map((t) => (
-                    <button key={t.id} type="button" className="ow-pill" aria-pressed={!resend && templateId === t.id} onClick={() => choose(t.id)}>{t.title}</button>
+                <h2 className="ow-h" id="ow-h-more">{t("More messages")}</h2>
+                <p className="ow-note">{t("Choose one to write it in the form above. You see it before anything is sent.")}</p>
+                <div className="ow-chips" role="group" aria-label={t("Message templates")}>
+                  {others.map((x) => (
+                    <button key={x.id} type="button" className="ow-pill" aria-pressed={!resend && templateId === x.id} onClick={() => choose(x.id)}>{x.title}</button>
                   ))}
                 </div>
               </section>
 
               <section className="ow-panel ow-preview" aria-labelledby="ow-h-preview">
-                <h2 className="ow-h" id="ow-h-preview">How it will appear</h2>
+                <h2 className="ow-h" id="ow-h-preview">{t("How it will appear")}</h2>
                 <Notification venue={venue} text={message} draft={missing.length > 0} />
-                <p className="ow-note">{missing.length ? (incomplete ? "Fill in every field before you send. " : "") + "Words in grey are still examples. " : ""}A preview of a lock-screen notification. The message also stays on the Wallet card for {WITHDRAW_DAYS} days.</p>
+                <p className="ow-note">{missing.length ? (incomplete ? `${t("Fill in every field before you send.")} ` : "") + `${t("Words in grey are still examples.")} ` : ""}{t("A preview of a lock-screen notification. The message also stays on the Wallet card for {n} days.", { n: WITHDRAW_DAYS })}</p>
               </section>
             </div>
           ) : (
-            <p className="ow-note ow-above">Only the owner can send offers. You can see what has been sent.</p>
+            <p className="ow-note ow-above">{t("Only the owner can send offers. You can see what has been sent.")}</p>
           )}
 
           <section className={`ow-panel${isOwner ? " ow-gap-top" : ""}`} aria-labelledby="ow-h-sent">
-            <h2 className="ow-h" id="ow-h-sent">Sent offers</h2>
+            <h2 className="ow-h" id="ow-h-sent">{t("Sent offers")}</h2>
             <Msg note={listNote} />
-            {o.offers.length === 0 ? <p className="ow-note">No offers sent yet.</p> : (
+            {o.offers.length === 0 ? <p className="ow-note">{t("No offers sent yet.")}</p> : (
               <ul className="ow-list">
                 {o.offers.map((x) => {
                   const gone = Boolean(x.withdrawnAt);
                   const mid = `${ids.row}-msg-${x.id}`;
                   return (
                     <li key={x.id} id={`${ids.row}-${x.id}`} tabIndex={-1} className={`ow-item ow-offer${gone ? " ow-done" : ""}`}>
-                      <span className="ow-item-main"><b className="ow-wrap" id={mid}>{x.message}</b><small>{stamp(x.sentAt)} · {AUDIENCE_LABEL[x.audience]}</small></span>
-                      <span className="ow-item-side ow-fig">{n(x.recipients)} cards</span>
+                      <span className="ow-item-main"><b className="ow-wrap" dir="auto" id={mid}>{x.message}</b><small>{stamp(x.sentAt)} · {t(AUDIENCE_LABEL[x.audience])}</small></span>
+                      <span className="ow-item-side ow-fig">{t("{n} cards", { n: n(x.recipients) })}</span>
                       {x.withdrawnAt ? (
-                        <span className="ow-item-acts ow-item-state"><em className="ow-tag quiet">Withdrawn</em><small>{stamp(x.withdrawnAt)}</small></span>
+                        <span className="ow-item-acts ow-item-state"><em className="ow-tag quiet">{t("Withdrawn")}</em><small>{stamp(x.withdrawnAt)}</small></span>
                       ) : isOwner ? (
                         <span className="ow-item-acts">
-                          <button type="button" className="ow-act" aria-describedby={mid} onClick={() => startResend(x)}>Edit and resend</button>
-                          {canWithdraw(x) && <button type="button" className="ow-act quiet" aria-describedby={mid} onClick={() => { setListNote(null); setTarget(x); }}>Withdraw</button>}
+                          <button type="button" className="ow-act" aria-describedby={mid} onClick={() => startResend(x)}>{t("Edit and resend")}</button>
+                          {canWithdraw(x) && <button type="button" className="ow-act quiet" aria-describedby={mid} onClick={() => { setListNote(null); setTarget(x); }}>{t("Withdraw")}</button>}
                         </span>
                       ) : null}
                     </li>
@@ -345,21 +350,21 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
                 })}
               </ul>
             )}
-            {isOwner && o.offers.length > 0 && <p className="ow-note">A message can be withdrawn for {WITHDRAW_DAYS} days after it is sent. It then disappears from iPhone cards; on Android cards it stays until the {WITHDRAW_DAYS} days end. A notification a guest has already seen cannot be recalled.</p>}
+            {isOwner && o.offers.length > 0 && <p className="ow-note">{t("A message can be withdrawn for {n} days after it is sent. It then disappears from iPhone cards; on Android cards it stays until the {n} days end. A notification a guest has already seen cannot be recalled.", { n: WITHDRAW_DAYS })}</p>}
           </section>
         </>
       )}
       {review && o && (
-        <Confirm title={audience === "all" ? `Send to ${n(o.eligible)} guests?` : `Send to ${AUDIENCE_LABEL[audience]}?`} confirmLabel={busy ? "Sending…" : "Send now"} cancelLabel="Not yet" busy={busy} onConfirm={send} onClose={() => setReview(false)}>
+        <Confirm title={audience === "all" ? t("Send to {n} guests?", { n: n(o.eligible) }) : t("Send to {who}?", { who: t(AUDIENCE_LABEL[audience]) })} confirmLabel={busy ? t("Sending…") : t("Send now")} cancelLabel={t("Not yet")} busy={busy} onConfirm={send} onClose={() => setReview(false)}>
           <Notification venue={venue} text={message} />
-          <p className="ow-note ow-dialog-text">Guests are alerted as soon as it is sent. You can withdraw the message later, but an alert that has already appeared cannot be recalled.</p>
-          {live && <p className="ow-note ow-dialog-text">{dropping ? withdrawEffect(live.audience).original : "The original message stays on the cards until you withdraw it."}</p>}
+          <p className="ow-note ow-dialog-text">{t("Guests are alerted as soon as it is sent. You can withdraw the message later, but an alert that has already appeared cannot be recalled.")}</p>
+          {live && <p className="ow-note ow-dialog-text">{dropping ? t(withdrawEffect(live.audience).original) : t("The original message stays on the cards until you withdraw it.")}</p>}
         </Confirm>
       )}
       {target && (
-        <Confirm title="Withdraw this message?" confirmLabel={wbusy ? "Withdrawing…" : "Withdraw it"} cancelLabel="Not yet" busy={wbusy} onConfirm={withdraw} onClose={() => setTarget(null)}>
+        <Confirm title={t("Withdraw this message?")} confirmLabel={wbusy ? t("Withdrawing…") : t("Withdraw it")} cancelLabel={t("Not yet")} busy={wbusy} onConfirm={withdraw} onClose={() => setTarget(null)}>
           <Notification venue={venue} text={target.message} />
-          <p className="ow-note ow-dialog-text">{withdrawEffect(target.audience).before} Guests who already received the notification have seen it, and that cannot be undone.</p>
+          <p className="ow-note ow-dialog-text">{t(withdrawEffect(target.audience).before)} {t("Guests who already received the notification have seen it, and that cannot be undone.")}</p>
         </Confirm>
       )}
     </>
@@ -367,11 +372,12 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { ca
 }
 
 function Notification({ venue, text, draft }: { venue: string; text: string; draft?: boolean }) {
+  const t = useT();
   return (
     <div className="ow-phone" aria-hidden={text ? undefined : true}>
       <div className="ow-notif">
         <i>{venue.slice(0, 1).toUpperCase()}</i>
-        <div><b>{venue}{draft && text && <em className="ow-example">Example</em>}</b><span className={text && !draft ? "" : "empty"}>{text || "Your message appears here."}</span></div>
+        <div><b>{venue}{draft && text && <em className="ow-example">{t("Example")}</em>}</b><span dir="auto" className={text && !draft ? "" : "empty"}>{text || t("Your message appears here.")}</span></div>
       </div>
     </div>
   );

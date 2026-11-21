@@ -17,17 +17,19 @@ import Rules from "./Rules";
 import Service from "./Service";
 import Team from "./Team";
 import type { Call, Me, Tab } from "./types";
+import { LangToggle, UiLangProvider, useT, type UiLang } from "@/lib/uiLang";
+import { tx } from "@/lib/uiArabic";
 
 const TABS: { id: Tab; label: string; ownerOnly?: boolean }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "service", label: "Tables and menu" },
-  { id: "guests", label: "Guests" },
-  { id: "feedback", label: "Feedback" },
-  { id: "rules", label: "Rules" },
-  { id: "offers", label: "Offers" },
-  { id: "assistant", label: "Assistant", ownerOnly: true },
-  { id: "team", label: "Team", ownerOnly: true },
-  { id: "privacy", label: "Data and privacy", ownerOnly: true },
+  { id: "overview", label: tx("Overview") },
+  { id: "service", label: tx("Tables and menu") },
+  { id: "guests", label: tx("Guests") },
+  { id: "feedback", label: tx("Feedback") },
+  { id: "rules", label: tx("Rules") },
+  { id: "offers", label: tx("Offers") },
+  { id: "assistant", label: tx("Assistant"), ownerOnly: true },
+  { id: "team", label: tx("Team"), ownerOnly: true },
+  { id: "privacy", label: tx("Data and privacy"), ownerOnly: true },
 ];
 
 type Props = {
@@ -39,9 +41,17 @@ type Props = {
   look?: SignInLook;
   /** The client's name and venue folder (public/venues/<slug>), from src/lib/brand.ts. */
   brand: BrandProps;
+  /** The venue's language for these screens. */
+  lang?: UiLang;
 };
 
-export default function OwnerApp({ initialMe, initialTab = "overview", brand, sample = null }: Props) {
+/** The owner dashboard in the venue's language (Arabic or English). */
+export default function OwnerApp({ lang = "en", ...props }: Props) {
+  return <UiLangProvider lang={lang}><OwnerScreen {...props} /></UiLangProvider>;
+}
+
+function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null }: Props) {
+  const t = useT();
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>(initialTab);
   // Is 1 after "Send an update" is chosen on the Overview, so Offers opens with the form ready. Any other tab click clears it.
@@ -59,10 +69,10 @@ export default function OwnerApp({ initialMe, initialTab = "overview", brand, sa
     [out],
   );
 
-  const tabs = TABS.filter((t) => !t.ownerOnly || isOwner);
+  const tabs = TABS.filter((x) => !x.ownerOnly || isOwner);
   // A manager cannot open owner-only sections, even through a stale tab value.
-  const current: Tab = tabs.some((t) => t.id === tab) ? tab : "overview";
-  const label = TABS.find((t) => t.id === current)?.label ?? "Overview";
+  const current: Tab = tabs.some((x) => x.id === tab) ? tab : "overview";
+  const label = t(TABS.find((x) => x.id === current)?.label ?? "Overview");
 
   // After a section change, move the cursor to the new page title so keyboard and screen-reader users land on it.
   const shown = useRef(current);
@@ -86,14 +96,14 @@ export default function OwnerApp({ initialMe, initialTab = "overview", brand, sa
   }, [current, canSee]);
 
   useEffect(() => {
-    document.title = me && canSee ? `${label} · ${me.venue} Owner` : `${me?.venue ?? brand.name} Owner`;
-  }, [label, me, canSee, brand.name]);
+    document.title = me && canSee ? `${label} · ${me.venue}` : `${me?.venue ?? brand.name} · ${t("Owner")}`;
+  }, [label, me, canSee, brand.name, t]);
 
   /** Used by the sign-in block below. Returns an error text, or null when the login worked. */
   async function signIn(pin: string): Promise<string | null> {
     const r = await api<Me>("/api/staff/pin-login", "POST", { pin, area: "owner", venue: brand.slug });
     if (r.ok) { setMe(r.data); return null; }
-    return r.error;
+    return t(r.error);
   }
 
   async function lock() {
@@ -101,37 +111,38 @@ export default function OwnerApp({ initialMe, initialTab = "overview", brand, sa
     out();
   }
 
-  if (!me) return <OwnerSignIn onSignIn={signIn} brand={brand} note={sample ? `Sample data. Owner PIN ${sample.ownerPin}` : undefined} />;
+  if (!me) return <OwnerSignIn onSignIn={signIn} brand={brand} note={sample ? t("Sample data. Owner PIN {pin}", { pin: sample.ownerPin }) : undefined} />;
 
   const venue = me.venue;
 
   return (
-    <div className="ow">
+    <div className="ow" dir={t.dir} lang={t.lang}>
       <NetworkBackdrop fixed />
-      <a className="ow-skip" href="#ow-main">Skip to the content</a>
+      <a className="ow-skip" href="#ow-main">{t("Skip to the content")}</a>
       <div className="ow-shell">
         <aside className="ow-side">
           <div className="ow-brand">
             {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark; hidden when the client has no crest file */}
-            <img className="ow-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${venue}, owner`} width={112} height={112} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <img className="ow-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${venue}, ${t("owner")}`} width={112} height={112} onError={(e) => { e.currentTarget.style.display = "none"; }} />
           </div>
-          <button className="ow-chip ow-lock" type="button" onClick={lock}>Lock</button>
+          <button className="ow-chip ow-lock" type="button" onClick={lock}>{t("Lock")}</button>
+          <LangToggle className="ow-chip" />
           {canSee && (
-            <nav className="ow-nav" aria-label="Owner sections">
-              {tabs.map((t) => (
-                <button key={t.id} type="button" className="ow-navbtn" aria-current={current === t.id ? "page" : undefined} onClick={() => { setCompose(0); setTab(t.id); }}>{t.label}</button>
+            <nav className="ow-nav" aria-label={t("Owner sections")}>
+              {tabs.map((x) => (
+                <button key={x.id} type="button" className="ow-navbtn" aria-current={current === x.id ? "page" : undefined} onClick={() => { setCompose(0); setTab(x.id); }}>{t(x.label)}</button>
               ))}
             </nav>
           )}
-          <p className="ow-who">Signed in as {me.name}{brand.poweredBy && <><br />{brand.poweredBy}</>}</p>
+          <p className="ow-who">{t("Signed in as {name}", { name: me.name })}{brand.poweredBy && <><br />{brand.poweredBy}</>}</p>
         </aside>
 
         <main className="ow-main" id="ow-main" tabIndex={-1}>
-          {sample && canSee && <p className="ow-sample" role="note"><b>Sample data</b> These guests and visits are invented so you can see the dashboard working. Nothing here is a real customer.</p>}
+          {sample && canSee && <p className="ow-sample" role="note"><b>{t("Sample data")}</b> {t("These guests and visits are invented so you can see the dashboard working. Nothing here is a real customer.")}</p>}
           {!canSee ? (
             <section className="ow-panel">
-              <p className="ow-msg bad">This login is for staff. The owner dashboard needs an owner or manager login.</p>
-              <div className="ow-actions"><a className="ow-btn" href="/staff">Open the staff app</a></div>
+              <p className="ow-msg bad">{t("This login is for staff. The owner dashboard needs an owner or manager login.")}</p>
+              <div className="ow-actions"><a className="ow-btn" href="/staff">{t("Open the staff app")}</a></div>
             </section>
           ) : (
             <>
@@ -146,7 +157,7 @@ export default function OwnerApp({ initialMe, initialTab = "overview", brand, sa
               {current === "privacy" && isOwner && <Privacy call={call} venue={venue} />}
             </>
           )}
-          <p className="ow-end">Signed in as {me.name}{brand.poweredBy ? ` · ${brand.poweredBy}` : ""}</p>
+          <p className="ow-end">{t("Signed in as {name}", { name: me.name })}{brand.poweredBy ? ` · ${brand.poweredBy}` : ""}</p>
         </main>
       </div>
     </div>

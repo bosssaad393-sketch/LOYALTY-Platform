@@ -3,6 +3,7 @@ import { currentStaff } from "@/lib/staffAuth";
 import { loginLook } from "@/lib/loginStyle";
 import { brandName, brandProps } from "@/lib/brand";
 import { sampleNote } from "@/lib/demo";
+import { getLocale } from "next-intl/server";
 import OwnerApp from "./OwnerApp";
 
 export function generateMetadata(): Metadata {
@@ -18,5 +19,6 @@ export default async function OwnerPage(props: PageProps<"/owner">) {
   const look = loginLook("owner", q.look);
   const brand = brandProps();
   const staff = await currentStaff("owner");
-  return <OwnerApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} sample={sampleNote()} />;
+  const lang = (await getLocale()) === "ar" ? "ar" : "en";
+  return <OwnerApp lang={lang} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} sample={sampleNote()} />;
 }

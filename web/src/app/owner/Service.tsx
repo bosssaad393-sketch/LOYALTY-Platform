@@ -7,6 +7,8 @@ import QrSvg from "@/components/QrSvg";
 import { Confirm, LoadError, Loading, Msg, PageHead, useGet } from "./ui";
 import type { Call, Note } from "./types";
 import { filsMoney } from "@/lib/format";
+import { useT } from "@/lib/uiLang";
+import { tx } from "@/lib/uiArabic";
 
 type Avg = { count: number; avgMinutes: number | null };
 type Report = {
@@ -19,17 +21,18 @@ type Table = { id: string; label: string; token: string };
 type View = "report" | "menu" | "tables";
 
 const money = filsMoney;
-const PARTS: Record<DayPart, string> = { morning: "Morning (6 to 12)", afternoon: "Afternoon (12 to 18)", evening: "Evening (18 to 24)", late: "Late (0 to 6)" };
-const MEASURES: [WaitMeasure, string][] = [["accept", "Round accepted"], ["ready", "Round ready"], ["coal", "Coal"], ["waiter", "Waiter"], ["bill", "Bill"]];
+const PARTS: Record<DayPart, string> = { morning: tx("Morning (6 to 12)"), afternoon: tx("Afternoon (12 to 18)"), evening: tx("Evening (18 to 24)"), late: tx("Late (0 to 6)") };
+const MEASURES: [WaitMeasure, string][] = [["accept", tx("Round accepted")], ["ready", tx("Round ready")], ["coal", tx("Coal")], ["waiter", tx("Waiter")], ["bill", tx("Bill")]];
 
 export default function Service({ call }: { call: Call }) {
   const [view, setView] = useState<View>("report");
+  const t = useT();
   return (
     <>
-      <PageHead eyebrow="Table service" title="Tables and menu">How long each table waited, what sold, your menu, and the QR code for each table.</PageHead>
-      <div className="ow-actions" role="group" aria-label="Table service sections" style={{ marginBottom: 16 }}>
-        {([["report", "Wait times and sales"], ["menu", "Menu"], ["tables", "Tables"]] as [View, string][]).map(([v, label]) => (
-          <button key={v} type="button" className={`ow-btn small${view === v ? " primary" : ""}`} aria-pressed={view === v} onClick={() => setView(v)}>{label}</button>
+      <PageHead eyebrow={t("Table service")} title={t("Tables and menu")}>{t("How long each table waited, what sold, your menu, and the QR code for each table.")}</PageHead>
+      <div className="ow-actions" role="group" aria-label={t("Table service sections")} style={{ marginBottom: 16 }}>
+        {([["report", tx("Wait times and sales")], ["menu", tx("Menu")], ["tables", tx("Tables")]] as [View, string][]).map(([v, label]) => (
+          <button key={v} type="button" className={`ow-btn small${view === v ? " primary" : ""}`} aria-pressed={view === v} onClick={() => setView(v)}>{t(label)}</button>
         ))}
       </div>
       {view === "report" && <ReportView call={call} />}
@@ -41,6 +44,7 @@ export default function Service({ call }: { call: Call }) {
 
 function ReportView({ call }: { call: Call }) {
   const [range, setRange] = useState("7d");
+  const t = useT();
   const report = useGet<Report>(call, `/api/owner/service?range=${range}`);
   const r = report.data;
   const busiest = r ? Math.max(...r.sales.perHour.map((h) => h.fils), 1) : 1;
@@ -49,9 +53,9 @@ function ReportView({ call }: { call: Call }) {
 
   return (
     <>
-      <div className="ow-actions" role="group" aria-label="Period" style={{ marginBottom: 16 }}>
-        {[["today", "Today"], ["7d", "7 days"], ["30d", "30 days"]].map(([v, label]) => (
-          <button key={v} type="button" className={`ow-btn small${range === v ? " primary" : ""}`} aria-pressed={range === v} onClick={() => setRange(v)}>{label}</button>
+      <div className="ow-actions" role="group" aria-label={t("Period")} style={{ marginBottom: 16 }}>
+        {[["today", tx("Today")], ["7d", tx("7 days")], ["30d", tx("30 days")]].map(([v, label]) => (
+          <button key={v} type="button" className={`ow-btn small${range === v ? " primary" : ""}`} aria-pressed={range === v} onClick={() => setRange(v)}>{t(label)}</button>
         ))}
       </div>
       {report.error && <LoadError text={report.error} onRetry={report.reload} />}
@@ -59,17 +63,17 @@ function ReportView({ call }: { call: Call }) {
       {r && (
         <div className="ow-grid">
           <section className="ow-panel" aria-labelledby="ow-h-wait">
-            <h2 className="ow-h" id="ow-h-wait">Average wait, in minutes</h2>
-            {timed.length === 0 ? <p className="ow-note">Nothing timed in this period yet.</p> : (
+            <h2 className="ow-h" id="ow-h-wait">{t("Average wait, in minutes")}</h2>
+            {timed.length === 0 ? <p className="ow-note">{t("Nothing timed in this period yet.")}</p> : (
               <div className="ow-grid">
                 {timed.map((w) => (
                   <div key={w.part}>
-                    <h3 className="ow-lbl">{PARTS[w.part]}</h3>
+                    <h3 className="ow-lbl">{t(PARTS[w.part])}</h3>
                     <ul className="ow-list">
                       {MEASURES.filter(([m]) => w[m].count > 0).map(([m, label]) => (
                         <li key={m} className="ow-item">
-                          <span className="ow-item-main">{label}<small> ({w[m].count} timed)</small></span>
-                          <span className="ow-item-side ow-fig">{w[m].avgMinutes} min</span>
+                          <span className="ow-item-main">{t(label)}<small> ({t("{n} timed", { n: w[m].count })})</small></span>
+                          <span className="ow-item-side ow-fig">{t("{n} min", { n: w[m].avgMinutes ?? 0 })}</span>
                         </li>
                       ))}
                     </ul>
@@ -77,22 +81,22 @@ function ReportView({ call }: { call: Call }) {
                 ))}
               </div>
             )}
-            <p className="ow-note">A low count means the average can mislead. Times are from the guest&apos;s tap to staff pressing the button, so they rely on staff pressing it on time.</p>
+            <p className="ow-note">{t("A low count means the average can mislead. Times are from the guest's tap to staff pressing the button, so they rely on staff pressing it on time.")}</p>
           </section>
 
           <div className="ow-grid ow-c2">
             <section className="ow-panel" aria-labelledby="ow-h-items">
-              <h2 className="ow-h" id="ow-h-items">Sales by item</h2>
-              <p className="ow-note">{money(r.sales.totalFils)} ordered in {r.rounds} {r.rounds === 1 ? "round" : "rounds"}, cancelled rounds left out. This is ordered value, not money received.</p>
-              {r.sales.items.length === 0 ? <p className="ow-note">No orders in this period.</p> : (
+              <h2 className="ow-h" id="ow-h-items">{t("Sales by item")}</h2>
+              <p className="ow-note">{t("{money} ordered in {n} rounds, cancelled rounds left out. This is ordered value, not money received.", { money: money(r.sales.totalFils), n: r.rounds })}</p>
+              {r.sales.items.length === 0 ? <p className="ow-note">{t("No orders in this period.")}</p> : (
                 <ul className="ow-list">
                   {r.sales.items.map((i) => <li key={i.name} className="ow-item"><span className="ow-item-main">{i.qty}× {i.name}</span><span className="ow-item-side ow-fig">{filsText(i.fils)}</span></li>)}
                 </ul>
               )}
             </section>
             <section className="ow-panel" aria-labelledby="ow-h-hours">
-              <h2 className="ow-h" id="ow-h-hours">Sales by hour</h2>
-              {hours.length === 0 ? <p className="ow-note">No orders in this period.</p> : (
+              <h2 className="ow-h" id="ow-h-hours">{t("Sales by hour")}</h2>
+              {hours.length === 0 ? <p className="ow-note">{t("No orders in this period.")}</p> : (
                 <ul className="ow-list">
                   {hours.map((h) => (
                     <li key={h.hour} className="ow-item">
@@ -118,48 +122,49 @@ function MenuEditor({ call }: { call: Call }) {
   const [note, setNote] = useState<Note | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [dropping, setDropping] = useState<{ id: string; name: string } | null>(null);
+  const t = useT();
 
   const send = useCallback(async (method: string, body: unknown, done: string) => {
     setNote(null);
     const r = await call<{ menu: MenuView }>("/api/owner/menu", method, body);
     if (r.ok) { menu.setData(r.data); setNote({ kind: "ok", text: done }); return true; }
-    if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+    if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
     return false;
-  }, [call, menu]);
+  }, [call, menu, t]);
 
   async function photo(id: string, file: File | undefined) {
     if (!file) return;
     setNote(null);
     const image = await shrinkPhoto(file).catch(() => null);
-    if (!image) { setNote({ kind: "bad", text: "That file could not be read. Please choose a JPEG, PNG or WebP photo." }); return; }
+    if (!image) { setNote({ kind: "bad", text: t("That file could not be read. Please choose a JPEG, PNG or WebP photo.") }); return; }
     const r = await call<{ menu: MenuView }>("/api/owner/menu/photo", "POST", { id, image });
-    if (r.ok) { menu.setData(r.data); setNote({ kind: "ok", text: "Photo saved." }); } else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+    if (r.ok) { menu.setData(r.data); setNote({ kind: "ok", text: t("Photo saved.") }); } else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
   }
 
   async function dropPhoto(id: string) {
     setNote(null);
     const r = await call<{ menu: MenuView }>("/api/owner/menu/photo", "DELETE", { id });
-    if (r.ok) { menu.setData(r.data); setNote({ kind: "ok", text: "Photo removed." }); } else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+    if (r.ok) { menu.setData(r.data); setNote({ kind: "ok", text: t("Photo removed.") }); } else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
   }
 
   async function addCategory(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const f = new FormData(form);
-    if (await send("POST", { kind: "category", nameEn: text(f, "nameEn"), nameAr: text(f, "nameAr") }, "Section added.")) form.reset();
+    if (await send("POST", { kind: "category", nameEn: text(f, "nameEn"), nameAr: text(f, "nameAr") }, t("Section added."))) form.reset();
   }
 
   async function addItem(e: FormEvent<HTMLFormElement>, categoryId: string) {
     e.preventDefault();
     const form = e.currentTarget;
     const f = new FormData(form);
-    if (await send("POST", { kind: "item", categoryId, nameEn: text(f, "nameEn"), nameAr: text(f, "nameAr"), price: text(f, "price") }, "Item added.")) form.reset();
+    if (await send("POST", { kind: "item", categoryId, nameEn: text(f, "nameEn"), nameAr: text(f, "nameAr"), price: text(f, "price") }, t("Item added."))) form.reset();
   }
 
   async function saveItem(e: FormEvent<HTMLFormElement>, id: string) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    if (await send("PATCH", { id, nameEn: text(f, "nameEn"), nameAr: text(f, "nameAr"), noteEn: text(f, "noteEn"), noteAr: text(f, "noteAr"), price: text(f, "price") }, "Saved.")) setEditing(null);
+    if (await send("PATCH", { id, nameEn: text(f, "nameEn"), nameAr: text(f, "nameAr"), noteEn: text(f, "noteEn"), noteAr: text(f, "noteAr"), price: text(f, "price") }, t("Saved."))) setEditing(null);
   }
 
   if (menu.error) return <LoadError text={menu.error} onRetry={menu.reload} />;
@@ -168,42 +173,42 @@ function MenuEditor({ call }: { call: Call }) {
   return (
     <div className="ow-grid">
       {dropping && (
-        <Confirm title={`Remove ${dropping.name}?`} confirmLabel="Remove it" danger onConfirm={() => { const d = dropping; setDropping(null); void send("DELETE", { id: d.id }, "Item removed from the menu."); }} onClose={() => setDropping(null)}>
-          <p className="ow-note ow-dialog-text">It leaves the guest menu and the staff board. To hide it for one evening, mark it sold out instead.</p>
+        <Confirm title={t("Remove {name}?", { name: dropping.name })} confirmLabel={t("Remove it")} danger onConfirm={() => { const d = dropping; setDropping(null); void send("DELETE", { id: d.id }, t("Item removed from the menu.")); }} onClose={() => setDropping(null)}>
+          <p className="ow-note ow-dialog-text">{t("It leaves the guest menu and the staff board. To hide it for one day, mark it sold out instead.")}</p>
         </Confirm>
       )}
       <Msg note={note} />
       {menu.data.menu.map((c) => (
         <section key={c.id} className="ow-panel" aria-label={c.nameEn}>
-          <h2 className="ow-h">{c.nameEn}{c.nameAr ? ` · ${c.nameAr}` : ""}</h2>
+          <h2 className="ow-h">{t.lang === "ar" && c.nameAr ? `${c.nameAr} · ${c.nameEn}` : `${c.nameEn}${c.nameAr ? ` · ${c.nameAr}` : ""}`}</h2>
           <ul className="ow-list">
             {c.items.map((i) => (
               <li key={i.id} className="ow-item">
                 {editing === i.id ? (
                   <form style={{ flex: 1, display: "grid", gap: 12 }} onSubmit={(e) => saveItem(e, i.id)}>
-                    <Field label="Name (English)" name="nameEn" value={i.nameEn} required />
-                    <Field label="Name (Arabic)" name="nameAr" value={i.nameAr ?? ""} dir="rtl" />
-                    <Field label="Note (English, optional)" name="noteEn" value={i.noteEn ?? ""} />
-                    <Field label="Note (Arabic, optional)" name="noteAr" value={i.noteAr ?? ""} dir="rtl" />
-                    <Field label="Price in BHD" name="price" value={filsText(i.priceFils)} required inputMode="decimal" />
+                    <Field label={t("Name (English)")} name="nameEn" value={i.nameEn} required dir="ltr" />
+                    <Field label={t("Name (Arabic)")} name="nameAr" value={i.nameAr ?? ""} dir="rtl" />
+                    <Field label={t("Note (English, optional)")} name="noteEn" value={i.noteEn ?? ""} dir="ltr" />
+                    <Field label={t("Note (Arabic, optional)")} name="noteAr" value={i.noteAr ?? ""} dir="rtl" />
+                    <Field label={t("Price in BHD")} name="price" value={filsText(i.priceFils)} required inputMode="decimal" dir="ltr" />
                     <div className="ow-field">
-                      <span className="ow-lbl">Photo</span>
+                      <span className="ow-lbl">{t("Photo")}</span>
                       {i.imageUrl && (
                         /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
-                        <img src={i.imageUrl} alt={`Current photo of ${i.nameEn}`} width={120} height={120} style={{ borderRadius: "var(--r-tight)", objectFit: "cover" }} />
+                        <img src={i.imageUrl} alt={t("Current photo of {name}", { name: i.nameEn })} width={120} height={120} style={{ borderRadius: "var(--r-tight)", objectFit: "cover" }} />
                       )}
                       <div className="ow-actions">
                         <label className="ow-btn small">
-                          {i.imageUrl ? "Change photo" : "Add photo"}
+                          {i.imageUrl ? t("Change photo") : t("Add photo")}
                           <input className="ow-sr" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { void photo(i.id, e.target.files?.[0]); e.target.value = ""; }} />
                         </label>
-                        {i.imageUrl && <button className="ow-btn small" type="button" onClick={() => dropPhoto(i.id)}>Remove photo</button>}
+                        {i.imageUrl && <button className="ow-btn small" type="button" onClick={() => dropPhoto(i.id)}>{t("Remove photo")}</button>}
                       </div>
                     </div>
                     <div className="ow-actions">
-                      <button className="ow-btn small primary" type="submit">Save</button>
-                      <button className="ow-btn small" type="button" onClick={() => setEditing(null)}>Cancel</button>
-                      <button className="ow-btn small danger" type="button" onClick={() => setDropping({ id: i.id, name: i.nameEn })}>Remove</button>
+                      <button className="ow-btn small primary" type="submit">{t("Save")}</button>
+                      <button className="ow-btn small" type="button" onClick={() => setEditing(null)}>{t("Cancel")}</button>
+                      <button className="ow-btn small danger" type="button" onClick={() => setDropping({ id: i.id, name: i.nameEn })}>{t("Remove")}</button>
                     </div>
                   </form>
                 ) : (
@@ -212,26 +217,26 @@ function MenuEditor({ call }: { call: Call }) {
                       /* eslint-disable-next-line @next/next/no-img-element -- venue photos live in the venue's own storage */
                       <img src={i.imageUrl} alt="" width={56} height={56} loading="lazy" style={{ flex: "none", borderRadius: "var(--r-tight)", objectFit: "cover" }} />
                     )}
-                    <span className="ow-item-main"><b>{i.nameEn}</b>{!i.nameAr && <small> · no Arabic name yet</small>}{i.nameAr && <small> · {i.nameAr}</small>}{!i.available && <small> · sold out</small>}</span>
-                    <span className="ow-item-side ow-rowbtns"><span className="ow-fig">{filsText(i.priceFils)}</span><button type="button" className="ow-btn small" aria-label={`Edit ${i.nameEn}`} onClick={() => setEditing(i.id)}>Edit</button></span>
+                    <span className="ow-item-main"><b>{t.lang === "ar" && i.nameAr ? i.nameAr : i.nameEn}</b>{!i.nameAr && <small> · {t("no Arabic name yet")}</small>}{i.nameAr && <small> · {t.lang === "ar" ? i.nameEn : i.nameAr}</small>}{!i.available && <small> · {t("sold out")}</small>}</span>
+                    <span className="ow-item-side ow-rowbtns"><span className="ow-fig">{filsText(i.priceFils)}</span><button type="button" className="ow-btn small" aria-label={t("Edit {name}", { name: i.nameEn })} onClick={() => setEditing(i.id)}>{t("Edit")}</button></span>
                   </>
                 )}
               </li>
             ))}
           </ul>
-          <form className="ow-grid" onSubmit={(e) => addItem(e, c.id)} aria-label={`Add an item to ${c.nameEn}`}>
-            <Field label="New item (English)" name="nameEn" required />
-            <Field label="Arabic name (optional)" name="nameAr" dir="rtl" />
-            <Field label="Price in BHD" name="price" required inputMode="decimal" />
-            <div className="ow-actions"><button className="ow-btn small" type="submit">Add item</button></div>
+          <form className="ow-grid" onSubmit={(e) => addItem(e, c.id)} aria-label={t("Add an item to {name}", { name: c.nameEn })}>
+            <Field label={t("New item (English)")} name="nameEn" required dir="ltr" />
+            <Field label={t("Arabic name (optional)")} name="nameAr" dir="rtl" />
+            <Field label={t("Price in BHD")} name="price" required inputMode="decimal" dir="ltr" />
+            <div className="ow-actions"><button className="ow-btn small" type="submit">{t("Add item")}</button></div>
           </form>
         </section>
       ))}
       <form className="ow-panel" onSubmit={addCategory} aria-labelledby="ow-h-sec">
-        <h2 className="ow-h" id="ow-h-sec">Add a menu section</h2>
-        <Field label="Section name (English)" name="nameEn" required />
-        <Field label="Section name (Arabic, optional)" name="nameAr" dir="rtl" />
-        <div className="ow-actions"><button className="ow-btn primary" type="submit">Add section</button></div>
+        <h2 className="ow-h" id="ow-h-sec">{t("Add a menu section")}</h2>
+        <Field label={t("Section name (English)")} name="nameEn" required dir="ltr" />
+        <Field label={t("Section name (Arabic, optional)")} name="nameAr" dir="rtl" />
+        <div className="ow-actions"><button className="ow-btn primary" type="submit">{t("Add section")}</button></div>
       </form>
     </div>
   );
@@ -263,19 +268,20 @@ function Tables({ call }: { call: Call }) {
   const [note, setNote] = useState<Note | null>(null);
   const [shown, setShown] = useState<string | null>(null);
   const [dropping, setDropping] = useState<{ id: string; label: string } | null>(null);
+  const t = useT();
 
   async function add(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     setNote(null);
     const r = await call<{ tables: Table[] }>("/api/owner/tables", "POST", { label: text(new FormData(form), "label") });
-    if (r.ok) { tables.setData(r.data); form.reset(); } else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+    if (r.ok) { tables.setData(r.data); form.reset(); } else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
   }
 
   async function remove(id: string) {
     setNote(null);
     const r = await call<{ tables: Table[] }>("/api/owner/tables", "DELETE", { id });
-    if (r.ok) { tables.setData(r.data); setNote({ kind: "ok", text: "Table removed. Its QR code no longer works." }); } else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
+    if (r.ok) { tables.setData(r.data); setNote({ kind: "ok", text: t("Table removed. Its QR code no longer works.") }); } else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
   }
 
   if (tables.error) return <LoadError text={tables.error} onRetry={tables.reload} />;
@@ -283,36 +289,36 @@ function Tables({ call }: { call: Call }) {
 
   return (
     <div className="ow-grid ow-c2">
-      <section className="ow-panel ow-flush" aria-label="Tables">
+      <section className="ow-panel ow-flush" aria-label={t("Tables")}>
         {dropping && (
-          <Confirm title={`Remove table ${dropping.label}?`} confirmLabel="Remove it" danger onConfirm={() => { const d = dropping; setDropping(null); void remove(d.id); }} onClose={() => setDropping(null)}>
-            <p className="ow-note ow-dialog-text">The QR code printed for this table stops working. A new table gets a new code to print.</p>
+          <Confirm title={t("Remove table {name}?", { name: dropping.label })} confirmLabel={t("Remove it")} danger onConfirm={() => { const d = dropping; setDropping(null); void remove(d.id); }} onClose={() => setDropping(null)}>
+            <p className="ow-note ow-dialog-text">{t("The QR code printed for this table stops working. A new table gets a new code to print.")}</p>
           </Confirm>
         )}
         <Msg note={note} />
         <ul className="ow-list">
-          {tables.data.tables.map((t) => (
-            <li key={t.id} className="ow-item" style={{ flexWrap: "wrap" }}>
-              <span className="ow-item-main"><b>Table {t.label}</b></span>
+          {tables.data.tables.map((tb) => (
+            <li key={tb.id} className="ow-item" style={{ flexWrap: "wrap" }}>
+              <span className="ow-item-main"><b>{t("Table {name}", { name: tb.label })}</b></span>
               <span className="ow-item-side ow-rowbtns">
-                <button type="button" className="ow-btn small" aria-expanded={shown === t.id} onClick={() => setShown(shown === t.id ? null : t.id)}>QR code</button>
-                <a className="ow-btn small" href={`/owner/qr-kit?table=${t.id}`} target="_blank" rel="noreferrer" aria-label={`Print the card for table ${t.label}`}>Print card</a>
-                <button type="button" className="ow-btn small danger" aria-label={`Remove table ${t.label}`} onClick={() => setDropping({ id: t.id, label: t.label })}>Remove</button>
+                <button type="button" className="ow-btn small" aria-expanded={shown === tb.id} onClick={() => setShown(shown === tb.id ? null : tb.id)}>{t("QR code")}</button>
+                <a className="ow-btn small" href={`/owner/qr-kit?table=${tb.id}`} target="_blank" rel="noreferrer" aria-label={t("Print the card for table {name}", { name: tb.label })}>{t("Print card")}</a>
+                <button type="button" className="ow-btn small danger" aria-label={t("Remove table {name}", { name: tb.label })} onClick={() => setDropping({ id: tb.id, label: tb.label })}>{t("Remove")}</button>
               </span>
-              {shown === t.id && <TableQr token={t.token} label={t.label} />}
+              {shown === tb.id && <TableQr token={tb.token} label={tb.label} />}
             </li>
           ))}
-          {tables.data.tables.length === 0 && <li className="ow-item"><span className="ow-note">No tables yet. Add the first one.</span></li>}
+          {tables.data.tables.length === 0 && <li className="ow-item"><span className="ow-note">{t("No tables yet. Add the first one.")}</span></li>}
         </ul>
       </section>
       <form className="ow-panel" onSubmit={add} aria-labelledby="ow-h-addt">
-        <h2 className="ow-h" id="ow-h-addt">Add a table</h2>
-        <Field label="Table name" name="label" required />
-        <p className="ow-note">A short name guests and staff both know, for example 4 or Terrace 2.</p>
-        <div className="ow-actions"><button className="ow-btn primary" type="submit">Add table</button></div>
-        <h2 className="ow-h" style={{ marginTop: 24 }}>QR kit</h2>
-        <p className="ow-note">A card for every table and one for the counter, four to an A4 sheet. Print it here or save it as a PDF for a print shop.</p>
-        <div className="ow-actions"><a className="ow-btn" href="/owner/qr-kit" target="_blank" rel="noreferrer">Open the QR kit</a></div>
+        <h2 className="ow-h" id="ow-h-addt">{t("Add a table")}</h2>
+        <Field label={t("Table name")} name="label" required />
+        <p className="ow-note">{t("A short name guests and staff both know, for example 4 or Terrace 2.")}</p>
+        <div className="ow-actions"><button className="ow-btn primary" type="submit">{t("Add table")}</button></div>
+        <h2 className="ow-h" style={{ marginTop: 24 }}>{t("QR kit")}</h2>
+        <p className="ow-note">{t("A card for every table and one for the counter, four to an A4 sheet. Print it here or save it as a PDF for a print shop.")}</p>
+        <div className="ow-actions"><a className="ow-btn" href="/owner/qr-kit" target="_blank" rel="noreferrer">{t("Open the QR kit")}</a></div>
       </form>
     </div>
   );
@@ -320,9 +326,10 @@ function Tables({ call }: { call: Call }) {
 
 function TableQr({ token, label }: { token: string; label: string }) {
   const [url] = useState(() => `${window.location.origin}/t/${token}`);
+  const t = useT();
   return (
     <div style={{ width: "100%", display: "grid", gap: 10, justifyItems: "start" }}>
-      <QrSvg text={url} label={`QR code for table ${label}`} />
+      <QrSvg text={url} label={t("QR code for table {name}", { name: label })} />
       <a className="ow-note" href={url} target="_blank" rel="noreferrer" style={{ overflowWrap: "anywhere" }}>{url}</a>
     </div>
   );
