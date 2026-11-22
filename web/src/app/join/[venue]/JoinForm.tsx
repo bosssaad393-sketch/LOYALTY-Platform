@@ -77,11 +77,11 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
         <input className="in" name="mobile" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="+973 …" required maxLength={30} onChange={() => clear("mobile")} {...mark("mobile")} />
       </label>
       <label className="check">
-        <input type="checkbox" name="news" />
+        <input type="checkbox" name="news" defaultChecked />
         <span>{t("news", { venue: venueName })}</span>
       </label>
       <label className="check">
-        <input type="checkbox" name="terms" required onChange={() => clear("terms")} {...mark("terms")} />
+        <input type="checkbox" name="terms" required defaultChecked onChange={() => clear("terms")} {...mark("terms")} />
         <span>{t.rich("terms", { link: (chunks) => <a href={`/join/${venue}/terms`}>{chunks}</a> })}</span>
       </label>
       <p className="err" id="join-err" role="alert">{error}</p>
