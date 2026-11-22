@@ -16,12 +16,12 @@ const JoinInput = z
 export async function POST(request: Request) {
   const parsed = JoinInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return Response.json({ code: "incomplete", error: "Please fill in your name, add a mobile number or an email, and accept the terms." }, { status: 400 });
+    return Response.json({ code: "incomplete", error: "Please fill in your name and mobile number, and accept the terms." }, { status: 400 });
   }
   const { venue: slug, name, mobile, email, news } = parsed.data;
 
   if (!mobile && !email) {
-    return Response.json({ code: "contact_required", error: "Please add at least one: your mobile number or your email." }, { status: 400 });
+    return Response.json({ code: "contact_required", error: "Please add your mobile number." }, { status: 400 });
   }
   if (email && !z.email().safeParse(email).success) {
     return Response.json({ code: "bad_email", error: "That email address doesn't look right." }, { status: 400 });

@@ -32,7 +32,7 @@ describe("join form error marking", () => {
   it("marks the field the server's answer is about", () => {
     expect(fieldsFor("bad_email", form)).toEqual(["email"]);
     expect(fieldsFor("bad_mobile", form)).toEqual(["mobile"]);
-    expect(fieldsFor("contact_required", form)).toEqual(["mobile", "email"]);
+    expect(fieldsFor("contact_required", form)).toEqual(["mobile"]);
   });
   it("for an incomplete form, marks only what is missing", () => {
     expect(fieldsFor("incomplete", { ...form, name: " ", terms: false })).toEqual(["name", "terms"]);

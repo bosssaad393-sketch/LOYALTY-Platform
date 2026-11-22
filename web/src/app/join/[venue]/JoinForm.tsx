@@ -2,12 +2,13 @@
 
 import { useState, type CSSProperties } from "react";
 
+// Guests join with name + mobile only (Saad, 2026-11-22: no email). The server still accepts an email if one is sent.
 type FieldName = "name" | "mobile" | "email" | "terms";
 /** Which fields an answer from the server is about, so they can be marked and the first one focused. */
 export function fieldsFor(code: string | undefined, form: { name: string; mobile: string; email: string; terms: boolean }): FieldName[] {
   if (code === "bad_email") return ["email"];
   if (code === "bad_mobile") return ["mobile"];
-  if (code === "contact_required") return ["mobile", "email"];
+  if (code === "contact_required") return ["mobile"];
   if (code === "incomplete") return [...(form.name.trim() ? [] : ["name" as const]), ...(form.terms ? [] : ["terms" as const])];
   return [];
 }
@@ -39,7 +40,6 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
         venue,
         name: form.get("name"),
         mobile: form.get("mobile"),
-        email: form.get("email"),
         terms: form.get("terms") === "on",
         news: form.get("news") === "on",
       }),
@@ -74,13 +74,8 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
       </label>
       <label className="field">
         <span className="lbl">{t("mobile")}</span>
-        <input className="in" name="mobile" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="+973 …" maxLength={30} onChange={() => { clear("mobile"); clear("email"); }} {...mark("mobile")} />
+        <input className="in" name="mobile" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="+973 …" required maxLength={30} onChange={() => clear("mobile")} {...mark("mobile")} />
       </label>
-      <label className="field">
-        <span className="lbl">{t("email")}</span>
-        <input className="in" name="email" type="email" dir="ltr" inputMode="email" autoComplete="email" autoCapitalize="off" placeholder="name@email.com" maxLength={120} onChange={() => { clear("email"); clear("mobile"); }} {...mark("email")} />
-      </label>
-      <p className="note" style={{ textAlign: "start", marginTop: -6 }}>{t("atLeastOne")}</p>
       <label className="check">
         <input type="checkbox" name="news" />
         <span>{t("news", { venue: venueName })}</span>

@@ -19,8 +19,8 @@
     "footer": "{venue} Loyalty Rewards"
   },
   "joinErrors": {
-    "incomplete": "Please fill in your name, add a mobile number or an email, and accept the terms.",
-    "contact_required": "Please add at least one: your mobile number or your email.",
+    "incomplete": "Please fill in your name and mobile number, and accept the terms.",
+    "contact_required": "Please add your mobile number.",
     "bad_email": "That email address doesn't look right.",
     "bad_mobile": "That mobile number doesn't look right.",
     "venue_unavailable": "This venue isn't available.",
@@ -147,7 +147,7 @@
     "noVenue": "Scan the QR code at the venue to get your card.",
     "howLabel": "How it works",
     "step1": "Join in a minute",
-    "step1Text": "Scan the QR code at the counter or tap the button. Your name and a mobile or email is all it takes.",
+    "step1Text": "Scan the QR code at the counter or tap the button. Your name and mobile number is all it takes.",
     "step2": "Earn on every bill",
     "step2Text": "Show your card when you pay, or order from your table: the points are added once the bill is paid.",
     "step3": "Enjoy your reward",
