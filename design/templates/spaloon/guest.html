@@ -60,7 +60,7 @@ html[dir=rtl] .go .ar{transform:scaleX(-1)}
 .pow{text-align:center;font-size:11.5px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
 .scr{display:none}.scr.on{display:block;animation:in .4s cubic-bezier(.2,.7,.2,1) both}
 @keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.back{background:none;border:0;color:var(--mut);font:500 15px inherit;font-family:inherit;cursor:pointer;padding:6px 0}
+.back{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:10px 20px 10px 16px;background:rgba(201,174,116,.10);border:1.5px solid var(--gold);border-radius:999px;color:var(--cr);font-family:inherit;font-size:18px;font-weight:700;line-height:1;cursor:pointer}.back .ba{font-size:24px;line-height:1;color:var(--gold2);margin-top:-2px}.back:active{background:rgba(201,174,116,.22)}
 .mini{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .mini img{width:74px;height:74px}
 h2{font:500 32px/1.08 var(--serif);margin:4px 0 6px}html[dir=rtl] h2{font:700 28px/1.25 var(--ar)}
@@ -145,7 +145,7 @@ function qr(size){var c=21,s='<svg width="'+size+'" height="'+size+'" viewBox="0
  for(var y=0;y<c;y++)for(var x=0;x<c;x++){var on,f=(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);if(f){var lx=x>13?x-14:x,ly=y>13?y-14:y;on=lx===0||lx===6||ly===0||ly===6||(lx>1&&lx<5&&ly>1&&ly<5)}else on=r()>.52;if(on)s+='<rect x="'+x+'" y="'+y+'" width="1" height="1"/>'}return s+'</svg>'}
 function dots(n,f){var s='';for(var i=0;i<n;i++)s+='<i class="'+(i<f?'f':'')+'"></i>';return s}
 function bar(){return '<div class="bar"><button class="lang" data-lang>'+(S.lang==='en'?'العربية':'English')+'</button></div>'}
-function mini(){return '<div class="mini"><button class="back" data-go="home">‹ '+t('back')+'</button><img src="brand/logo-lux.png" alt="Spaloon"></div>'}
+function mini(){return '<div class="mini"><button class="back" data-go="home"><span class="ba" aria-hidden="true">'+(S.lang==='ar'?'→':'←')+'</span>'+t('back')+'</button><img src="brand/logo-lux.png" alt="Spaloon"></div>'}
 function go(href,ic,a,b,cls,i){var tag=href.indexOf('data-')===0?'button':'a';return '<'+tag+' class="go rise '+(cls||'')+'" style="--i:'+i+'" '+(tag==='a'?'href="'+href+'" target="_blank" rel="noopener"':href)+'><span class="ic">'+IC[ic]+'</span><span><b>'+a+'</b><small>'+b+'</small></span><span class="ar">›</span></'+tag+'>'}
 var V={
 home:function(){return bar()+'<div class="logo" id="logo"><i></i><i></i><i></i><i></i></div>'+
