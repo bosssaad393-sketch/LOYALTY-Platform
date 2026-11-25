@@ -4,12 +4,12 @@ import { db, type Card, type Venue } from "./supabase";
 import { parseTiers, stampState, type StampState } from "./stamps";
 
 /** `stamps` is set for stamp venues (0020): the reward due next and the ladder. */
-export type CardView = { card: Card; venue: Venue; memberName: string; stamps?: StampState };
+export type CardView = { card: Card; venue: Venue; memberName: string; stamps?: StampState; /** Visit card (0022): no points, no stamps. */ visitMode?: boolean; lastVisit?: string | null };
 
 /** Creates a member and their card at a venue. Retries if the 4-digit code is already taken. */
 export async function createCard(
   venue: Venue,
-  input: { name: string; phone?: string; email?: string; news: boolean },
+  input: { name: string; phone?: string; email?: string; news: boolean; birthday?: { day: number; month: number; year: number | null } | null; branchId?: string | null },
 ): Promise<Card> {
   const { data: member, error: mErr } = await db()
     .from("members")
@@ -19,6 +19,7 @@ export async function createCard(
       email: input.email || null,
       consent_terms: new Date().toISOString(),
       consent_news: input.news,
+      ...(input.birthday ? { birth_day: input.birthday.day, birth_month: input.birthday.month, birth_year: input.birthday.year } : {}),
     })
     .select("id")
     .single();
@@ -28,7 +29,7 @@ export async function createCard(
     const code = String(randomInt(1000, 10000));
     const { data, error } = await db()
       .from("cards")
-      .insert({ venue_id: venue.id, member_id: member.id, code })
+      .insert({ venue_id: venue.id, member_id: member.id, code, ...(input.branchId ? { joined_branch: input.branchId } : {}) })
       .select("id, venue_id, member_id, code, points, visits")
       .single();
     if (!error) return data;
@@ -59,7 +60,7 @@ export async function hasCardAt(venueId: string, contact: { phone?: string; emai
 export async function getCardView(cardId: string): Promise<CardView | null> {
   const { data, error } = await db()
     .from("cards")
-    .select("id, venue_id, member_id, code, points, visits, rewards_given, created_at, members(name, deleted_at), venues(id, slug, name, points_per_bhd, reward_goal, reward_text, stamp_tiers)")
+    .select("id, venue_id, member_id, code, points, visits, rewards_given, last_visit, created_at, members(name, deleted_at), venues(id, slug, name, points_per_bhd, reward_goal, reward_text, stamp_tiers, card_mode)")
     .eq("id", cardId)
     .maybeSingle();
   if (error) throw error;
@@ -78,7 +79,8 @@ export async function getCardView(cardId: string): Promise<CardView | null> {
   };
   const tiers = parseTiers((venue as { stamp_tiers?: unknown }).stamp_tiers);
   const stamps = tiers ? stampState(tiers, data.points, Number((data as { rewards_given?: number }).rewards_given ?? 0)) : undefined;
-  return { card, venue, memberName: member.name, stamps };
+  const visitMode = (venue as { card_mode?: string | null }).card_mode === "visits";
+  return { card, venue, memberName: member.name, stamps, visitMode, lastVisit: (data as { last_visit?: string | null }).last_visit ?? null };
 }
 
 export { isUuid } from "./ids";

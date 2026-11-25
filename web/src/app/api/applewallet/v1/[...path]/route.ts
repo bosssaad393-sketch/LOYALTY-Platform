@@ -4,6 +4,8 @@ import { getCardView, isUuid } from "@/lib/cards";
 import { buildPass } from "@/lib/appleWallet";
 import { agreedToNews, normaliseMember } from "@/lib/offers";
 import { offerStampsByVenue } from "@/lib/passOffer";
+import { voucherStamps } from "@/lib/vouchersDb";
+import { noticeStamps } from "@/lib/autoMessagesDb";
 
 /**
  * Apple Wallet web service (the protocol Wallet uses to register a card and fetch updates).
@@ -53,6 +55,10 @@ async function lastChanged(cardIds: string[]): Promise<Map<string, number>> {
   for (const e of entries ?? []) {
     const t = new Date(e.created_at).getTime();
     if (t > (out.get(e.card_id) ?? 0)) out.set(e.card_id, t);
+  }
+  // Vouchers unlocked, used or cancelled, and automatic notices (migration 0022).
+  for (const stamps of await Promise.all([voucherStamps(cardIds), noticeStamps(cardIds)])) {
+    for (const [id, t] of stamps) if (t > (out.get(id) ?? 0)) out.set(id, t);
   }
   return out;
 }

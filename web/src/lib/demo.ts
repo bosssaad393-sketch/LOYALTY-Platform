@@ -11,6 +11,8 @@ export function sampleMode(env: Env = process.env): boolean {
 /** The PINs of the sample owner and the sample staff member. Shown on the sign-in screen in sample mode, and only there. */
 export const SAMPLE_OWNER_PIN = "482615";
 export const SAMPLE_STAFF_PIN = "4826";
+/** Sample mode with a visit-card venue (fakeDb.ts): the till of the partner counter that only redeems vouchers. */
+export const SAMPLE_PARTNER_PIN = "7391";
 
 export type SampleNote = { ownerPin: string; staffPin: string } | null;
 

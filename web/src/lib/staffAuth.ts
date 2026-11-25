@@ -22,7 +22,7 @@ export const STAFF_COOKIE = "loyalty_staff";
 export const COOKIE_NAMES: Record<Area, string> = { staff: STAFF_COOKIE, owner: "loyalty_owner", dev: "loyalty_dev" };
 const SESSION_HOURS = 12;
 
-export type Staff = { id: string; name: string; role: "staff" | "manager" | "owner" | "developer"; venueId: string; venueSlug: string; venueName: string };
+export type Staff = { id: string; name: string; role: "staff" | "manager" | "owner" | "developer"; venueId: string; venueSlug: string; venueName: string; /** The one branch this person works at (0022); null = any branch. */ branchId?: string | null };
 
 function secret(): string {
   const base = process.env.STAFF_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -54,14 +54,14 @@ export function readSession(value: string | undefined, area: Area = "staff"): st
 }
 
 async function loadStaff(where: { id?: string; authUser?: string; pin?: { venueId: string; lookup: string } }): Promise<Staff | null> {
-  let q = db().from("staff_users").select("id, name, role, active, venue_id, venues(slug, name)").eq("active", true);
+  let q = db().from("staff_users").select("id, name, role, active, venue_id, branch_id, venues(slug, name)").eq("active", true);
   q = where.id ? q.eq("id", where.id) : where.pin ? q.eq("venue_id", where.pin.venueId).eq("pin_lookup", where.pin.lookup) : q.eq("auth_user", where.authUser!);
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const venue = data.venues as unknown as { slug: string; name: string } | null;
   if (!venue) return null;
-  return { id: data.id, name: data.name, role: data.role, venueId: data.venue_id, venueSlug: venue.slug, venueName: venue.name };
+  return { id: data.id, name: data.name, role: data.role, venueId: data.venue_id, venueSlug: venue.slug, venueName: venue.name, branchId: (data as { branch_id?: string | null }).branch_id ?? null };
 }
 
 /** A PIN only ever opens its own venue (migration 0016: PINs are unique per venue, not across the platform). */

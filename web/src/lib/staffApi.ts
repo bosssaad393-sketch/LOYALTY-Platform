@@ -4,6 +4,8 @@ import { db } from "./supabase";
 import { updatePoints, googleWalletConfigured } from "./googleWallet";
 import { notifyAppleDevices } from "./apns";
 import { parseTiers, stampState, type StampState } from "./stamps";
+import { cardVouchers } from "./vouchersDb";
+import type { CardVoucher } from "./vouchers";
 
 export const fail = (error: string, status = 400) => Response.json({ error }, { status });
 
@@ -17,7 +19,7 @@ export async function withStaff(handler: (staff: Staff) => Promise<Response>): P
     const msg = err instanceof Error ? err.message : String(err);
     console.error("staff api failed", msg);
     // Rule violations raised by the ledger functions are safe to show to staff.
-    const known = ["not enough points", "undo window", "already undone", "invalid bill", "too small", "only earn and redeem", "below zero", "already stamped", "does not use stamps"];
+    const known = ["not enough points", "undo window", "already undone", "invalid bill", "too small", "only earn and redeem", "below zero", "already stamped", "does not use stamps", "visit already recorded", "daily scan limit", "choose a branch", "not allowed at this branch", "cannot be recorded at this counter", "does not use visit cards", "voucher already used", "voucher is not valid", "voucher has expired", "voucher cannot be used at this branch", "voucher not found", "branch not found"];
     return known.some((k) => msg.includes(k)) ? fail(msg.charAt(0).toUpperCase() + msg.slice(1) + ".") : fail("Something went wrong. Please try again.", 500);
   }
 }
@@ -26,21 +28,39 @@ export type GuestView = {
   cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd: number;
   /** Stamp venues (0020): points are stamps, goal/rewardText are the reward due next, plus the ladder for the dots. */
   stampMode?: boolean; stamps?: StampState;
+  /** Visit cards (0022): no points; staff record the visit and redeem vouchers. */
+  visitMode?: boolean; lastVisit?: string | null; vouchers?: CardVoucher[];
 };
 
 /** What staff may see about a guest: first name, points and visits. Never phone or email. */
 export async function guestView(cardId: string, staff: Staff): Promise<GuestView | null> {
   const { data, error } = await db()
     .from("cards")
-    .select("id, code, points, visits, rewards_given, venue_id, members(name, deleted_at), venues(reward_goal, reward_text, points_per_bhd, stamp_tiers)")
+    .select("id, code, points, visits, rewards_given, last_visit, venue_id, members(name, deleted_at), venues(reward_goal, reward_text, points_per_bhd, stamp_tiers, card_mode)")
     .eq("id", cardId)
     .eq("venue_id", staff.venueId)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const member = data.members as unknown as { name: string; deleted_at: string | null } | null;
-  const venue = data.venues as unknown as { reward_goal: number; reward_text: string; points_per_bhd?: number; stamp_tiers?: unknown } | null;
+  const venue = data.venues as unknown as { reward_goal: number; reward_text: string; points_per_bhd?: number; stamp_tiers?: unknown; card_mode?: string | null } | null;
   if (!member || member.deleted_at || !venue) return null;
+  if (venue.card_mode === "visits") {
+    return {
+      cardId: data.id,
+      firstName: member.name.trim().split(/\s+/)[0],
+      code: data.code,
+      points: 0,
+      visits: data.visits,
+      goal: 0,
+      rewardText: "",
+      rewardReady: false,
+      pointsPerBhd: 0,
+      visitMode: true,
+      lastVisit: (data as { last_visit?: string | null }).last_visit ?? null,
+      vouchers: await cardVouchers(data.id, staff.venueId),
+    };
+  }
   const tiers = parseTiers(venue.stamp_tiers);
   if (tiers) {
     const s = stampState(tiers, data.points, Number((data as { rewards_given?: number }).rewards_given ?? 0));

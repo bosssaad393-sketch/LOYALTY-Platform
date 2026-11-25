@@ -1,5 +1,5 @@
 import "server-only";
-import { SAMPLE_OWNER_PIN, SAMPLE_STAFF_PIN } from "./demo";
+import { SAMPLE_OWNER_PIN, SAMPLE_PARTNER_PIN, SAMPLE_STAFF_PIN } from "./demo";
 import { sampleGuests } from "./fakeSeed";
 import { pinLookup } from "./pinHash";
 
@@ -50,25 +50,68 @@ function samplePin(pin: string): string | null {
   }
 }
 
+/**
+ * A visit-card sample (migration 0022) instead of the points sample: set BRAND_DEFAULT_VENUE to a slug other than
+ * "orbyn" together with SAMPLE_CARD_MODE=visits. One business, two branches and a partner counter, one first-visit
+ * voucher. Everything here is invented sample data: the branch names come from SAMPLE_BRANCHES ("Sanad,Zallaq").
+ */
+const VISITS = process.env.SAMPLE_CARD_MODE === "visits";
+const SAMPLE_SLUG = (VISITS && /^[a-z0-9-]+$/.test(process.env.BRAND_DEFAULT_VENUE ?? "") ? process.env.BRAND_DEFAULT_VENUE! : "orbyn");
+const BRANCH_NAMES = (process.env.SAMPLE_BRANCHES ?? "Main branch,Second branch").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 5);
+const PARTNER_NAME = process.env.SAMPLE_PARTNER ?? "Sister restaurant";
+const PARTNER = fakeId(590);
+const VOUCHER = fakeId(600);
+const sampleBranches: Row[] = VISITS
+  ? [
+      ...BRANCH_NAMES.map((name, i) => ({ id: fakeId(500 + i), venue_id: VENUE, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_ar: null, kind: "branch", address: null, phone: null, maps_url: null, review_url: null, menu_url: null, lat: null, lng: null, sort: i, active: true })),
+      { id: PARTNER, venue_id: VENUE, slug: "partner", name: PARTNER_NAME, name_ar: null, kind: "partner", address: null, phone: null, maps_url: null, review_url: null, menu_url: null, lat: null, lng: null, sort: 9, active: true },
+    ]
+  : [];
+if (VISITS) {
+  // A visit card has no points: the sample guests keep their visits and dates only, spread over the branches.
+  for (const c of guests.cards) c.points = 0;
+  guests.ledger = guests.ledger.filter((l) => l.kind === "earn").map((l, i) => ({ ...l, points: 0, bill_bhd: null, note: "visit", branch_id: fakeId(500 + (i % BRANCH_NAMES.length)) }));
+  guests.members.forEach((m, i) => { if (i % 3 === 0) { m.birth_day = 1 + (i % 28); m.birth_month = 1 + (i % 12); } });
+}
+
 const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, Row[]> }).__fakeDb ??= {
   venues: [
     {
       id: VENUE,
-      slug: "orbyn",
-      name: "Orbyn",
+      slug: SAMPLE_SLUG,
+      name: VISITS ? (process.env.BRAND_NAME ?? "Sample venue") : "Orbyn",
       points_per_bhd: 2,
       reward_goal: 500,
       reward_text: "A dessert on the house",
-      instagram_url: "https://www.instagram.com/calabos04",
+      instagram_url: VISITS ? null : "https://www.instagram.com/calabos04",
+      card_mode: VISITS ? "visits" : null,
+      join_fields: VISITS ? ["mobile", "email", "birthday"] : null,
+      visit_gap_minutes: 180,
+      visit_cap_per_staff: 250,
       active: true,
     },
   ],
   ...guests,
   staff_users: [
-    { id: fakeId(900), venue_id: VENUE, name: "Saad", role: "owner", active: true, pin_lookup: samplePin(SAMPLE_OWNER_PIN) },
-    { id: fakeId(901), venue_id: VENUE, name: "Saad", role: "developer", active: true },
-    { id: fakeId(902), venue_id: VENUE, name: "Sample staff", role: "staff", active: true, pin_lookup: samplePin(SAMPLE_STAFF_PIN) },
+    { id: fakeId(900), venue_id: VENUE, name: "Saad", role: "owner", active: true, branch_id: null, pin_lookup: samplePin(SAMPLE_OWNER_PIN) },
+    { id: fakeId(901), venue_id: VENUE, name: "Saad", role: "developer", active: true, branch_id: null },
+    { id: fakeId(902), venue_id: VENUE, name: "Sample staff", role: "staff", active: true, branch_id: VISITS ? fakeId(500) : null, pin_lookup: samplePin(SAMPLE_STAFF_PIN) },
+    ...(VISITS ? [{ id: fakeId(903), venue_id: VENUE, name: `${PARTNER_NAME} till`, role: "staff", active: true, branch_id: PARTNER, pin_lookup: samplePin(SAMPLE_PARTNER_PIN) }] : []),
   ],
+  branches: sampleBranches,
+  vouchers: VISITS
+    ? [{ id: VOUCHER, venue_id: VENUE, title: `50% off at ${PARTNER_NAME}`, title_ar: null, detail: "A thank-you for joining. One visit, one bill.", detail_ar: null, trigger: "first_visit", redeem_branch_id: PARTNER, valid_days: 60, active: true, created_at: new Date(0).toISOString() }]
+    : [],
+  // Sample: the regulars already had their first-visit voucher; a third of them used it.
+  card_vouchers: VISITS
+    ? guests.cards.filter((c) => Number(c.visits) > 0).map((c, i) => {
+        const issued = new Date(Date.now() - (5 + (i % 40)) * 86_400_000).toISOString();
+        const used = i % 3 === 0;
+        return { id: fakeId(30_000 + i), card_id: c.id, venue_id: VENUE, voucher_id: VOUCHER, status: used ? "redeemed" : "issued", issued_at: issued, issued_by: fakeId(902), issued_branch: fakeId(500), expires_at: new Date(Date.parse(issued) + 60 * 86_400_000).toISOString(), redeemed_at: used ? new Date(Date.parse(issued) + 4 * 86_400_000).toISOString() : null, redeemed_by: used ? fakeId(903) : null, redeemed_branch: used ? PARTNER : null, voided_at: null, voided_by: null };
+      })
+    : [],
+  auto_messages: [],
+  message_log: [],
   venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `orbyn-table-code-${n}`, active: true })),
   menu_categories: sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
   menu_items: sampleItems.map(([n, cat, en, ar, fils, photo], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, image_url: `/menu-photos/${photo}.webp`, price_fils: fils, available: true, active: true, sort: i })),
@@ -276,6 +319,68 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
     const undo = entry(card, "undo", -Number(was.points)) as Record<string, unknown>;
     undo.undoes = was.id;
     return { data: [{ ledger_id: undo.id, new_balance: card.points }], error: null };
+  }
+  // Migration 0022, the same rules as the database functions (which are the ones tested in tests/visitsVouchers.test.ts).
+  const bad = (message: string): Result => ({ data: null, error: { code: "P0001", message } });
+  const staffOf = (id: unknown) => store.staff_users.find((s) => s.id === id && s.active);
+  const audit = (venue: unknown, action: string, detail: Row) => (store.audit_log ??= []).push({ id: uuid(), venue_id: venue, actor: args.p_staff, action, detail, branch_id: args.p_branch ?? null, created_at: new Date().toISOString() });
+  if (fn === "ledger_visit") {
+    const card = cardOf(args.p_card);
+    const venue = store.venues.find((v) => v.id === card?.venue_id);
+    const staff = staffOf(args.p_staff);
+    if (!card || !venue) return bad("card not found");
+    if (!staff || staff.venue_id !== card.venue_id) return bad("staff member is not allowed at this venue");
+    if (venue.card_mode !== "visits") return bad("this venue does not use visit cards");
+    const places = (store.branches ??= []).filter((b) => b.venue_id === card.venue_id && b.active);
+    const branch = places.find((b) => b.id === args.p_branch);
+    if (args.p_branch && !branch) return bad("branch not found");
+    if (branch && branch.kind !== "branch") return bad("visits cannot be recorded at this counter");
+    if (!args.p_branch && places.some((b) => b.kind === "branch")) return bad("choose a branch first");
+    if (staff.branch_id && staff.branch_id !== args.p_branch) return bad("staff member is not allowed at this branch");
+    const undone = new Set(ledger.filter((l) => l.kind === "undo").map((l) => l.undoes));
+    const mine = ledger.filter((l) => l.card_id === card.id && l.kind === "earn" && !undone.has(l.id));
+    const gap = Number(venue.visit_gap_minutes ?? 180) * 60_000;
+    if (mine.some((l) => Date.now() - new Date(String(l.created_at)).getTime() < gap)) return bad("visit already recorded");
+    const today = ledger.filter((l) => l.staff_id === args.p_staff && l.note === "visit" && Date.now() - new Date(String(l.created_at)).getTime() < 86_400_000).length;
+    if (today >= Number(venue.visit_cap_per_staff ?? 250)) return bad("daily scan limit reached");
+    const first = !mine.some((l) => l.note === "visit");
+    card.visits = Number(card.visits ?? 0) + 1;
+    const row = entry(card, "earn", 0) as Row;
+    row.note = "visit";
+    row.branch_id = args.p_branch ?? null;
+    let issued = 0;
+    const held = (store.card_vouchers ??= []);
+    for (const v of (store.vouchers ??= []).filter((x) => x.venue_id === card.venue_id && x.active && (x.trigger === "every_visit" || (x.trigger === "first_visit" && first)))) {
+      if (held.some((h) => h.card_id === card.id && h.voucher_id === v.id)) continue;
+      held.push({ id: uuid(), card_id: card.id, venue_id: card.venue_id, voucher_id: v.id, status: "issued", issued_at: new Date().toISOString(), issued_by: args.p_staff, issued_branch: args.p_branch ?? null, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
+      issued++;
+    }
+    audit(card.venue_id, "visit", { card: card.id, ledger: row.id, vouchers_issued: issued });
+    return { data: [{ ledger_id: row.id, visits: card.visits, vouchers_issued: issued }], error: null };
+  }
+  if (fn === "voucher_redeem" || fn === "voucher_void") {
+    const cv = (store.card_vouchers ??= []).find((h) => h.id === args.p_card_voucher);
+    const staff = staffOf(args.p_staff);
+    if (!cv) return bad("voucher not found");
+    if (!staff || staff.venue_id !== cv.venue_id) return bad("staff member is not allowed at this venue");
+    if (fn === "voucher_void") {
+      if (staff.role !== "owner" && staff.role !== "manager") return bad("only the owner or a manager can cancel a voucher");
+      if (cv.status !== "issued") return bad("voucher is not valid");
+      Object.assign(cv, { status: "void", voided_at: new Date().toISOString(), voided_by: args.p_staff });
+      audit(cv.venue_id, "voucher_void", { card: cv.card_id, card_voucher: cv.id });
+      return { data: [{ card_voucher_id: cv.id }], error: null };
+    }
+    const def = (store.vouchers ??= []).find((v) => v.id === cv.voucher_id);
+    if (args.p_branch && !(store.branches ??= []).some((b) => b.id === args.p_branch && b.venue_id === cv.venue_id && b.active)) return bad("branch not found");
+    if (staff.branch_id && staff.branch_id !== args.p_branch) return bad("staff member is not allowed at this branch");
+    if (cv.status === "redeemed") return bad("voucher already used");
+    if (cv.status !== "issued") return bad("voucher is not valid");
+    if (cv.expires_at && new Date(String(cv.expires_at)).getTime() < Date.now()) return bad("voucher has expired");
+    if (def?.redeem_branch_id && def.redeem_branch_id !== args.p_branch) return bad("voucher cannot be used at this branch");
+    const now = new Date().toISOString();
+    Object.assign(cv, { status: "redeemed", redeemed_at: now, redeemed_by: args.p_staff, redeemed_branch: args.p_branch ?? null });
+    audit(cv.venue_id, "voucher_redeem", { card: cv.card_id, card_voucher: cv.id, voucher: cv.voucher_id });
+    return { data: [{ card_voucher_id: cv.id, redeemed_at: now }], error: null };
   }
   // Sample data never limits anyone (migration 0014 does the real counting).
   if (fn === "rate_hit") return { data: true, error: null };

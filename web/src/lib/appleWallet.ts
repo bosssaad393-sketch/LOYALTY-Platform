@@ -11,6 +11,11 @@ import { walletColors } from "./brand";
 import { parseTiers, stampState } from "./stamps";
 import { ladderRows, rgb, stampCardStyle, stampStripImages, type StampCardStyle } from "./stampStrip";
 import type { StampState } from "./stamps";
+import { listBranches } from "./branchesDb";
+import { passLocations, PASS_RADIUS_M } from "./branches";
+import { cardVouchers } from "./vouchersDb";
+import { passVoucher, voucherState } from "./vouchers";
+import { noticeForCard } from "./autoMessagesDb";
 
 /**
  * The Arabic side of a stamp card (Apple's ar.lproj): iPhones set to Arabic show the Arabic strip, the Arabic logo
@@ -188,8 +193,17 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   const ladderStrip = look && st ? await stampStripImages(venue.slug, ladderRows(st, st.tiers.map((t) => t.text)), look, "en") : null;
   // Arabic iPhones get their own strip, logo and words (Apple's ar.lproj), from the Arabic reward names when given.
   const arStrip = look && st && ladderStrip ? await stampStripImages(venue.slug, ladderRows(st, st.tiers.map((t) => t.ar || t.text)), look, "ar") : null;
+  // Visit card (0022): no points. The front shows the visits and the gift that is ready; the card comes up on the
+  // lock screen near a branch. All best effort: a failed read still gives a working card.
+  const visitMode = venue.card_mode === "visits";
+  const branches = visitMode ? await listBranches(venue.id) : [];
+  const vouchers = visitMode ? await cardVouchers(card.id, venue.id) : [];
+  const gift = visitMode ? passVoucher(vouchers) : null;
+  const notice = visitMode ? await noticeForCard(card.id) : null;
+  const locations = passLocations(branches, venue.name);
   const colors = walletColors();
   const props = {
+    ...(locations.length ? { maxDistance: PASS_RADIUS_M } : {}),
     ...live,
     passTypeIdentifier: process.env.APPLE_PASS_TYPE_ID,
     teamIdentifier: process.env.APPLE_TEAM_ID,
@@ -246,7 +260,36 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   // Wallet puts secondary and auxiliary fields on ONE row and four of them do not fit next to a name (measured on a real
   // iPhone), so the row holds three: MEMBER, POINTS, YOUR CODE. How far to the reward is the first thing on the back.
   const storeCard = new PassType("storeCard");
-  if (preview) {
+  if (visitMode && !preview) {
+    // Visit card: visits in the header, the member and the gift below the artwork. Wallet announces a gift once, when
+    // it is unlocked (the field's value changes from the welcome line to the gift).
+    const base = process.env.PUBLIC_BASE_URL ?? baseUrl;
+    const main = branches.find((b) => b.kind === "branch");
+    const used = vouchers.filter((v) => voucherState(v) === "used");
+    storeCard.headerFields.push({ key: "visits", label: "VISITS", value: card.visits, textAlignment: "PKTextAlignmentRight" as const });
+    storeCard.secondaryFields.push(
+      { key: "member", label: "MEMBER", value: memberName },
+      gift
+        ? { key: "gift", label: "YOUR GIFT", value: gift.title, textAlignment: "PKTextAlignmentRight" as const, changeMessage: "Your gift is ready: %@" }
+        : { key: "gift", label: "MEMBER CODE", value: card.code, textAlignment: "PKTextAlignmentRight" as const },
+    );
+    const link = (key: string, label: string, text: string, url: string | null | undefined) =>
+      url ? [{ key, label, value: text, attributedValue: `<a href="${url}">${text}</a>` }] : [];
+    storeCard.backFields.push(
+      ...(notice ? [{ key: "notice", label: `From ${venue.name}`, value: notice.message, changeMessage: "%@" }] : []),
+      ...(offer ? [backFields[0]] : []),
+      ...(gift ? [{ key: "giftHow", label: "Your gift", value: [gift.title, gift.detail, gift.redeemBranchName ? `Use it at ${gift.redeemBranchName}.` : null, gift.expiresAt ? `Valid until ${new Date(gift.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" })}.` : null, "One use only. Show this card to the staff."].filter(Boolean).join(" ") }] : []),
+      ...(used.length ? [{ key: "giftUsed", label: "Used", value: used.map((v) => v.title).join(" · ") }] : []),
+      { key: "open", label: "Your card", value: `Open your ${venue.name} card`, attributedValue: `<a href="${cardUrl}">Open your ${venue.name} card</a>` },
+      ...link("menu", "Menu", "See the menu", main?.menuUrl ?? `${base}/menu/${venue.slug}`),
+      ...branches.filter((b) => b.kind === "branch").flatMap((b) => link(`map-${b.slug}`, b.name, b.address ? `${b.address}. Directions` : "Directions", b.mapsUrl)),
+      // The review link is on every card, whoever the guest is: never tied to a reward, never shown only to happy guests.
+      ...link("review", "Tell us how we did", "Leave a Google review", main?.reviewUrl),
+      { key: "how", label: "How it works", value: "Show this card each time you visit. The staff scan it, and gifts appear on the card when they are ready." },
+      { key: "terms", label: "Terms", value: `Gifts are set by ${venue.name}, can change, have no cash value and can be used once.` },
+      { key: "powered", label: "Powered by", value: "Orbyn" },
+    );
+  } else if (preview) {
     // Test cards only (?preview=qr or card, separate serial, never updated): points small in the header, nothing printed on top of the strip.
     storeCard.headerFields.push(pointsField);
     storeCard.secondaryFields.push({ key: "member", label: "MEMBER", value: memberName }, progress);
@@ -291,6 +334,8 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     pass.types.push(storeCard);
   }
   if (look && ladderStrip && st) addArabic(pass, venue, st, look, arStrip);
+  // Near a branch the card comes up on the lock screen (only for guests who hold the card: Wallet cannot reach anyone else).
+  if (locations.length && !preview) pass.setLocations(...locations);
   if (preview !== "qr") pass.setBarcodes({
     format: "PKBarcodeFormatQR",
     message: `LOYALTY:${venue.slug}:${card.code}`,

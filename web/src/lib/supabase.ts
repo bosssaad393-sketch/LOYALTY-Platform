@@ -27,6 +27,10 @@ export type Venue = {
   points_per_bhd: number;
   reward_goal: number;
   reward_text: string;
+  /** 'visits' = a visit card: no points, no stamps (migration 0022). */
+  card_mode?: string | null;
+  /** What the join page asks for besides the name (migration 0022). */
+  join_fields?: string[] | null;
 };
 
 export type Card = {
@@ -42,7 +46,7 @@ export type Card = {
 export async function getVenue(slug: string): Promise<Venue | null> {
   const { data, error } = await db()
     .from("venues")
-    .select("id, slug, name, points_per_bhd, reward_goal, reward_text")
+    .select("id, slug, name, points_per_bhd, reward_goal, reward_text, card_mode, join_fields")
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle();
