@@ -237,24 +237,19 @@
     "review": "Leave a Google review",
     "reviewNote": "Your honest opinion helps other guests.",
     "newTab": "opens in a new tab",
-    "show": "Show this at the counter"
+    "show": "Show this at the counter",
+    "remembered": "This phone remembers your card, so our home page opens it for you.",
+    "notMine": "Not my phone",
+    "forgotten": "Done. This phone no longer remembers your card."
   },
   "hub": {
-    "title": "Welcome to {venue}",
     "lead": "Your card, the menu and everything you need while you are here.",
-    "hello": "Welcome back, {name}",
     "leadMember": "Your card and everything you need while you are here.",
     "getCard": "Get your card",
-    "getCardSub": "Free, in your phone's Wallet. A gift unlocks on your first visit.",
-    "join": "Join",
     "myCard": "My card",
     "myCardSub": "Show it to the staff on every visit.",
-    "open": "Open",
     "listLabel": "What you can do here",
     "menu": "Menu",
-    "menuSub": "Breakfast, mains and drinks",
-    "message": "Message us",
-    "messageSub": "On WhatsApp · {phone}",
     "directions": "Directions",
     "review": "Leave a Google review",
     "reviewSub": "Your honest opinion helps other guests",
@@ -262,8 +257,16 @@
     "wifiSub": "Network and password",
     "network": "Network",
     "password": "Password",
-    "contact": "Save our contact",
-    "contactSub": "Add {venue} to your phone",
-    "branches": "Branches:"
+    "branches": "Branches:",
+    "leadGift": "Your gift is ready. Show your card to the staff.",
+    "yourName": "Your name",
+    "since": "Member since {date}",
+    "visits": "Visits",
+    "openCard": "Open my card",
+    "getCardGift": "Free, in your phone's Wallet. A gift unlocks on your first visit.",
+    "getCardFree": "Free, in your phone's Wallet. Nothing to download.",
+    "titlePre": "Welcome to",
+    "helloPre": "Welcome back,",
+    "call": "Call us"
   }
 }

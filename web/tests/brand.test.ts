@@ -85,6 +85,16 @@ describe("type set and finish", () => {
     expect(brandFinish({ BRAND_FINISH: "shiny" })).toBe("default");
   });
 
+  it("marcellus sets the heading face, the text face and one Arabic face, and keeps a Latin name in the heading face", async () => {
+    const { brandFont, brandStyle } = await import("@/lib/brand");
+    const style = brandStyle({ BRAND_FONT: "marcellus" } as never);
+    expect(brandFont({ BRAND_FONT: "Marcellus " } as never)).toBe("marcellus");
+    expect(style["--serif"]).toMatch(/^var\(--font-marcellus\), var\(--font-arsans\)/);
+    expect(style["--sans"]).toMatch(/^var\(--font-hanken\), var\(--font-arsans\)/);
+    expect(style["--display-arabic"]).toBe("var(--serif)");
+    expect(brandFont({ BRAND_FONT: "gloock" } as never)).toBe("default");
+  });
+
   it("baskerville sets the serif, the text face and the Arabic face", async () => {
     const { brandFont } = await import("@/lib/brand");
     const style = brandStyle({ BRAND_FONT: " Baskerville " });

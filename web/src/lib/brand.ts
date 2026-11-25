@@ -160,12 +160,26 @@ const BASKERVILLE_FONTS = {
   "--display-arabic": "var(--font-naskh), var(--serif)",
 };
 
-export type BrandFont = "default" | "classic" | "baskerville";
+/**
+ * BRAND_FONT=marcellus: Marcellus (drawn from Roman inscriptions: letters that look cut into a wall) for headings,
+ * Hanken Grotesk for text and figures, Noto Sans Arabic for all Arabic (a Latin name inside an Arabic heading stays
+ * in Marcellus). Marcellus has one weight, so layout.tsx switches made-up bold off (class type-inscribed).
+ */
+const MARCELLUS_FONTS = {
+  "--font-sans": "var(--font-hanken)",
+  "--font-ar": "var(--font-arsans)",
+  "--serif": 'var(--font-marcellus), var(--font-arsans), Georgia, "Times New Roman", serif',
+  "--sans": 'var(--font-hanken), var(--font-arsans), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+  "--display": "var(--serif)",
+  "--display-arabic": "var(--serif)",
+};
+
+export type BrandFont = "default" | "classic" | "baskerville" | "marcellus";
 
 /** Which type set the client chose. Anything unknown = the template's own (Outfit and Tajawal). */
 export function brandFont(env: Env = process.env): BrandFont {
   const v = env.BRAND_FONT?.trim().toLowerCase();
-  return v === "classic" || v === "baskerville" ? v : "default";
+  return v === "classic" || v === "baskerville" || v === "marcellus" ? v : "default";
 }
 
 export type BrandFinish = "default" | "matte" | "glass";
@@ -203,7 +217,7 @@ export function brandStyle(env: Env = process.env): Record<string, string> {
   const font = brandFont(env);
   return {
     ...(same ? {} : brandTokens(c)),
-    ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : {}),
+    ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : font === "marcellus" ? MARCELLUS_FONTS : {}),
     ...(isQuietFinish(env) ? MATTE_TOKENS : {}),
   };
 }

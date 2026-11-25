@@ -10,7 +10,7 @@ BRAND_DEFAULT_VENUE=roshinah
 BRAND_BG="#013220"      # quote the hex values in .env files: unquoted, dotenv reads "#..." as a comment
 BRAND_TEXT="#faf8f3"
 BRAND_ACCENT="#c9a96e"
-BRAND_FONT=baskerville  # Libre Baskerville + Jost + Noto Naskh Arabic, self-hosted by next/font
+BRAND_FONT=marcellus    # Marcellus (headings) + Hanken Grotesk (text, figures) + Noto Sans Arabic, self-hosted by next/font
 BRAND_FINISH=matte      # flat: no moving network, no foil, glow or beam; ivory primary buttons; pass in the green itself
 BRAND_MARK=type         # no clean logo yet: the name in type inside a thin frame (remove when the logo file arrives)
 BRAND_LANGUAGES=en,ar
@@ -74,3 +74,10 @@ app-ui-references (scan, then a result sheet; result first, one primary button; 
 the product's own objects: the gift ticket, the branch list), brand (guide structure: voice chart, logo, colour, type,
 imagery), design-md-library `starbucks` (structure only: green tiers by surface role, gold kept for reward ceremony).
 premium-frontend-ui was read; its landing-page motion advice does not fit working screens and was not applied.
+
+## Guest pages, 2026-11-25 rework
+
+- Guest hub (home page and till QR): "Welcome to" small, the name large; the real card face (empty before joining, name and visits after, the niche lit while a gift waits); two buttons (card, menu); one glass list of restaurant things only: call, directions, Google review, Wi-Fi, Instagram. A row with nothing set is not drawn.
+- The wall moves: `web/public/venues/roshinah/glass-loop.mp4` (0.4 MB, 14 s, plays forward then back so it never jumps), made from the wall picture with Higgsfield (source in `design/roshinah/wall-palm-motion.mp4`). Announced by `"wallLoop": true` in `card.json`. Phones held upright on guest pages only; the still picture stays for reduced motion, data saver, Low Power Mode, wide screens and the staff till.
+- A phone that opened its card remembers it (same cookie as table orders), so the hub greets the guest by name; "Not my phone" on the card page undoes it.
+- Codes and counts are set in the text face: Marcellus draws its zero as a ring that reads as the letter O.

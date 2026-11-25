@@ -210,7 +210,9 @@ img.vc-mark { width: auto; height: 15cqw; }
 .vca-shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(to right, rgb(0 14 8 / 0.36), rgb(0 14 8 / 0.1) 46%, transparent 60%); }
 [dir="rtl"] .vca-shade { background: linear-gradient(to left, rgb(0 14 8 / 0.36), rgb(0 14 8 / 0.1) 46%, transparent 60%); }
 .vca::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); pointer-events: none; }
-.vca .vca-mark { position: absolute; inset-block-start: 6.6cqw; inset-inline-start: 6.6cqw; }
+/* The mark is always set left to right (a Latin wordmark), so its side is given physically, per page direction. */
+.vca .vca-mark { position: absolute; top: 6.6cqw; left: 6.6cqw; }
+[dir="rtl"] .vca .vca-mark { left: auto; right: 6.6cqw; }
 .vca-who { position: absolute; inset-block-end: 6.4cqw; inset-inline-start: 6.6cqw; max-width: 50%; }
 .vca-who .vc-name { margin: 0; font-size: clamp(17px, 5.4cqw, 24px); }
 .vca-who .vc-since { margin-block-start: 1.2cqw; color: rgb(255 255 255 / 0.78); }
@@ -233,43 +235,100 @@ html[style*="--venue-card"] .jp .jp-code { display: none; }
 html[style*="--venue-card"] .jp .jp-name, html[style*="--venue-card"] .jp .jp-venue { max-width: 52%; }
 @media (prefers-reduced-motion: reduce) { .vca-lit { transition: none; } }
 
-/* ---- The guest hub (components/VisitHub.tsx): the venue's mark, one line, the card, then a short column of rows.
-   Each row is one thing a guest wants at the table: a plain icon, a title, one line under it. ---- */
-.hub { padding-block-start: max(20px, env(safe-area-inset-top)); }
-.hub-head { display: grid; justify-items: center; text-align: center; gap: 0; padding-block: 22px 6px; }
-.hub-head .hub-mark { font-size: 16px; margin: 0 0 26px; }
-img.hub-mark { width: 96px; height: auto; }
-.hub-title { font: 400 clamp(30px, 8.6vw, 40px)/1.12 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
-.hub-lead { max-width: 30ch; margin-block-start: 12px; color: var(--muted); font-size: var(--fs-lg); line-height: 1.5; text-wrap: pretty; }
-.hub-card { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-block-start: 24px; padding: 20px 20px 20px 22px; min-height: 148px; border-radius: 22px; overflow: hidden; isolation: isolate; color: var(--text); text-decoration: none; background: var(--bg); box-shadow: 0 22px 54px rgb(0 0 0 / 0.4), inset 0 0 0 1px rgb(255 255 255 / 0.12); transition: transform 0.2s ease; }
-.hub-card.art { background: linear-gradient(to right, rgb(0 14 8 / 0.5), rgb(0 14 8 / 0.12) 55%, transparent 70%), var(--venue-card) right center / cover no-repeat, var(--bg); }
-[dir="rtl"] .hub-card.art { background: linear-gradient(to left, rgb(0 14 8 / 0.5), rgb(0 14 8 / 0.12) 55%, transparent 70%), var(--venue-card) left center / cover no-repeat, var(--bg); }
-.hub-card:active { transform: scale(0.985); }
-.hub-card-tx { display: grid; gap: 6px; max-width: 58%; }
-.hub-card-tx b { font: 400 26px/1.15 var(--serif); }
-.hub-card-tx small { font-size: var(--fs-base); line-height: 1.45; color: rgb(255 255 255 / 0.84); }
-.hub-card-go { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; border-radius: 999px; background: var(--text); color: var(--bg); font-weight: 600; font-size: var(--fs-md); box-shadow: 0 8px 22px rgb(0 0 0 / 0.3); }
-.hub-list { display: grid; gap: 10px; margin-block-start: 14px; }
-.hub-row, .hub-wifi > summary { display: grid; grid-template-columns: 24px minmax(0, 1fr) 20px; align-items: center; gap: 16px; }
-.hub-row { min-height: 72px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--bg); color: var(--text); text-decoration: none; transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease; }
-a.hub-row:hover { border-color: rgb(255 255 255 / 0.32); }
-a.hub-row:active { transform: scale(0.985); }
-.hub-ic { color: var(--gold2); }
-.hub-tx { display: grid; gap: 2px; min-width: 0; }
-.hub-tx b { font: 400 20px/1.25 var(--serif); }
-.hub-tx small { color: var(--muted); font-size: var(--fs-sm); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hub-go { color: var(--muted); }
+/* ---- The guest hub (components/VisitHub.tsx). One column a thumb can run down: the venue's mark and the language,
+   one heading, the card itself, one button, then one list. Two faces with two jobs: the display face for the heading
+   and the card, the text face for everything a guest taps. ---- */
+.hub { padding-block-start: max(8px, env(safe-area-inset-top)); }
+.hub-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+.hub-bar .hub-mark { font-size: 11px; margin: 0; }
+img.hub-mark { width: 56px; height: auto; }
+.hub-bar .lang-row { margin: 0; }
+.hub-head { padding-block-start: 18px; }
+/* The heading brings its own entrance (the name rises): the block itself does not blur in over it. */
+.hub .hub-head.rv { animation: none; }
+/* The heading is one sentence at two sizes: a quiet "Welcome to", then the name as large as the phone allows. */
+.hub-title { margin: 0; font: 400 20px/1.3 var(--serif); letter-spacing: 0; }
+.hub-pre { display: block; color: color-mix(in srgb, var(--text) 88%, var(--bg)); }
+.hub-name { display: block; overflow: clip; overflow-clip-margin: 0.14em; margin-block-start: 2px; padding-block-end: 0.08em; font-size: clamp(50px, 15.8vw, 70px); line-height: 1; letter-spacing: -0.015em; overflow-wrap: anywhere; }
+.hub-title.long .hub-name { font-size: clamp(36px, 10.6vw, 48px); line-height: 1.06; }
+.hub-name > span { display: inline-block; }
+[lang="ar"] .hub-title { font-family: var(--display-arabic), var(--serif); font-weight: 500; }
+[lang="ar"] .hub-name { line-height: 1.25; letter-spacing: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .hub-pre { animation: hub-fade 0.7s var(--ease) both; }
+  .hub-name > span { animation: hub-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both; }
+  @keyframes hub-rise { from { transform: translateY(105%); } }
+  @keyframes hub-fade { from { opacity: 0; } }
+}
+.hub-lead { max-width: 34ch; margin-block-start: 12px; color: var(--muted); font-size: 17px; line-height: 1.45; text-wrap: pretty; }
+.hub-hero { display: block; container-type: inline-size; margin-block-start: 24px; border-radius: 4.6cqw; color: var(--text); text-decoration: none; transition: transform 0.4s var(--ease); -webkit-tap-highlight-color: transparent; }
+.hub-hero:active { transform: scale(0.985); transition-duration: 0.12s; }
+.hub-hero .vca { display: block; }
+.vc-name.empty { color: rgb(255 255 255 / 0.6); }
+.hub-act { margin-block-start: 16px; }
+.hub-two { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 10px; }
+.btn.hub-cta, .btn.hub-menu { min-height: 56px; gap: 10px; padding-inline: 14px; font-size: 17px; font-weight: 600; letter-spacing: 0; white-space: nowrap; }
+.btn.hub-menu .hub-ic { opacity: 1; }
+@media (max-width: 349px) { .hub-two { grid-template-columns: minmax(0, 1fr); } }
+.hub-cta svg { flex: none; transition: transform 0.25s var(--ease); }
+[dir="rtl"] .hub-cta svg { transform: scaleX(-1); }
+@media (hover: hover) { .hub-cta:hover svg { transform: translateX(3px); } [dir="rtl"] .hub-cta:hover svg { transform: scaleX(-1) translateX(3px); } }
+.hub-note { margin-block-start: 10px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.4; text-wrap: balance; }
+
+.hub-sheet { margin-block-start: 24px; border: 1px solid var(--line); border-radius: 20px; background: var(--bg); overflow: hidden; }
+.hub-row, .hub-wifi > summary { display: grid; grid-template-columns: 22px minmax(0, 1fr) 18px; align-items: center; gap: 16px; min-height: 64px; padding: 10px 18px; color: var(--text); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.hub-row { position: relative; transition: background-color 0.16s ease; }
+.hub-row + .hub-row::before { content: ""; position: absolute; inset-block-start: 0; inset-inline: 56px 0; height: 1px; background: var(--line); }
+a.hub-row:active, .hub-wifi > summary:active { background: rgb(255 255 255 / 0.09); }
+@media (hover: hover) { a.hub-row:hover, .hub-wifi > summary:hover { background: rgb(255 255 255 / 0.05); } }
+.hub-ic { color: var(--text); opacity: 0.88; }
+.hub-tx { display: grid; gap: 1px; min-width: 0; }
+.hub-tx b { font: 500 17px/1.3 var(--sans); }
+.hub-tx small { color: var(--muted); font-size: 14px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[dir="rtl"] .hub-tx small { text-align: right; }
+.hub-go { color: var(--dim); }
 [dir="rtl"] .hub-go { transform: scaleX(-1); }
-.hub-wifi { display: block; padding: 0; }
-.hub-wifi > summary { list-style: none; cursor: pointer; min-height: 72px; padding: 14px 18px; }
+.hub-wifi { display: block; padding: 0; min-height: 0; }
+.hub-wifi > summary { list-style: none; cursor: pointer; }
 .hub-wifi > summary::-webkit-details-marker { display: none; }
 .hub-wifi[open] .hub-go { transform: rotate(90deg); }
-.hub-wifi-in { display: grid; gap: 10px; margin: 0; padding: 4px 18px 18px 58px; }
+.hub-wifi-in { display: grid; gap: 12px; margin: 0; padding: 2px 18px 18px 56px; }
+[dir="rtl"] .hub-wifi-in { padding: 2px 56px 18px 18px; }
 .hub-wifi-in div { display: grid; gap: 2px; }
-.hub-wifi-in dt { color: var(--muted); font-size: var(--fs-sm); }
+.hub-wifi-in dt { color: var(--muted); font-size: 14px; }
 .hub-wifi-in dd { margin: 0; font: 500 18px/1.3 var(--sans); letter-spacing: 0.02em; overflow-wrap: anywhere; user-select: all; }
-.hub-branches { margin-block-start: 22px; text-align: center; color: var(--muted); font-size: var(--fs-base); }
-.hub-branches a { color: var(--text); text-underline-offset: 4px; }
-.hub-branches b { color: var(--text); font-weight: 600; }
-:is(.hub-row, .hub-card, .hub-wifi > summary):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-@media (prefers-reduced-motion: reduce) { .hub-row, .hub-card { transition: none; } }
+
+.hub-branches { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; margin-block-start: 18px; color: var(--muted); font-size: 15px; }
+.hub-branches span { margin-inline-end: 6px; }
+.hub-branches :is(a, b) { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; font-weight: 500; }
+.hub-branches a { color: var(--muted); text-decoration: none; }
+.hub-branches b { color: var(--text); background: rgb(255 255 255 / 0.1); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14); }
+@media (hover: hover) { .hub-branches a:hover { color: var(--text); } }
+:is(.hub-row, .hub-hero, .hub-cta, .hub-menu, .hub-wifi > summary, .hub-branches a):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.hub-row:focus-visible, .hub-wifi > summary:focus-visible { outline-offset: -3px; border-radius: 14px; }
+
+/* Before joining, when a gift waits behind the first visit, the light in the niche comes and goes. */
+@keyframes niche-breathe { 0%, 100% { opacity: 0; } 50% { opacity: 0.9; } }
+.vca.breathe .vca-lit { animation: niche-breathe 7s ease-in-out 1.2s infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .vca.breathe .vca-lit { animation: none; opacity: 0.55; }
+  .hub-hero, .hub-row, .hub-cta svg { transition: none; }
+  .hub .hub-head.rv { animation: none; }
+}
+
+/* The display faces of BRAND_FONT=marcellus have one weight: never let the browser fake a bold from it. */
+.type-inscribed { font-synthesis-weight: none; }
+.type-inscribed :is(.vh-title, .hub-title, .gs-h, .gift-title, .pl-name, .vq-lead) { letter-spacing: 0; }
+
+/* The way back to the venue's hub, on the join page and the card page. */
+.hub-back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-inline-start: -6px; padding-inline: 2px 10px; color: var(--text); font: 500 15px/1 var(--sans); text-decoration: none; border-radius: 999px; }
+[dir="rtl"] .hub-back svg { transform: scaleX(-1); }
+.hub-back:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.vp > .hub-bar { margin-block-end: 6px; }
+.vp-keep { margin-block-start: 8px; }
+.vp-undo { min-height: 44px; padding: 0 2px; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+
+/* Figures. The display face of BRAND_FONT=marcellus draws its zero as a ring, which reads as the letter O in a code a
+   guest says aloud at the till: every counted or spoken number is set in the text face instead, light and large. */
+.type-inscribed :is(.vca-count b, .vc-visits b, .vq-code b, .vc-code b, .st-vfacts dd, .ow-counts dd, .st-code, .ow-pin) { font-family: var(--sans); font-weight: 300; font-variant-numeric: lining-nums tabular-nums; }
+.type-inscribed :is(.vq-code b, .vc-code b) { font-weight: 400; letter-spacing: 0.1em; }

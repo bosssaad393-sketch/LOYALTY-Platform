@@ -166,33 +166,54 @@
   .look-glass { --g-tint: color-mix(in srgb, var(--bg) 94%, transparent); --g-tint-strong: var(--bg); --g-blur: none; }
 }
 
-/* ---- Guest hub rows are glass too ---- */
-.look-glass .hub-row { background: var(--g-sheen), var(--g-tint); border: 1px solid var(--g-line); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12); }
-.look-glass a.hub-row:hover { background: linear-gradient(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.1)), var(--g-tint); }
-.look-glass .hub-ic { color: var(--text); opacity: 0.92; }
+/* ---- The guest hub's list is one pane of glass (one blur, not one per row) ---- */
+.look-glass .hub-sheet { background: var(--g-sheen), var(--g-tint); border: 1px solid var(--g-line); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); box-shadow: var(--g-shadow); border-radius: 22px; }
+.look-glass .hub-row + .hub-row::before { background: var(--g-line-soft); }
+.look-glass .hub-title { text-shadow: 0 2px 26px rgb(0 0 0 / 0.42); }
+.look-glass .hub-lead { color: color-mix(in srgb, var(--text) 90%, var(--bg)); text-shadow: 0 1px 14px rgb(0 0 0 / 0.4); }
+.look-glass .hub-note { text-shadow: 0 1px 12px rgb(0 0 0 / 0.4); }
+.look-glass .lang-switch { color: color-mix(in srgb, var(--text) 78%, transparent); }
+.look-glass .lang-switch[aria-current] { color: var(--text); text-decoration-color: rgb(255 255 255 / 0.6); }
 
-/* ---- The living wall: on the guest's pages the picture moves the way a wall does in the morning. The palm shadows
-   sway a little in the breeze and a patch of warm light drifts across. Slow, transform and opacity only, and still for
-   anyone who asks their phone for less motion. ---- */
-@keyframes wall-sway {
-  0% { transform: scale(1.1) translate3d(-1.2%, -0.6%, 0) rotate(-0.5deg); }
-  50% { transform: scale(1.13) translate3d(0.9%, 0.5%, 0) rotate(0.35deg); }
-  100% { transform: scale(1.1) translate3d(1.4%, -0.3%, 0) rotate(0.6deg); }
+/* ---- Guest pages read from the top left, like the hub ---- */
+.look-glass .vh { text-align: start; padding-block-start: 10px; }
+.look-glass .vh .rc-rule { display: none; }
+.look-glass .vh-title { margin-block-start: 12px; font-size: clamp(32px, 9.6vw, 42px); line-height: 1.08; letter-spacing: -0.005em; text-wrap: balance; }
+.look-glass .vh-sub { margin-inline: 0; max-width: 34ch; margin-block-start: 12px; font-size: 17px; line-height: 1.45; color: color-mix(in srgb, var(--text) 90%, var(--bg)); text-shadow: 0 1px 14px rgb(0 0 0 / 0.4); }
+.look-glass .vh-mark { margin-inline: 0; }
+
+/* ---- The parts of the page the browser draws: they carry the brand too ---- */
+.look-glass { -webkit-tap-highlight-color: transparent; caret-color: var(--text); scrollbar-color: rgb(255 255 255 / 0.28) transparent; }
+.look-glass ::selection { background: rgb(255 255 255 / 0.28); color: var(--text); }
+.look-glass :focus-visible { outline-color: var(--text); }
+.look-glass a { text-underline-offset: 4px; }
+
+/* ---- The living wall. On the guest's pages the wall is filmed, not drawn: a short silent loop of the venue's own
+   background (components/WallLoop.tsx) plays over the still picture, so the palm shadows really move. The still (the
+   film's first frame) is there from the first paint; the film fades in once it plays. One shade lies over both, so
+   text reads the same whichever is showing. Wide screens, staff tills, reduced motion and data saver keep the still. ---- */
+.wall-v { display: none; }
+.look-glass body:has(main.app:not(.staff, .bd))::before {
+  background: var(--glass-still, var(--glass-photo-p, none)) left top / cover no-repeat, color-mix(in srgb, var(--bg) 70%, #000);
 }
-@keyframes wall-light {
-  0% { transform: translate3d(-34%, -8%, 0) scale(1); opacity: 0.0; }
-  18% { opacity: 0.55; }
-  50% { transform: translate3d(6%, 4%, 0) scale(1.18); opacity: 0.38; }
-  82% { opacity: 0.5; }
-  100% { transform: translate3d(42%, -6%, 0) scale(1.05); opacity: 0.0; }
+.look-glass body:has(main.app:not(.staff, .bd))::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgb(0 12 7 / 0.46) 0%, rgb(0 12 7 / 0.3) 22%, rgb(0 12 7 / 0.36) 46%, rgb(0 12 7 / 0.66) 100%);
 }
-.look-glass body:has(main.app)::before { transform-origin: 30% 12%; animation: wall-sway 19s ease-in-out infinite alternate; will-change: transform; inset: -4%; }
-.look-glass body:has(main.app)::after {
-  content: ""; position: fixed; z-index: -1; pointer-events: none; inset-inline-start: -10%; top: -6%; width: 90vmax; height: 62vmax;
-  background: radial-gradient(closest-side, rgb(255 214 150 / 0.2), rgb(255 214 150 / 0.07) 46%, transparent 72%);
-  mix-blend-mode: screen; animation: wall-light 27s ease-in-out infinite; will-change: transform, opacity;
+.look-glass body:has(main.app:not(.staff, .bd)) .wall-v {
+  display: block; position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; object-position: left top;
+  pointer-events: none; opacity: 0; transition: opacity 1.6s ease;
 }
-@media (prefers-reduced-motion: reduce) {
-  .look-glass body:has(main.app)::before { animation: none; inset: 0; }
-  .look-glass body:has(main.app)::after { display: none; }
+.look-glass .wall-v.on { opacity: 1; }
+@media (min-aspect-ratio: 1/1) {
+  .look-glass body:has(main.app:not(.staff, .bd)) .wall-v { display: none; }
+  .look-glass body:has(main.app:not(.staff, .bd))::before { background: var(--glass-photo-w, none) left top / cover no-repeat, color-mix(in srgb, var(--bg) 70%, #000); }
+  .look-glass body:has(main.app:not(.staff, .bd))::after { background: linear-gradient(90deg, rgb(0 12 7 / 0.3) 0%, rgb(0 12 7 / 0.36) 55%, rgb(0 12 7 / 0.56) 100%); }
 }
+@media (prefers-reduced-motion: reduce) { .look-glass .wall-v { display: none !important; } }
+
+/* ---- Join on glass: the preview card and the form share one edge, and the form gives its fields the width ---- */
+.look-glass .jp { width: 100%; margin-inline: 0; }
+.look-glass .app:has(.jp) .pane { padding: 26px 20px 22px; gap: 18px; }
+.look-glass .app:has(.jp) .vh { padding-block-start: 4px; }
+.look-glass .hub-back { text-shadow: 0 1px 12px rgb(0 0 0 / 0.4); }

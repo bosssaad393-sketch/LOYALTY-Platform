@@ -1,14 +1,15 @@
 import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
-import { Amiri, Cormorant_Garamond, Jost, Libre_Baskerville, Noto_Naskh_Arabic, Outfit, Tajawal } from "next/font/google";
+import { Amiri, Cormorant_Garamond, Hanken_Grotesk, Jost, Libre_Baskerville, Marcellus, Noto_Naskh_Arabic, Noto_Sans_Arabic, Outfit, Tajawal } from "next/font/google";
 import "./globals.css";
 import "./ground.css";
 import "./screens.css";
 import "./visit.css";
 import "./glass.css";
-import { cardArt } from "@/lib/venueArt";
+import { cardArt, wallLoop } from "@/lib/venueArt";
+import WallLoop from "@/components/WallLoop";
 import "@/components/motion.css";
-import { brandColors, brandFinish, brandName, brandStyle, brandVenue, usesOrbynLook } from "@/lib/brand";
+import { brandColors, brandFinish, brandFont, brandName, brandStyle, brandVenue, usesOrbynLook } from "@/lib/brand";
 
 // The client's name, colours and venue come from environment variables (src/lib/brand.ts, .env.example).
 export function generateMetadata(): Metadata {
@@ -37,18 +38,29 @@ const baskerville = Libre_Baskerville({ subsets: ["latin"], weight: ["400", "700
 const jost = Jost({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-jost", display: "swap", preload: false });
 const naskh = Noto_Naskh_Arabic({ subsets: ["arabic"], weight: ["400", "600", "700"], variable: "--font-naskh", display: "swap", preload: false });
 
+// BRAND_FONT=marcellus (an inscriptional look): Marcellus for headings, Hanken Grotesk for text and figures, and
+// Noto Sans Arabic for all Arabic. Only fetched by a browser when the set is chosen.
+// No size-matched stand-in for the two Latin faces: that stand-in is a system font holding every script, so Arabic
+// would be drawn from it and never reach the Arabic faces listed after it.
+const marcellus = Marcellus({ subsets: ["latin"], weight: "400", variable: "--font-marcellus", display: "swap", preload: false, adjustFontFallback: false });
+const hanken = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-hanken", display: "swap", preload: false, adjustFontFallback: false });
+const arSans = Noto_Sans_Arabic({ subsets: ["arabic"], variable: "--font-arsans", display: "swap", preload: false });
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const venue = brandVenue();
   const orbyn = usesOrbynLook();
   const finish = brandFinish();
+  const font = brandFont();
+  const loop = finish === "glass" ? wallLoop(venue) : null;
   const style = {
     ...brandStyle(),
     "--brand-marble": `url("/venues/${venue}/marble.jpg")`,
     ...(cardArt(venue) ? { "--venue-card": `url("${cardArt(venue)!.src}")` } : {}),
+    ...(loop ? { "--glass-still": `url("/venues/${venue}/glass-loop.webp")` } : {}),
     ...(finish === "glass" ? { "--glass-photo-p": `url("/venues/${venue}/glass-portrait.webp")`, "--glass-photo-w": `url("/venues/${venue}/glass-wide.webp")` } : {}),
   } as CSSProperties;
   return (
-    <html lang="en" style={style} className={`${orbyn ? "look-orbyn " : ""}${finish !== "default" ? "look-matte " : ""}${finish === "glass" ? "look-glass " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable} ${baskerville.variable} ${jost.variable} ${naskh.variable}`}>
+    <html lang="en" style={style} className={`${orbyn ? "look-orbyn " : ""}${finish !== "default" ? "look-matte " : ""}${finish === "glass" ? "look-glass " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable} ${baskerville.variable} ${jost.variable} ${naskh.variable} ${marcellus.variable} ${hanken.variable} ${arSans.variable}${font === "marcellus" ? " type-inscribed" : ""}`}>
       <body>
         {orbyn && (
           <div className="og" aria-hidden="true">
@@ -58,6 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <i className="og-spot og-b"><i className="og-lit" /></i>
           </div>
         )}
+        {loop && <WallLoop src={loop} />}
         {children}
       </body>
     </html>

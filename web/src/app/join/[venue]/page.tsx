@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -30,14 +31,22 @@ export default async function JoinPage({ params, searchParams }: PageProps<"/joi
     <NextIntlClientProvider>
     <NetworkBackdrop fixed />
     <main className="app" lang={locale} dir={directionOf(locale)}>
-      <LanguageSwitch languages={brandLanguages()} />
+      {venue.card_mode === "visits" ? (
+        <div className="hub-bar">
+          <Link className="hub-back" href="/">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+            {venue.name}
+          </Link>
+          <LanguageSwitch languages={brandLanguages()} />
+        </div>
+      ) : <LanguageSwitch languages={brandLanguages()} />}
       <div className="rv" style={{ "--i": 0 } as CSSProperties}>
       <VenueHeader
         venueName={venue.name}
         venueSlug={venue.slug}
         markType={markType}
         eyebrow={t("eyebrow")}
-        title={t("title", { venue: venue.name })}
+        title={t("title", { venue: venue.name.replace(/ /g, "\u00a0") })}
         sub={t("sub")}
       />
       </div>

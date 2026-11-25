@@ -13,7 +13,7 @@
  * Writes public/venues/<slug>/card.webp, card-lit.webp, card.json and passes/<slug>/strip*.png, lit/strip*.png
  * (375 x 144 pt at 1x, 2x, 3x, with the transparent margins and rounded corners the pass layout expects).
  */
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -69,7 +69,10 @@ const pub = path.join(root, "public", "venues", slug);
 const pass = path.join(root, "passes", slug);
 save(path.join(pub, "card.webp"), await cardFace(src));
 if (lit) save(path.join(pub, "card-lit.webp"), await cardFace(lit));
-save(path.join(pub, "card.json"), Buffer.from(JSON.stringify({ niche: { x: niche[0], y: niche[1], w: niche[2], h: niche[3] }, lit: Boolean(lit) }, null, 2) + "\n"));
+// Keys this script does not own (wallLoop: the glass finish's film, lib/venueArt.ts) are kept.
+let kept = {};
+try { kept = JSON.parse(readFileSync(path.join(pub, "card.json"), "utf8")); } catch { /* first run */ }
+save(path.join(pub, "card.json"), Buffer.from(JSON.stringify({ ...kept, niche: { x: niche[0], y: niche[1], w: niche[2], h: niche[3] }, lit: Boolean(lit) }, null, 2) + "\n"));
 for (const s of [1, 2, 3]) {
   const sfx = s === 1 ? "" : `@${s}x`;
   save(path.join(pass, `strip${sfx}.png`), await strip(src, s));

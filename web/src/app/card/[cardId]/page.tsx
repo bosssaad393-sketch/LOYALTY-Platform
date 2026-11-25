@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import QRCode from "qrcode";
@@ -21,6 +22,7 @@ import VisitCard from "@/components/VisitCard";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import { listBranches } from "@/lib/branchesDb";
 import VisitSheet from "./VisitSheet";
+import RememberVisit from "./RememberVisit";
 
 // Live data on every request: allow this page to block instead of prerendering.
 export const instant = false;
@@ -135,6 +137,12 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
 
   return (
     <main className="app vp" lang={locale} dir={directionOf(locale)}>
+      <div className="hub-bar">
+        <Link className="hub-back" href="/">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+          {venue.name}
+        </Link>
+      </div>
       {welcome && (
         <p className="welcome" role="status">
           <b>{t("welcome", { name: first })}</b>
@@ -175,6 +183,7 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
         )}
       </div>
       <p className="note after" style={{ marginTop: 14 }}>{t("tip")}</p>
+      <RememberVisit cardId={card.id} words={{ on: t("remembered"), undo: t("notMine"), off: t("forgotten") }} />
       <p className="foot after">{footerLine(venue.name)}</p>
     </main>
   );

@@ -29,25 +29,9 @@ export default function VisitCard({ venueName, venueSlug, markType, memberName, 
   const arabic = ARABIC.test(memberName);
   const name = memberName.trim();
   if (art) {
-    const n = art.niche;
     return (
       <div className="vc-wrap">
-        <section className={`vc vca${lit && art.lit ? " lit" : ""}`} aria-label={labels.aria}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- the card face, a local file sized by the card */}
-          <img className="vca-face" src={art.src} alt="" width={1284} height={810} />
-          {/* eslint-disable-next-line @next/next/no-img-element -- the same picture with the light on; fades in over the first */}
-          {art.lit && <img className="vca-face vca-lit" src={art.lit} alt="" width={1284} height={810} aria-hidden="true" />}
-          <div className="vca-shade" aria-hidden="true" />
-          <VenueMark name={venueName} slug={venueSlug} type={markType} className="vc-mark vca-mark" size={64} />
-          <p className="vca-count" style={{ insetInlineEnd: `${100 - n.x - n.w}%`, top: `${n.y}%`, width: `${n.w}%`, height: `${n.h}%` }}>
-            <b>{visits}</b>
-            <small>{labels.visits}</small>
-          </p>
-          <div className="vca-who">
-            <p className={`vc-name${name.length > 18 ? " long" : ""}${arabic ? " ar" : ""}`} dir="auto" lang={arabic ? "ar" : undefined}>{name}</p>
-            <p className="vc-since">{labels.since}</p>
-          </div>
-        </section>
+        <VisitCardFace venueName={venueName} venueSlug={venueSlug} markType={markType} name={name} since={labels.since} visits={visits} visitsLabel={labels.visits} art={art} lit={lit} aria={labels.aria} />
         <section className="vq" aria-label={labels.code}>
           {/* eslint-disable-next-line @next/next/no-img-element -- data URL QR code */}
           <img className="vq-qr" src={qr} alt={labels.qrAlt} width={148} height={148} />
@@ -79,5 +63,50 @@ export default function VisitCard({ venueName, venueSlug, markType, memberName, 
         </div>
       </section>
     </div>
+  );
+}
+
+type FaceProps = {
+  venueName: string;
+  venueSlug: string;
+  markType?: boolean;
+  /** The member's name, or the words that stand in for it before joining. */
+  name: string;
+  /** No name yet: it is drawn dimmer, as an empty line waiting to be filled. */
+  empty?: boolean;
+  since?: string;
+  /** null = nothing in the picture's open space (a guest who has not joined). */
+  visits: number | null;
+  visitsLabel?: string;
+  art: NonNullable<Props["art"]>;
+  lit?: boolean;
+  /** Before joining, when a gift waits behind the first visit: the light comes and goes slowly. */
+  breathe?: boolean;
+  aria?: string;
+};
+
+/** The picture face of the card alone (no QR): the card page and the guest hub draw the same object. */
+export function VisitCardFace({ venueName, venueSlug, markType, name, empty, since, visits, visitsLabel, art, lit = false, breathe = false, aria }: FaceProps) {
+  const arabic = ARABIC.test(name);
+  const n = art.niche;
+  return (
+    <section className={`vc vca${lit && art.lit ? " lit" : ""}${breathe && art.lit ? " breathe" : ""}`} aria-label={aria} aria-hidden={aria ? undefined : true}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- the card face, a local file sized by the card */}
+      <img className="vca-face" src={art.src} alt="" width={1284} height={810} fetchPriority="high" decoding="async" />
+      {/* eslint-disable-next-line @next/next/no-img-element -- the same picture with the light on; fades in over the first */}
+      {art.lit && (lit || breathe) && <img className="vca-face vca-lit" src={art.lit} alt="" width={1284} height={810} aria-hidden="true" decoding="async" />}
+      <div className="vca-shade" aria-hidden="true" />
+      <VenueMark name={venueName} slug={venueSlug} type={markType} className="vc-mark vca-mark" size={64} />
+      {visits !== null && (
+        <p className="vca-count" style={{ insetInlineEnd: `${100 - n.x - n.w}%`, top: `${n.y}%`, width: `${n.w}%`, height: `${n.h}%` }}>
+          <b>{visits}</b>
+          <small>{visitsLabel}</small>
+        </p>
+      )}
+      <div className="vca-who">
+        <p className={`vc-name${name.length > 18 ? " long" : ""}${arabic ? " ar" : ""}${empty ? " empty" : ""}`} dir="auto" lang={arabic ? "ar" : undefined}>{name}</p>
+        {since && <p className="vc-since">{since}</p>}
+      </div>
+    </section>
   );
 }

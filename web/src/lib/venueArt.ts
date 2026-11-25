@@ -34,3 +34,17 @@ export function cardArt(slug: string): CardArt | null {
   cache.set(slug, art);
   return art;
 }
+
+/**
+ * The glass finish's moving wall: public/venues/<slug>/glass-loop.mp4, announced by "wallLoop": true in card.json
+ * (the films themselves are served from the edge and are not on the server's disk). null = the still picture only.
+ */
+export function wallLoop(slug: string): string | null {
+  if (!/^[a-z0-9-]+$/.test(slug)) return null;
+  try {
+    const meta = JSON.parse(readFileSync(path.join(process.cwd(), "public", "venues", slug, "card.json"), "utf8")) as { wallLoop?: boolean };
+    return meta.wallLoop ? `/venues/${slug}/glass-loop.mp4` : null;
+  } catch {
+    return null;
+  }
+}
