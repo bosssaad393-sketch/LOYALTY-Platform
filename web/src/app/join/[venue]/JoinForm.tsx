@@ -1,22 +1,37 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import type { JoinField } from "@/lib/joinFields";
+import { birthdayValue, daysIn } from "@/lib/joinBirthday";
+import VenueMark from "@/components/VenueMark";
 
-// Guests join with name + mobile only (Saad, 2026-11-22: no email). The server still accepts an email if one is sent.
-type FieldName = "name" | "mobile" | "email" | "terms";
+// Guests join with name + mobile by default (Saad, 2026-11-22). A venue may also ask for email and a date of birth
+// (venues.join_fields, migration 0022); a venue that sets nothing gets exactly the old form.
+type FieldName = "name" | "mobile" | "email" | "birthday" | "terms";
 /** Which fields an answer from the server is about, so they can be marked and the first one focused. */
 export function fieldsFor(code: string | undefined, form: { name: string; mobile: string; email: string; terms: boolean }): FieldName[] {
-  if (code === "bad_email") return ["email"];
+  if (code === "bad_email" || code === "email_required") return ["email"];
+  if (code === "bad_birthday") return ["birthday"];
   if (code === "bad_mobile") return ["mobile"];
   if (code === "contact_required") return ["mobile"];
   if (code === "incomplete") return [...(form.name.trim() ? [] : ["name" as const]), ...(form.terms ? [] : ["terms" as const])];
   return [];
 }
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
-export default function JoinForm({ venue, venueName }: { venue: string; venueName: string }) {
+const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+const monthName = (m: number, locale: string) => new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-GB", { month: "long", timeZone: "UTC" }).format(Date.UTC(2000, m - 1, 1));
+
+type Props = { venue: string; venueName: string; fields?: JoinField[]; branch?: string; markType?: boolean };
+
+export default function JoinForm({ venue, venueName, fields = ["mobile"], branch, markType }: Props) {
   const t = useTranslations("join");
+  const locale = useLocale();
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const askEmail = fields.includes("email");
+  const askBirthday = fields.includes("birthday");
   const errors = useTranslations("joinErrors");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -30,6 +45,14 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
     e.preventDefault();
     const el = e.currentTarget;
     const form = new FormData(el);
+    // Half a birthday (a day but no month): ask for the rest before sending anything.
+    const birthday = askBirthday ? birthdayValue(day, month) : "";
+    if (birthday === "half") {
+      setError(t("birthdayHalf"));
+      setBad(["birthday"]);
+      (el.elements.namedItem(day ? "bmonth" : "bday") as HTMLElement | null)?.focus();
+      return;
+    }
     setBusy(true);
     setError("");
     setBad([]);
@@ -40,6 +63,9 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
         venue,
         name: form.get("name"),
         mobile: form.get("mobile"),
+        ...(askEmail ? { email: form.get("email") } : {}),
+        ...(askBirthday ? { birthday } : {}),
+        ...(branch ? { branch } : {}),
         terms: form.get("terms") === "on",
         news: form.get("news") === "on",
       }),
@@ -52,17 +78,20 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
     setError(errors.has(body.code) ? errors(body.code) : body.error ?? errors("offline"));
     setBusy(false);
     // Mark the fields the answer is about and put the cursor in the first one, so the guest fixes it in one tap.
-    const fields = fieldsFor(body.code, { name: String(form.get("name") ?? ""), mobile: String(form.get("mobile") ?? ""), email: String(form.get("email") ?? ""), terms: form.get("terms") === "on" });
-    setBad(fields);
-    if (fields[0]) (el.elements.namedItem(fields[0]) as HTMLElement | null)?.focus();
+    const marked = fieldsFor(body.code, { name: String(form.get("name") ?? ""), mobile: String(form.get("mobile") ?? ""), email: String(form.get("email") ?? ""), terms: form.get("terms") === "on" });
+    setBad(marked);
+    const focus = marked[0] === "birthday" ? "bday" : marked[0];
+    if (focus) (el.elements.namedItem(focus) as HTMLElement | null)?.focus();
   }
 
   return (
     <>
     <div className="jp rv" style={{ "--i": 1 } as CSSProperties} aria-hidden="true">
       <span className="beam" />
-      {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
-      <img className="jp-crest" src={`/venues/${venue}/crest.png`} alt="" width={54} height={54} />
+      {markType ? <VenueMark name={venueName} slug={venue} type className="jp-mark" /> : (
+        // eslint-disable-next-line @next/next/no-img-element -- small static brand mark
+        <img className="jp-crest" src={`/venues/${venue}/crest.png`} alt="" width={54} height={54} />
+      )}
       <span className="jp-code">••••</span>
       <b className={`jp-name${who.trim() ? "" : " empty"}`}>{who.trim() || t("name")}</b>
       <span className="jp-venue">{venueName}</span>
@@ -76,6 +105,34 @@ export default function JoinForm({ venue, venueName }: { venue: string; venueNam
         <span className="lbl">{t("mobile")}</span>
         <input className="in" name="mobile" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="+973 …" required maxLength={30} onChange={() => clear("mobile")} {...mark("mobile")} />
       </label>
+      {askEmail && (
+        <label className="field">
+          <span className="lbl">{t("email")}</span>
+          <input className="in" name="email" type="email" dir="ltr" inputMode="email" autoComplete="email" autoCapitalize="off" spellCheck={false} placeholder={t("emailPlaceholder")} required maxLength={120} onChange={() => clear("email")} {...mark("email")} />
+        </label>
+      )}
+      {askBirthday && (
+        <fieldset className="field jb">
+          <legend className="lbl">{t("birthday")} <span className="jb-opt">{t("optional")}</span></legend>
+          <div className="jb-row">
+            <label className="jb-cell">
+              <span className="sr-only">{t("day")}</span>
+              <select className="in" name="bday" autoComplete="bday-day" value={day} onChange={(e) => { setDay(e.target.value); clear("birthday"); }} {...mark("birthday")}>
+                <option value="">{t("day")}</option>
+                {Array.from({ length: daysIn(Number(month) || null) }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
+              </select>
+            </label>
+            <label className="jb-cell">
+              <span className="sr-only">{t("month")}</span>
+              <select className="in" name="bmonth" autoComplete="bday-month" value={month} onChange={(e) => { setMonth(e.target.value); if (Number(day) > daysIn(Number(e.target.value) || null)) setDay(""); clear("birthday"); }} {...mark("birthday")}>
+                <option value="">{t("month")}</option>
+                {MONTHS.map((m) => <option key={m} value={m}>{monthName(m, locale)}</option>)}
+              </select>
+            </label>
+          </div>
+          <span className="jb-hint">{t("birthdayHint")}</span>
+        </fieldset>
+      )}
       <label className="check">
         <input type="checkbox" name="news" defaultChecked />
         <span>{t("news", { venue: venueName })}</span>

@@ -16,7 +16,14 @@
     "busy": "Creating your card…",
     "submit": "Receive my card",
     "privacy": "Your details are used only to run your {venue} rewards. You can ask for them to be deleted at any time.",
-    "footer": "{venue} Loyalty Rewards"
+    "footer": "{venue} Loyalty Rewards",
+    "emailPlaceholder": "name@example.com",
+    "birthday": "Date of birth",
+    "optional": "optional",
+    "day": "Day",
+    "month": "Month",
+    "birthdayHint": "For a birthday greeting on your card. Day and month are enough.",
+    "birthdayHalf": "Choose both the day and the month, or leave both empty."
   },
   "joinErrors": {
     "incomplete": "Please fill in your name and mobile number, and accept the terms.",
@@ -27,7 +34,9 @@
     "server": "Something went wrong. Please try again.",
     "offline": "No connection. Please try again.",
     "already_member": "You already have a card here. Open it from your Wallet or saved link, or ask staff to show it again.",
-    "too_many": "Too many sign-ups from here. Please wait a few minutes and try again."
+    "too_many": "Too many sign-ups from here. Please wait a few minutes and try again.",
+    "email_required": "Please add your email address.",
+    "bad_birthday": "That date of birth doesn't look right."
   },
   "table": {
     "money": "BHD {amount}",
@@ -190,5 +199,37 @@
     "fbError": "That did not send. Please try again.",
     "fbReviewAsk": "Glad you enjoyed it. A Google review helps us a lot.",
     "fbReview": "Review us on Google"
+  },
+  "visitCard": {
+    "aria": "{venue} membership card",
+    "member": "Member",
+    "code": "Your code",
+    "since": "Member since {date}",
+    "visits": "Visits",
+    "lastVisit": "Last visit {date}",
+    "noVisit": "No visits yet",
+    "qrAlt": "QR code for card {code}",
+    "welcome": "Welcome, {name}. Your card is ready.",
+    "keep": "Keep it: add it to your Wallet or bookmark this page. Show it to the staff on each visit.",
+    "tip": "Tip: bookmark this page. It always shows your latest visits and your gift.",
+    "apple": "Add to Apple Wallet",
+    "giftTitle": "Your gift",
+    "giftReady": "Ready to use",
+    "giftUsed": "Used on {date}",
+    "giftExpired": "Expired on {date}",
+    "giftCancelled": "Cancelled",
+    "giftWhere": "Where",
+    "giftAny": "Any of our branches",
+    "giftUntil": "Valid until",
+    "giftNoEnd": "No end date",
+    "giftOnce": "One use only. Show this card to the staff.",
+    "giftLocked": "A gift unlocks on this card at your first visit: {gift}.",
+    "placesTitle": "Visit us",
+    "menu": "Menu",
+    "directions": "Directions",
+    "call": "Call",
+    "review": "Leave a Google review",
+    "reviewNote": "Your honest opinion helps other guests.",
+    "newTab": "opens in a new tab"
   }
 }
