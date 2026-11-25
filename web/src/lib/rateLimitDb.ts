@@ -1,4 +1,5 @@
 import "server-only";
+import { serverSecret } from "./demo";
 import { createHmac } from "node:crypto";
 import { db } from "./supabase";
 import { clientKey } from "./rateLimit";
@@ -13,7 +14,7 @@ export type Limit = { bucket: string; max: number; windowSeconds: number };
 
 /** A keyed hash, so addresses and emails are never stored in the clear. Same input, same bucket, across instances. */
 export function hashed(kind: string, value: string): string {
-  const base = process.env.STAFF_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const base = serverSecret() ?? "";
   const key = createHmac("sha256", base).update("orbyn-rate-v1").digest();
   return `${kind}:${createHmac("sha256", key).update(value.trim().toLowerCase()).digest("base64url").slice(0, 32)}`;
 }

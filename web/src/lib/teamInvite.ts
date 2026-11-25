@@ -1,4 +1,5 @@
 import "server-only";
+import { serverSecret } from "./demo";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "./supabase";
 
@@ -14,7 +15,7 @@ export const MAX_WAITING = 10;
 const JOINED = "staff_self_joined";
 
 function key(): string {
-  const base = process.env.STAFF_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const base = serverSecret();
   if (!base) throw new Error("No secret available to sign join links.");
   return createHmac("sha256", base).update("loyalty-team-invite-v1").digest("hex");
 }

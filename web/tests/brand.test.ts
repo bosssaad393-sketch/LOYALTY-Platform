@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SAMPLE_SECRET, serverSecret } from "../src/lib/demo";
 import { brandColors, brandName, brandStyle, brandTokens, brandVenue, footerLine, mix, poweredBy, rgbText, walletColors, DEFAULT_COLORS, offersBoxTicked } from "../src/lib/brand";
 
 describe("brand settings", () => {
@@ -122,5 +123,16 @@ describe("offers box on the join page", () => {
     expect(offersBoxTicked({})).toBe(true);
     expect(offersBoxTicked({ BRAND_OFFERS_BOX: "ticked" })).toBe(true);
     expect(offersBoxTicked({ BRAND_OFFERS_BOX: " Unticked " })).toBe(false);
+  });
+});
+
+describe("the server secret", () => {
+  it("is the configured one, and only a hosted demo may run without it", () => {
+    expect(serverSecret({ STAFF_SESSION_SECRET: "a", SUPABASE_SERVICE_ROLE_KEY: "b", ORBYN_DEMO: "1" })).toBe("a");
+    expect(serverSecret({ SUPABASE_SERVICE_ROLE_KEY: "b" })).toBe("b");
+    expect(serverSecret({ ORBYN_DEMO: "1" })).toBe(SAMPLE_SECRET);
+    // A real deployment, and local development, get nothing: sign-in stays closed until a secret is set.
+    expect(serverSecret({})).toBeUndefined();
+    expect(serverSecret({ LOYALTY_FAKE_DB: "1", NODE_ENV: "production" })).toBeUndefined();
   });
 });

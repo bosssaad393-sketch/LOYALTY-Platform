@@ -1,4 +1,5 @@
 import "server-only";
+import { serverSecret } from "./demo";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 /**
@@ -11,7 +12,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  */
 
 function key(): Buffer | null {
-  const base = process.env.STAFF_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const base = serverSecret();
   return base ? createHmac("sha256", base).update("orbyn-card-qr-v1").digest() : null;
 }
 

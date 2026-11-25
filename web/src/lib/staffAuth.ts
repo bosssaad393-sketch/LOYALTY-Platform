@@ -1,4 +1,5 @@
 import "server-only";
+import { serverSecret } from "./demo";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
@@ -25,7 +26,7 @@ const SESSION_HOURS = 12;
 export type Staff = { id: string; name: string; role: "staff" | "manager" | "owner" | "developer"; venueId: string; venueSlug: string; venueName: string; /** The one branch this person works at (0022); null = any branch. */ branchId?: string | null };
 
 function secret(): string {
-  const base = process.env.STAFF_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const base = serverSecret();
   if (!base) throw new Error("No secret available to sign staff sessions.");
   return createHmac("sha256", base).update("loyalty-staff-session-v1").digest("hex");
 }

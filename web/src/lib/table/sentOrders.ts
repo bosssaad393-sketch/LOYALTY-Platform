@@ -1,4 +1,5 @@
 import "server-only";
+import { serverSecret } from "../demo";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 // The rounds this phone sent, so only that phone can cancel one (and only before staff accept it). Everyone at a table
@@ -12,7 +13,7 @@ import { UUID_RE as UUID } from "../ids";
 
 /** Null when the site has no secret: then nothing is remembered and guests simply cannot cancel (ordering still works). */
 function key(): string | null {
-  const base = process.env.STAFF_SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const base = serverSecret();
   return base ? createHmac("sha256", base).update("orbyn-guest-round-v1").digest("hex") : null;
 }
 
