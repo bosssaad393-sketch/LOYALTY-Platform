@@ -105,6 +105,15 @@ describe("type set and finish", () => {
     expect(style["--font-ar-display"]).toBe("var(--font-arkufi)");
   });
 
+  it("cinzel sets classical capitals for headings and keeps the oswald set's text and Arabic faces", async () => {
+    const { brandFont, brandStyle } = await import("@/lib/brand");
+    const style = brandStyle({ BRAND_FONT: "cinzel" } as never);
+    expect(brandFont({ BRAND_FONT: " Cinzel" } as never)).toBe("cinzel");
+    expect(style["--serif"]).toMatch(/^var\(--font-cinzel\), var\(--font-arkufi\)/);
+    expect(style["--font-latin-display"]).toBe("var(--font-cinzel)");
+    expect(style["--sans"]).toMatch(/^var\(--font-hanken\), var\(--font-arsans\)/);
+  });
+
   it("baskerville sets the serif, the text face and the Arabic face", async () => {
     const { brandFont } = await import("@/lib/brand");
     const style = brandStyle({ BRAND_FONT: " Baskerville " });

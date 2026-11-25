@@ -37,7 +37,7 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 
 ## Found while testing (2026-11-25)
 - In a local `.env.local` file the colour lines must be quoted (`BRAND_BG="#013220"`): without quotes everything after `#` is read as a comment and the green never applies. Vercel's settings screen takes the value as typed; check the colour on the first deploy.
-- Roshinah also uses `BRAND_FONT=oswald` (Oswald capitals for headings, matching the Latin of their own logo; Hanken Grotesk text; Noto Kufi Arabic and Noto Sans Arabic), `BRAND_FINISH=matte`, `BRAND_MARK=type` (remove `BRAND_MARK` once the real logo files are in).
+- Roshinah also uses `BRAND_FONT=cinzel` (Cinzel capitals for headings and figures, picked by Saad from eight options on 2026-11-25; Hanken Grotesk text; Noto Kufi Arabic and Noto Sans Arabic), `BRAND_FINISH=matte`, `BRAND_MARK=type` (remove `BRAND_MARK` once the real logo files are in).
 - Local preview from this worktree: `npx next dev --webpack -p 3031` (the default bundler fails here because `node_modules` is a link to the main checkout).
 - `next dev` prints a notice recommending a Next.js upgrade. Not acted on: upgrading needs Saad's yes.
 - Reviewed and tested: `docs/SECURITY-REVIEW-2026-11-25.md`, `web/tests/visitFlow.test.ts` (the whole journey), `web/tests/visitsVouchers.test.ts` (the database rules).

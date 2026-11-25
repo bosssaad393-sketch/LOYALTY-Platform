@@ -10,7 +10,7 @@ BRAND_DEFAULT_VENUE=roshinah
 BRAND_BG="#013220"      # quote the hex values in .env files: unquoted, dotenv reads "#..." as a comment
 BRAND_TEXT="#faf8f3"
 BRAND_ACCENT="#c9a96e"
-BRAND_FONT=oswald       # Oswald capitals (headings, figures) + Hanken Grotesk (text) + Noto Kufi Arabic / Noto Sans Arabic
+BRAND_FONT=cinzel       # Cinzel capitals (headings, figures; Saad picked it from eight options) + Hanken Grotesk (text) + Noto Kufi Arabic / Noto Sans Arabic
 BRAND_FINISH=matte      # flat: no moving network, no foil, glow or beam; ivory primary buttons; pass in the green itself
 BRAND_MARK=type         # no clean logo yet: the name in type inside a thin frame (remove when the logo file arrives)
 BRAND_LANGUAGES=en,ar
@@ -84,7 +84,7 @@ premium-frontend-ui was read; its landing-page motion advice does not fit workin
 
 ## Later the same day (Saad's corrections)
 
-- **Lettering follows their own logo.** The logo is square Kufic Arabic with ALROSHINAH in condensed capitals in a frame (file found on their site, 640 x 309 JPG). `web/public/venues/roshinah/wordmark.png` is that logo cleaned to one colour (announced by `"wordmark"` in `card.json`) and replaces the typed stand-in everywhere. Headings are Oswald capitals. The owner should still send the vector file.
+- **Lettering follows their own logo.** The logo is square Kufic Arabic with ALROSHINAH in condensed capitals in a frame (file found on their site, 640 x 309 JPG). `web/public/venues/roshinah/wordmark.png` is that logo cleaned to one colour (announced by `"wordmark"` in `card.json`) and replaces the typed stand-in everywhere. Headings are Cinzel capitals (Saad picked option 5 of eight after rejecting Baskerville, Marcellus and Oswald; the sheets are in the CALABOS folder docs/clients/roshinah-preview/fonts-*.jpg). The owner should still send the vector file.
 - **Colours** (the pairing Saad sent for a watch green): green ground `#013220`, cream ink, warm gold `#c9a96e` as hairline, champagne (a lighter cut of it) as the one filled colour, prices and small signs, warm charcoal `#17140f` for words on champagne and for depth.
 - **Our own menu.** `/menu/roshinah` shows their dishes, prices and pictures, copied from their public menu on 2026-11-25 (`web/src/data/menus/roshinah.json`, pictures in `web/public/venues/roshinah/menu/`, seed in `supabase/seeds/roshinah-menu.sql`, needs migration 0023). 90 dishes, 85 pictures. 13 dishes have no Arabic name on their menu. The owner confirms prices before go-live and edits from the owner screen after.
 - **Two QR codes.** Till: `/counter/roshinah` goes straight to joining (or to the card a phone already holds). Table: `/t/<table code>` opens the guest page with the table named, after a two-second opening with their logo. Ordering and paying from the phone are not switched on for Roshinah.

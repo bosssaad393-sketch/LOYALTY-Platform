@@ -192,12 +192,22 @@ const OSWALD_FONTS = {
   "--display-arabic": "var(--serif)",
 };
 
-export type BrandFont = "default" | "classic" | "baskerville" | "marcellus" | "oswald";
+/**
+ * BRAND_FONT=cinzel: Cinzel (classical capitals) for headings and figures, set in capitals like the oswald set but
+ * wider, so sizes are a step smaller (app/visit.css .type-wide). Text and Arabic faces as in the oswald set.
+ */
+const CINZEL_FONTS = {
+  ...OSWALD_FONTS,
+  "--font-latin-display": "var(--font-cinzel)",
+  "--serif": 'var(--font-cinzel), var(--font-arkufi), Georgia, "Times New Roman", serif',
+};
+
+export type BrandFont = "default" | "classic" | "baskerville" | "marcellus" | "oswald" | "cinzel";
 
 /** Which type set the client chose. Anything unknown = the template's own (Outfit and Tajawal). */
 export function brandFont(env: Env = process.env): BrandFont {
   const v = env.BRAND_FONT?.trim().toLowerCase();
-  return v === "classic" || v === "baskerville" || v === "marcellus" || v === "oswald" ? v : "default";
+  return v === "classic" || v === "baskerville" || v === "marcellus" || v === "oswald" || v === "cinzel" ? v : "default";
 }
 
 export type BrandFinish = "default" | "matte" | "glass";
@@ -235,7 +245,7 @@ export function brandStyle(env: Env = process.env): Record<string, string> {
   const font = brandFont(env);
   return {
     ...(same ? {} : brandTokens(c)),
-    ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : font === "marcellus" ? MARCELLUS_FONTS : font === "oswald" ? OSWALD_FONTS : {}),
+    ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : font === "marcellus" ? MARCELLUS_FONTS : font === "oswald" ? OSWALD_FONTS : font === "cinzel" ? CINZEL_FONTS : {}),
     ...(isQuietFinish(env) ? MATTE_TOKENS : {}),
   };
 }

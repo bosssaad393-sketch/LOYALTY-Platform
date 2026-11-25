@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
-import { Amiri, Cormorant_Garamond, Hanken_Grotesk, Jost, Libre_Baskerville, Marcellus, Noto_Kufi_Arabic, Noto_Naskh_Arabic, Noto_Sans_Arabic, Oswald, Outfit, Tajawal } from "next/font/google";
+import { Amiri, Cinzel, Cormorant_Garamond, Hanken_Grotesk, Jost, Libre_Baskerville, Marcellus, Noto_Kufi_Arabic, Noto_Naskh_Arabic, Noto_Sans_Arabic, Oswald, Outfit, Tajawal } from "next/font/google";
 import "./globals.css";
 import "./ground.css";
 import "./screens.css";
@@ -47,6 +47,9 @@ const hanken = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-hanken", d
 // BRAND_FONT=oswald (a signboard look, for a logo set in condensed capitals and Kufic): Oswald for headings and
 // figures, Noto Kufi Arabic for Arabic headings; text stays Hanken Grotesk and Noto Sans Arabic.
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald", display: "swap", preload: false, adjustFontFallback: false });
+// BRAND_FONT=cinzel (Saad's pick for Al Roshinah, 2026-11-25): Cinzel capitals for headings and figures, the same
+// Arabic and text faces as the oswald set.
+const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", display: "swap", preload: false, adjustFontFallback: false });
 const arKufi = Noto_Kufi_Arabic({ subsets: ["arabic"], variable: "--font-arkufi", display: "swap", preload: false });
 const arSans = Noto_Sans_Arabic({ subsets: ["arabic"], variable: "--font-arsans", display: "swap", preload: false });
 
@@ -67,7 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   } as CSSProperties;
   return (
     // suppressHydrationWarning: the guest hub marks "opening already seen" on this element before the page hydrates.
-    <html lang="en" suppressHydrationWarning style={style} className={`${orbyn ? "look-orbyn " : ""}${finish !== "default" ? "look-matte " : ""}${finish === "glass" ? "look-glass " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable} ${baskerville.variable} ${jost.variable} ${naskh.variable} ${marcellus.variable} ${hanken.variable} ${arSans.variable} ${oswald.variable} ${arKufi.variable}${font === "marcellus" || font === "oswald" ? " type-inscribed" : ""}${font === "oswald" ? " type-poster" : ""}`}>
+    <html lang="en" suppressHydrationWarning style={style} className={`${orbyn ? "look-orbyn " : ""}${finish !== "default" ? "look-matte " : ""}${finish === "glass" ? "look-glass " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable} ${baskerville.variable} ${jost.variable} ${naskh.variable} ${marcellus.variable} ${hanken.variable} ${arSans.variable} ${oswald.variable} ${cinzel.variable} ${arKufi.variable}${font === "marcellus" || font === "oswald" || font === "cinzel" ? " type-inscribed" : ""}${font === "oswald" || font === "cinzel" ? " type-poster" : ""}${font === "cinzel" ? " type-wide" : ""}`}>
       <body>
         {orbyn && (
           <div className="og" aria-hidden="true">
