@@ -120,7 +120,7 @@ export default async function VisitHub({ venue, branchSlug }: { venue: Venue; br
       <header className="hub-head rv" style={{ "--i": 0 } as CSSProperties}>
         <h1 className={`hub-title${big.length > 12 ? " long" : ""}`}>
           <span className="hub-pre">{mine ? t("helloPre") : t("titlePre")}</span>{" "}
-          <span className="hub-name" dir="auto"><span>{big}</span></span>
+          <span className={`hub-name${/[؀-ۿ]/.test(big) ? " ar" : ""}`} dir="auto"><span>{big}</span></span>
         </h1>
         <p className="hub-lead">{mine ? (giftReady ? t("leadGift") : t("leadMember")) : t("lead")}</p>
       </header>

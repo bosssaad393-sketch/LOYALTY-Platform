@@ -332,3 +332,15 @@ a.hub-row:active, .hub-wifi > summary:active { background: rgb(255 255 255 / 0.0
    guest says aloud at the till: every counted or spoken number is set in the text face instead, light and large. */
 .type-inscribed :is(.vca-count b, .vc-visits b, .vq-code b, .vc-code b, .st-vfacts dd, .ow-counts dd, .st-code, .ow-pin) { font-family: var(--sans); font-weight: 300; font-variant-numeric: lining-nums tabular-nums; }
 .type-inscribed :is(.vq-code b, .vc-code b) { font-weight: 400; letter-spacing: 0.1em; }
+
+/* Arabic with BRAND_FONT=marcellus. A Latin face is followed in its list by a system stand-in that also holds Arabic
+   letters, so Arabic text would stop there and never reach the Arabic face. Wherever the language is Arabic the
+   Arabic face is therefore listed first; a Latin name or the wordmark inside it is given the heading face by name. */
+.type-inscribed [lang="ar"] {
+  --sans: var(--font-arsans), var(--font-hanken), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --serif: var(--font-arsans), var(--font-marcellus), Georgia, "Times New Roman", serif;
+  --display-arabic: var(--serif);
+  font-family: var(--sans);
+}
+.type-inscribed [lang="ar"] :is([lang="en"], .hub-name:not(.ar), .vc-name:not(.ar)) { font-family: var(--font-marcellus), var(--font-arsans), Georgia, serif; font-weight: 400; }
+.type-inscribed [lang="ar"] .lang-switch[lang="en"] { font-family: var(--font-hanken), system-ui, sans-serif; font-weight: 500; }
