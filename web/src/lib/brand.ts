@@ -168,18 +168,36 @@ const BASKERVILLE_FONTS = {
 const MARCELLUS_FONTS = {
   "--font-sans": "var(--font-hanken)",
   "--font-ar": "var(--font-arsans)",
+  "--font-latin-display": "var(--font-marcellus)",
+  "--font-ar-display": "var(--font-arsans)",
   "--serif": 'var(--font-marcellus), var(--font-arsans), Georgia, "Times New Roman", serif',
   "--sans": 'var(--font-hanken), var(--font-arsans), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
   "--display": "var(--serif)",
   "--display-arabic": "var(--serif)",
 };
 
-export type BrandFont = "default" | "classic" | "baskerville" | "marcellus";
+/**
+ * BRAND_FONT=oswald: for a venue whose own logo is condensed capitals and Kufic lettering. Oswald for headings and
+ * figures (set in capitals, see app/visit.css .type-poster), Hanken Grotesk for text; in Arabic, Noto Kufi Arabic
+ * for headings and Noto Sans Arabic for text.
+ */
+const OSWALD_FONTS = {
+  "--font-sans": "var(--font-hanken)",
+  "--font-ar": "var(--font-arsans)",
+  "--font-latin-display": "var(--font-oswald)",
+  "--font-ar-display": "var(--font-arkufi)",
+  "--serif": 'var(--font-oswald), var(--font-arkufi), "Arial Narrow", Arial, sans-serif',
+  "--sans": 'var(--font-hanken), var(--font-arsans), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+  "--display": "var(--serif)",
+  "--display-arabic": "var(--serif)",
+};
+
+export type BrandFont = "default" | "classic" | "baskerville" | "marcellus" | "oswald";
 
 /** Which type set the client chose. Anything unknown = the template's own (Outfit and Tajawal). */
 export function brandFont(env: Env = process.env): BrandFont {
   const v = env.BRAND_FONT?.trim().toLowerCase();
-  return v === "classic" || v === "baskerville" || v === "marcellus" ? v : "default";
+  return v === "classic" || v === "baskerville" || v === "marcellus" || v === "oswald" ? v : "default";
 }
 
 export type BrandFinish = "default" | "matte" | "glass";
@@ -217,7 +235,7 @@ export function brandStyle(env: Env = process.env): Record<string, string> {
   const font = brandFont(env);
   return {
     ...(same ? {} : brandTokens(c)),
-    ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : font === "marcellus" ? MARCELLUS_FONTS : {}),
+    ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : font === "marcellus" ? MARCELLUS_FONTS : font === "oswald" ? OSWALD_FONTS : {}),
     ...(isQuietFinish(env) ? MATTE_TOKENS : {}),
   };
 }

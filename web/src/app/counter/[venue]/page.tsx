@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -14,7 +14,6 @@ import { getVenue } from "@/lib/supabase";
 import { GUEST_CARD_COOKIE, guestCardFrom, venueCard } from "@/lib/table/points";
 import FeedbackForm from "./FeedbackForm";
 import { readLinks } from "@/lib/venueLinks";
-import VisitHub from "@/components/VisitHub";
 
 // Reads the guest's card cookie on every request.
 export const instant = false;
@@ -24,19 +23,24 @@ export async function generateMetadata({ params }: PageProps<"/counter/[venue]">
   return { title: venue ? venue.name : "Rewards", robots: { index: false } };
 }
 
-/** The page behind the QR code at the till or reception: the rewards card, the contact card, follow us, and feedback for members. */
-export default async function CounterPage({ params, searchParams }: PageProps<"/counter/[venue]">) {
+/**
+ * The page behind the QR code at the till or reception: the rewards card, the contact card, follow us, and feedback
+ * for members. For a visit venue (a restaurant) the till code is for the card only: it goes straight to joining, or to
+ * the card a phone already holds. Its tables have their own codes, which open the guest page (app/t/[code]).
+ */
+export default async function CounterPage({ params }: PageProps<"/counter/[venue]">) {
   const { venue: slug } = await params;
   const venue = await getVenue(slug);
   if (!venue) notFound();
+  const raw = (await cookies()).get(GUEST_CARD_COOKIE)?.value;
+  const cardId = guestCardFrom(raw ? `${GUEST_CARD_COOKIE}=${raw}` : null);
+  // A visit venue: the code at the till does one thing, the card. A phone that already holds one opens it.
   if (venue.card_mode === "visits") {
-    const { b } = await searchParams;
-    return <NextIntlClientProvider><VisitHub venue={venue} branchSlug={typeof b === "string" ? b : undefined} /></NextIntlClientProvider>;
+    const mine = cardId ? await venueCard(venue.id, cardId).catch(() => null) : null;
+    redirect(mine ? `/card/${mine.id}` : `/join/${encodeURIComponent(venue.slug)}`);
   }
   const locale = await getLocale();
   const t = await getTranslations("door");
-  const raw = (await cookies()).get(GUEST_CARD_COOKIE)?.value;
-  const cardId = guestCardFrom(raw ? `${GUEST_CARD_COOKIE}=${raw}` : null);
   const [card, links] = await Promise.all([cardId ? venueCard(venue.id, cardId) : null, readLinks(venue.id)]);
   const join = `/join/${encodeURIComponent(venue.slug)}`;
 

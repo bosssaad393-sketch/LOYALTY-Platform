@@ -6,5 +6,6 @@
     "h": 64
   },
   "lit": true,
-  "wallLoop": true
+  "wallLoop": true,
+  "wordmark": 2.319
 }

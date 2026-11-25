@@ -14,6 +14,8 @@ import { findTable, readMenu, tableView } from "@/lib/table/db";
 import { GUEST_CARD_COOKIE, guestCardFrom, venueCard } from "@/lib/table/points";
 import { SENT_COOKIE, sentOrdersFrom } from "@/lib/table/sentOrders";
 import TableApp from "./TableApp";
+import VisitHub from "@/components/VisitHub";
+import { getVenue } from "@/lib/supabase";
 
 // Live data on every request: allow this page to block instead of prerendering.
 export const instant = false;
@@ -36,6 +38,12 @@ export default async function TablePage({ params, searchParams }: PageProps<"/t/
   const sent = jar.get(SENT_COOKIE)?.value;
   const cardId = guestCardFrom(phone ? `${GUEST_CARD_COOKIE}=${phone}` : null);
   const sentOrders = sentOrdersFrom(sent ? `${SENT_COOKIE}=${sent}` : null);
+
+  // A visit venue (a restaurant with a card): the table's code opens its guest page, with the table named on it.
+  const venue = await getVenue(table.venueSlug).catch(() => null);
+  if (venue?.card_mode === "visits") {
+    return <NextIntlClientProvider><VisitHub venue={venue} tableLabel={table.label} /></NextIntlClientProvider>;
+  }
 
   // A fresh scan opens the door: logo and three buttons. A guest who is ordering or paying goes straight back to the table.
   const q = await searchParams;

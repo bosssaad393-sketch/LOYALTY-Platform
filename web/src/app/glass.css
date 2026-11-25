@@ -198,7 +198,7 @@
 }
 .look-glass body:has(main.app:not(.staff, .bd))::after {
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(180deg, rgb(0 12 7 / 0.46) 0%, rgb(0 12 7 / 0.3) 22%, rgb(0 12 7 / 0.36) 46%, rgb(0 12 7 / 0.66) 100%);
+  background: linear-gradient(180deg, rgb(8 12 8 / 0.46) 0%, rgb(4 12 8 / 0.3) 22%, rgb(8 12 9 / 0.38) 46%, rgb(16 14 10 / 0.72) 100%);
 }
 .look-glass body:has(main.app:not(.staff, .bd)) .wall-v {
   display: block; position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; object-position: left top;
@@ -217,3 +217,37 @@
 .look-glass .app:has(.jp) .pane { padding: 26px 20px 22px; gap: 18px; }
 .look-glass .app:has(.jp) .vh { padding-block-start: 4px; }
 .look-glass .hub-back { text-shadow: 0 1px 12px rgb(0 0 0 / 0.4); }
+
+/* ---- The menu on glass ---- */
+.look-glass .mn-title { text-shadow: 0 2px 26px rgb(0 0 0 / 0.42); }
+.look-glass .mn-h { text-shadow: 0 1px 18px rgb(0 0 0 / 0.4); }
+.look-glass .mn-chips { background: color-mix(in srgb, var(--bg) 58%, transparent); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); border-block-end: 1px solid var(--g-line-soft); }
+.look-glass .mn-chip { background: rgb(255 255 255 / 0.07); border-color: var(--g-line); color: var(--text); }
+.look-glass .mn-chip.on { background: var(--text); border-color: var(--text); color: var(--bg); }
+.look-glass .mn-list { background: var(--g-sheen), var(--g-tint-strong); border-color: var(--g-line); box-shadow: var(--g-shadow); }
+.look-glass .mn-row + .mn-row::before { background: var(--g-line-soft); }
+.look-glass .mn-dlg { background: color-mix(in srgb, var(--bg) 94%, #000); border-color: var(--g-line); box-shadow: 0 30px 80px rgb(0 0 0 / 0.55); }
+.look-glass .mn-dlg::backdrop { background: rgb(0 10 6 / 0.6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+
+/* ---- The palette of the glass finish, after the colours that sit well with a deep watch green: the green is the
+   ground, cream is the ink, champagne (a lighter cut of the brand's warm gold) is the one filled colour on a screen
+   and the colour of prices and small signs, warm gold is the hairline, and a warm charcoal gives the depth: the
+   words on a champagne button, the foot of the wall, the dimmed page behind a dish. ---- */
+.look-glass { --sand: var(--gold2); --sand-soft: color-mix(in srgb, var(--gold2) 86%, var(--text)); --coal: #17140f; }
+.look-glass .btn.primary, .look-glass .pane .btn.primary, .look-glass .hub-cta { background: var(--sand); border-color: var(--sand); color: var(--coal); }
+@media (hover: hover) { .look-glass .btn.primary:hover { background: var(--sand-soft); border-color: var(--sand-soft); } }
+.look-glass .mn-chip.on, .look-glass .chip.on { background: var(--sand); border-color: var(--sand); color: var(--coal); }
+.look-glass :is(.mn-price, .hub-pre, .hub-ic, .hub-table) { color: var(--sand-soft); }
+.look-glass .hub-ic { opacity: 1; }
+.look-glass .btn.hub-menu .hub-ic { color: var(--sand-soft); }
+.look-glass .hub-table { border-color: color-mix(in srgb, var(--sand) 55%, transparent); background: color-mix(in srgb, var(--bg) 40%, transparent); }
+.look-glass .lang-switch[aria-current] { text-decoration-color: var(--sand); }
+.look-glass .hub-branches b { color: var(--sand-soft); }
+.look-glass .mn-dlg-tx .mn-price { color: var(--sand-soft); }
+.look-glass .pane .check input:checked { background: var(--sand); border-color: var(--sand); }
+.look-glass .pane .check input:checked::after { border-color: var(--bg); }
+.look-glass .pp-go, .look-glass .si .si-go { background: var(--sand); border-color: var(--sand); color: var(--coal); }
+.look-glass .pane .check input:checked::after { border-color: var(--coal); }
+.look-glass :is(.hub-sheet, .mn-list, .pane, .vq) { border-color: color-mix(in srgb, var(--gold) 26%, rgb(255 255 255 / 0.14)); }
+.look-glass .mn-dlg::backdrop { background: rgb(14 12 9 / 0.66); }
+.look-glass .mn-dlg { background: color-mix(in srgb, var(--bg) 82%, var(--coal)); }

@@ -12,10 +12,21 @@ import { pinLookup } from "./pinHash";
 type Row = Record<string, unknown>;
 type Result = { data: unknown; error: { code: string; message: string } | null };
 
+import roshinahMenu from "@/data/menus/roshinah.json";
+
 const uuid = () => crypto.randomUUID();
 
 const VENUE = "00000000-0000-4000-8000-000000000001";
 const fakeId = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+
+/**
+ * SAMPLE_MENU=<venue>: the sample shows that venue's own menu (src/data/menus/<venue>.json, copied from the venue's
+ * public menu, pictures in public/venues/<venue>/menu) instead of the invented one below.
+ */
+type OwnMenu = { categories: { en: string; ar: string | null; items: { en: string; ar: string | null; noteEn: string | null; noteAr: string | null; fils: number; photo: string | null }[] }[] };
+const OWN_MENUS: Record<string, OwnMenu> = { roshinah: roshinahMenu };
+const OWN_MENU_NAME = (process.env.SAMPLE_MENU ?? "").trim().toLowerCase();
+const OWN_MENU: OwnMenu | null = OWN_MENUS[OWN_MENU_NAME] ?? null;
 
 // Sample photos are open-licence pictures, for the sample only: public/menu-photos/CREDITS.txt
 const sampleCategories = [
@@ -115,8 +126,12 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   auto_messages: [],
   message_log: [],
   venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `orbyn-table-code-${n}`, active: true })),
-  menu_categories: sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
-  menu_items: sampleItems.map(([n, cat, en, ar, fils, photo], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, image_url: `/menu-photos/${photo}.webp`, price_fils: fils, available: true, active: true, sort: i })),
+  menu_categories: OWN_MENU
+    ? OWN_MENU.categories.map((c, i) => ({ id: fakeId(40_000 + i), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true }))
+    : sampleCategories.map((c, i) => ({ id: fakeId(c.n), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true })),
+  menu_items: OWN_MENU
+    ? OWN_MENU.categories.flatMap((c, ci) => c.items.map((it, i) => ({ id: fakeId(41_000 + ci * 100 + i), venue_id: VENUE, category_id: fakeId(40_000 + ci), name_en: it.en, name_ar: it.ar, note_en: it.noteEn, note_ar: it.noteAr, image_url: it.photo ? `/venues/${OWN_MENU_NAME}/menu/${it.photo}.webp` : null, price_fils: it.fils, available: true, active: true, sort: i })))
+    : sampleItems.map(([n, cat, en, ar, fils, photo], i) => ({ id: fakeId(n), venue_id: VENUE, category_id: fakeId(cat), name_en: en, name_ar: ar, note_en: null, note_ar: null, image_url: `/menu-photos/${photo}.webp`, price_fils: fils, available: true, active: true, sort: i })),
   tabs: [],
   orders: [],
   order_items: [],

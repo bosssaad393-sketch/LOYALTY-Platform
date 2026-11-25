@@ -23,6 +23,7 @@ import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import { listBranches } from "@/lib/branchesDb";
 import VisitSheet from "./VisitSheet";
 import RememberVisit from "./RememberVisit";
+import { readMenu } from "@/lib/table/db";
 
 // Live data on every request: allow this page to block instead of prerendering.
 export const instant = false;
@@ -128,7 +129,12 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
   // A gift's state (ready, expired) depends on today's date, so this part always runs per request.
   await connection();
   const t = await getTranslations("visitCard");
-  const [vouchers, defs, branches] = await Promise.all([cardVouchers(card.id, venue.id), listVouchers(venue.id), listBranches(venue.id)]);
+  const [vouchers, defs, branches, hasMenu] = await Promise.all([
+    cardVouchers(card.id, venue.id),
+    listVouchers(venue.id),
+    listBranches(venue.id),
+    readMenu(venue.id).then((m) => m.some((c) => c.items.length > 0)).catch(() => false),
+  ]);
   // Before the first visit: name the gift the first visit unlocks, if the venue has one switched on.
   const next = !vouchers.length ? defs.find((d) => d.active && d.trigger === "first_visit") : undefined;
   const upcoming = next ? (ar && next.titleAr) || next.title : null;
@@ -171,7 +177,7 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
         }}
       />
       <div className="rv" style={{ "--i": 2 } as CSSProperties}>
-        <VisitSheet vouchers={vouchers} upcoming={upcoming} branches={branches} ar={ar} />
+        <VisitSheet vouchers={vouchers} upcoming={upcoming} branches={branches} ar={ar} ownMenu={hasMenu ? `/menu/${encodeURIComponent(venue.slug)}` : null} />
       </div>
       <div className="actions after">
         {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> {t("apple")}</a>}

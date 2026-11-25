@@ -95,6 +95,16 @@ describe("type set and finish", () => {
     expect(brandFont({ BRAND_FONT: "gloock" } as never)).toBe("default");
   });
 
+  it("oswald sets a condensed heading face with Kufic Arabic headings, text faces unchanged", async () => {
+    const { brandFont, brandStyle } = await import("@/lib/brand");
+    const style = brandStyle({ BRAND_FONT: "oswald" } as never);
+    expect(brandFont({ BRAND_FONT: "oswald" } as never)).toBe("oswald");
+    expect(style["--serif"]).toMatch(/^var\(--font-oswald\), var\(--font-arkufi\)/);
+    expect(style["--sans"]).toMatch(/^var\(--font-hanken\), var\(--font-arsans\)/);
+    expect(style["--font-latin-display"]).toBe("var(--font-oswald)");
+    expect(style["--font-ar-display"]).toBe("var(--font-arkufi)");
+  });
+
   it("baskerville sets the serif, the text face and the Arabic face", async () => {
     const { brandFont } = await import("@/lib/brand");
     const style = brandStyle({ BRAND_FONT: " Baskerville " });

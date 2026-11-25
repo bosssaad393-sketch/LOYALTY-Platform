@@ -180,7 +180,9 @@
     "atTable": "At a table? Scan its QR code to order from your phone.",
     "empty": "The menu is not ready yet.",
     "soldOut": "Sold out",
-    "money": "BHD {amount}"
+    "money": "BHD {amount}",
+    "sections": "Menu sections",
+    "close": "Close"
   },
   "door": {
     "menu": "Menu",
@@ -267,6 +269,7 @@
     "getCardFree": "Free, in your phone's Wallet. Nothing to download.",
     "titlePre": "Welcome to",
     "helloPre": "Welcome back,",
-    "call": "Call us"
+    "call": "Call us",
+    "table": "Table {label}"
   }
 }

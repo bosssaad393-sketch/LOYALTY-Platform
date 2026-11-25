@@ -12,13 +12,15 @@ type Props = {
   upcoming: string | null;
   branches: Branch[];
   ar: boolean;
+  /** The venue's own menu page in Orbyn, when it has dishes: the first branch opens it instead of an outside link. */
+  ownMenu?: string | null;
 };
 
 /**
  * Under the visit card: the gift (ready / used / expired) as a paper ticket, or one calm line before the first visit;
  * then each branch with its menu, directions, phone and a Google review link for every guest (never tied to a reward).
  */
-export default async function VisitSheet({ vouchers, upcoming, branches, ar }: Props) {
+export default async function VisitSheet({ vouchers, upcoming, branches, ar, ownMenu = null }: Props) {
   const t = await getTranslations("visitCard");
   const shown = vouchers.filter((v) => voucherState(v) !== "cancelled");
   const places = branches.filter((b) => b.kind === "branch" && b.active);
@@ -66,16 +68,18 @@ export default async function VisitSheet({ vouchers, upcoming, branches, ar }: P
         <section className="pl" aria-labelledby="pl-h">
           <h2 className="gs-h" id="pl-h">{t("placesTitle")}</h2>
           <ul className="pl-list">
-            {places.map((b) => {
+            {places.map((b, k) => {
+              const ours = k === 0 ? ownMenu : null;
               const go = directionsUrl(b);
               const tel = telUrl(b.phone);
               return (
                 <li key={b.id} className="pl-item">
                   <h3 className="pl-name" dir="auto">{nameOf(b)}</h3>
                   {b.address && <p className="pl-addr" dir="auto">{b.address}</p>}
-                  {(b.menuUrl || go || tel) && (
+                  {(ours || b.menuUrl || go || tel) && (
                     <div className="pl-acts">
-                      {b.menuUrl && <a className="pl-act" href={b.menuUrl} target="_blank" rel="noopener noreferrer">{t("menu")}<span className="sr-only"> ({t("newTab")})</span></a>}
+                      {ours && <a className="pl-act" href={ours}>{t("menu")}</a>}
+                      {!ours && b.menuUrl && <a className="pl-act" href={b.menuUrl} target="_blank" rel="noopener noreferrer">{t("menu")}<span className="sr-only"> ({t("newTab")})</span></a>}
                       {go && <a className="pl-act" href={go} target="_blank" rel="noopener noreferrer">{t("directions")}<span className="sr-only"> ({t("newTab")})</span></a>}
                       {tel && <a className="pl-act" href={tel} dir="ltr">{t("call")}</a>}
                     </div>

@@ -10,6 +10,9 @@ import { getVenue } from "@/lib/supabase";
 import { readMenu } from "@/lib/table/db";
 import { filsText } from "@/lib/table/rules";
 import "../../t/[code]/table.css";
+import Link from "next/link";
+import VisitMenuView from "@/components/VisitMenuView";
+import { menuThumb } from "@/lib/menuPhoto";
 
 // The menu, read only: for guests who open it from the home page or a link, away from a table. Ordering happens at the table.
 export const instant = false;
@@ -27,6 +30,33 @@ export default async function MenuPage({ params }: PageProps<"/menu/[venue]">) {
   const ar = locale === "ar";
   const menu = await readMenu(venue.id);
   const name = (x: { nameEn: string; nameAr: string | null }) => (ar && x.nameAr) || x.nameEn;
+
+  // A visit venue (a restaurant with a card, no ordering from the phone): its own menu page, in its own look.
+  if (venue.card_mode === "visits") {
+    return (
+      <NextIntlClientProvider>
+        <main className="app mn" lang={locale} dir={directionOf(locale)}>
+          <div className="hub-bar">
+            <Link className="hub-back" href="/">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+              {venue.name}
+            </Link>
+            <LanguageSwitch languages={brandLanguages()} />
+          </div>
+          <h1 className="mn-title">{t("title")}</h1>
+          <VisitMenuView
+            labels={{ sections: t("sections"), soldOut: t("soldOut"), close: t("close"), empty: t("empty") }}
+            sections={menu.map((c) => ({
+              id: c.id,
+              name: name(c),
+              dishes: c.items.map((i) => ({ id: i.id, name: name(i), note: (ar && i.noteAr) || i.noteEn, price: t("money", { amount: filsText(i.priceFils) }), photo: i.imageUrl, thumb: menuThumb(i.imageUrl), off: !i.available })),
+            }))}
+          />
+          <p className="foot">{[venue.name, poweredBy()].filter(Boolean).join(" · ")}</p>
+        </main>
+      </NextIntlClientProvider>
+    );
+  }
 
   return (
     <NextIntlClientProvider>

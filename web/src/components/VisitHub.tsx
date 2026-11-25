@@ -13,6 +13,7 @@ import { cardArt } from "@/lib/venueArt";
 import { GUEST_CARD_COOKIE, guestCardFrom } from "@/lib/table/points";
 import { readLinks } from "@/lib/venueLinks";
 import { readWifi } from "@/lib/venueWifi";
+import { readMenu } from "@/lib/table/db";
 import { voucherState } from "@/lib/vouchers";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import type { Venue } from "@/lib/supabase";
@@ -57,19 +58,23 @@ const shortDate = (iso: string, ar: boolean) =>
  * Instagram. Only what the venue has set is shown: there is never a dead row. The Google review link is for every
  * guest, with nothing asked or given in return.
  */
-export default async function VisitHub({ venue, branchSlug }: { venue: Venue; branchSlug?: string }) {
+// Runs before the first paint: a guest who has already seen the opening in this visit to the site gets the page at once.
+const OPENING = `try{var s=sessionStorage,d=document.documentElement;if(s.getItem("hubSeen"))d.setAttribute("data-hub-seen","");else{s.setItem("hubSeen","1");setTimeout(function(){d.setAttribute("data-hub-seen","")},3200)}}catch(e){}`;
+
+export default async function VisitHub({ venue, branchSlug, tableLabel }: { venue: Venue; branchSlug?: string; /** Opened from a table's QR code: the table is named at the top. */ tableLabel?: string }) {
   const locale = await getLocale();
   const ar = locale === "ar";
   const t = await getTranslations("hub");
   const raw = (await cookies()).get(GUEST_CARD_COOKIE)?.value;
   const cardId = guestCardFrom(raw ? `${GUEST_CARD_COOKIE}=${raw}` : null);
   if (cardId) await pullSampleCard(cardId);
-  const [view, links, wifi, branches, gifts] = await Promise.all([
+  const [view, links, wifi, branches, gifts, ownMenu] = await Promise.all([
     cardId ? getCardView(cardId).catch(() => null) : null,
     readLinks(venue.id),
     readWifi(venue.id),
     listBranches(venue.id),
     listVouchers(venue.id).catch(() => []),
+    readMenu(venue.id).then((m) => m.some((c) => c.items.length > 0)).catch(() => false),
   ]);
   // The card in the cookie counts only when it is this venue's.
   const mine = view && view.venue.id === venue.id ? view : null;
@@ -81,7 +86,10 @@ export default async function VisitHub({ venue, branchSlug }: { venue: Venue; br
   const here = own.find((b) => b.slug === branchSlug) ?? own[0];
   const join = `/join/${encodeURIComponent(venue.slug)}${here && branchSlug ? `?b=${encodeURIComponent(here.slug)}` : ""}`;
   const to = mine ? `/card/${mine.card.id}` : join;
-  const menu = here?.menuUrl ?? `/menu/${encodeURIComponent(venue.slug)}`;
+  // The venue's own menu in Orbyn wins. It is the first branch's menu: another branch keeps its own link if it has one.
+  const ours = `/menu/${encodeURIComponent(venue.slug)}`;
+  const outside = ownMenu && here?.id === own[0]?.id ? null : here?.menuUrl ?? null;
+  const menu = outside ?? ours;
   const review = here?.reviewUrl ?? links.googleReview;
   const art = cardArt(venue.slug);
   const first = mine?.memberName.trim().split(/\s+/)[0] ?? "";
@@ -111,9 +119,14 @@ export default async function VisitHub({ venue, branchSlug }: { venue: Venue; br
 
   return (
     <main className="app hub" lang={locale} dir={directionOf(locale)}>
-      <div className="hub-bar">
+      <script dangerouslySetInnerHTML={{ __html: OPENING }} />
+      <div className="hub-intro" aria-hidden="true">
+        <VenueMark name={venue.name} slug={venue.slug} type={brandMark() === "type"} className="hub-intro-mark" size={168} />
+      </div>
+      <div className="hub-bar rv" style={{ "--i": 0 } as CSSProperties}>
         {/* The card just below carries the name set in type; only a real logo file earns a second place up here. */}
-        {brandMark() === "type" && art ? <span /> : <VenueMark name={venue.name} slug={venue.slug} type={brandMark() === "type"} className="hub-mark" size={72} />}
+        {tableLabel ? <span className="hub-table">{t("table", { label: tableLabel })}</span>
+          : brandMark() === "type" && art ? <span /> : <VenueMark name={venue.name} slug={venue.slug} type={brandMark() === "type"} className="hub-mark" size={72} />}
         <LanguageSwitch languages={brandLanguages()} />
       </div>
 
@@ -149,7 +162,7 @@ export default async function VisitHub({ venue, branchSlug }: { venue: Venue; br
             {mine ? t("openCard") : t("getCard")}
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </a>
-          <a className="btn hub-menu" href={menu} {...(here?.menuUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+          <a className="btn hub-menu" href={menu} {...(outside ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
             <Icon d={IC.menu} />
             {t("menu")}
           </a>

@@ -48,3 +48,18 @@ export function wallLoop(slug: string): string | null {
     return null;
   }
 }
+
+/**
+ * The venue's own logo as a one-colour picture: public/venues/<slug>/wordmark.png, announced in card.json as
+ * "wordmark": <width divided by height>. Where the name would be set in type in a frame (BRAND_MARK=type), the
+ * picture is shown in its place (app/visit.css). null = no such file: the typed stand-in stays.
+ */
+export function wordmark(slug: string): { src: string; ratio: number } | null {
+  if (!/^[a-z0-9-]+$/.test(slug)) return null;
+  try {
+    const meta = JSON.parse(readFileSync(path.join(process.cwd(), "public", "venues", slug, "card.json"), "utf8")) as { wordmark?: number };
+    return typeof meta.wordmark === "number" && meta.wordmark > 0.2 && meta.wordmark < 12 ? { src: `/venues/${slug}/wordmark.png`, ratio: meta.wordmark } : null;
+  } catch {
+    return null;
+  }
+}

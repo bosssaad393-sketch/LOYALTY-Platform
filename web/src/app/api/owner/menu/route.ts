@@ -5,7 +5,7 @@ import { addCategory, addItem, editItem, readMenu, removeItem } from "@/lib/tabl
 import { parsePriceFils } from "@/lib/table/rules";
 
 const optional = (max: number) => z.string().trim().max(max).optional().transform((v) => v || null);
-const Fields = z.object({ nameEn: z.string().trim().min(1).max(80), nameAr: optional(80), noteEn: optional(200), noteAr: optional(200), price: z.string() });
+const Fields = z.object({ nameEn: z.string().trim().min(1).max(80), nameAr: optional(80), noteEn: optional(400), noteAr: optional(400), price: z.string() });
 const Post = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("category"), nameEn: z.string().trim().min(1).max(60), nameAr: optional(60) }),
   Fields.extend({ kind: z.literal("item"), categoryId: z.uuid() }),
