@@ -10,6 +10,8 @@ export type Summary = {
   pointsHeld: number;
   rewards30d: number;
   perDay14: { day: string; visits: number }[];
+  /** Visit-card venues only (0022): gifts and visits per branch. */
+  visitCard?: { giftsUnlocked: number; giftsUsed: number; giftsWaiting: number; giftsUsed30d: number; perBranch7d: { branchId: string; name: string; visits: number }[] };
 };
 
 // GET /api/owner/insights (src/lib/ownerInsights.ts). busiest.weekday: 0 = Sunday ... 6 = Saturday, Bahrain time.
@@ -27,7 +29,7 @@ export type Insights = {
 
 export type Guest ={ cardId: string; code: string; name: string; points: number; visits: number; lastVisit: string | null; joined: string };
 export type Rules = { pointsPerBhd: number; rewardGoal: number; rewardText: string; stampTiers?: { at: number; text: string; ar?: string }[] | null };
-export type Member = { id: string; name: string; role: string; active: boolean; hasPin: boolean; me: boolean; waiting?: boolean };
+export type Member = { id: string; name: string; role: string; active: boolean; hasPin: boolean; me: boolean; waiting?: boolean; /** 0022: the branch this person works at; null = every branch. */ branchId?: string | null };
 
 export type Audience = "all" | "apple" | "google";
 // withdrawnAt is set once the owner has withdrawn the message from the cards (round 3).
@@ -55,7 +57,7 @@ export type Points = {
   perDay: PointsDay[];
 };
 
-export type Tab = "overview" | "service" | "guests" | "feedback" | "rules" | "offers" | "assistant" | "team" | "privacy";
+export type Tab = "overview" | "service" | "guests" | "feedback" | "rules" | "offers" | "assistant" | "team" | "privacy" | "branches" | "gifts" | "messages" | "activity";
 
 export type Res<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 export type Call = <T>(path: string, method?: string, body?: unknown) => Promise<Res<T>>;

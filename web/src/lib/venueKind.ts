@@ -15,3 +15,16 @@ export async function isStampVenue(slug: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * A visit-card venue (migration 0022: card_mode = 'visits'): no points and no stamps; staff record visits per branch and
+ * redeem gifts, and the owner manages branches, gifts and automatic messages. Never throws: unknown = not a visit venue.
+ */
+export async function isVisitVenue(slug: string): Promise<boolean> {
+  try {
+    const { data } = await db().from("venues").select("card_mode").eq("slug", slug).maybeSingle();
+    return (data as { card_mode?: string | null } | null)?.card_mode === "visits";
+  } catch {
+    return false;
+  }
+}

@@ -39,3 +39,10 @@ describe("Arabic owner and staff screens", () => {
     expect(makeT("en")("Hello {name}", { name: "Ali" })).toBe("Hello Ali");
   });
 });
+
+describe("Arabic for texts the server sends", () => {
+  it("every line of the owner's activity log has Arabic", async () => {
+    const { ACTIVITY_TEXT } = await import("../src/lib/activity");
+    expect(Object.values(ACTIVITY_TEXT).filter((s) => !AR[s])).toEqual([]);
+  });
+});

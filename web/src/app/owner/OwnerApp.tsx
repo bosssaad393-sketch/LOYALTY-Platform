@@ -16,26 +16,39 @@ import Privacy from "./Privacy";
 import Rules from "./Rules";
 import Service from "./Service";
 import Team from "./Team";
+import Branches from "./Branches";
+import Gifts from "./Gifts";
+import AutoMessages from "./AutoMessages";
+import Activity from "./Activity";
+import VenueMark from "@/components/VenueMark";
 import type { Call, Me, Tab } from "./types";
 import { LangToggle, UiLangProvider, useT, type UiLang } from "@/lib/uiLang";
 import { tx } from "@/lib/uiArabic";
 
-/** pointsOnly: tables, table orders and the points assistant; hidden for stamp venues (salons, barbers, spas). */
-const TABS: { id: Tab; label: string; ownerOnly?: boolean; pointsOnly?: boolean }[] = [
+/**
+ * pointsOnly: tables, table orders and the points assistant; hidden for stamp venues (salons, barbers, spas).
+ * notVisit: the points assistant; hidden for visit-card venues (a restaurant on visits keeps its tables and menu).
+ * visitOnly: branches, gifts, automatic messages and the activity log (migration 0022), only for visit-card venues.
+ */
+const TABS: { id: Tab; label: string; ownerOnly?: boolean; pointsOnly?: boolean; visitOnly?: boolean; notVisit?: boolean }[] = [
   { id: "overview", label: tx("Overview") },
   { id: "service", label: tx("Tables and menu"), pointsOnly: true },
   { id: "guests", label: tx("Guests") },
   { id: "feedback", label: tx("Feedback") },
   { id: "rules", label: tx("Rules") },
   { id: "offers", label: tx("Offers") },
-  { id: "assistant", label: tx("Assistant"), ownerOnly: true, pointsOnly: true },
+  { id: "branches", label: tx("Branches"), visitOnly: true },
+  { id: "gifts", label: tx("Gifts"), visitOnly: true },
+  { id: "messages", label: tx("Automatic messages"), visitOnly: true },
+  { id: "assistant", label: tx("Assistant"), ownerOnly: true, pointsOnly: true, notVisit: true },
   { id: "team", label: tx("Team"), ownerOnly: true },
+  { id: "activity", label: tx("Activity"), ownerOnly: true, visitOnly: true },
   { id: "privacy", label: tx("Data and privacy"), ownerOnly: true },
 ];
 
-/** The sections this person sees: owner-only ones for the owner, points-only ones not at stamp venues. */
-export function visibleTabs(isOwner: boolean, stampVenue: boolean) {
-  return TABS.filter((x) => (!x.ownerOnly || isOwner) && !(stampVenue && x.pointsOnly));
+/** The sections this person sees: owner-only ones for the owner, points-only ones not at stamp venues, visit-only ones at visit venues. */
+export function visibleTabs(isOwner: boolean, stampVenue: boolean, visitVenue = false) {
+  return TABS.filter((x) => (!x.ownerOnly || isOwner) && !(stampVenue && x.pointsOnly) && !(visitVenue && x.notVisit) && (!x.visitOnly || visitVenue));
 }
 
 type Props = {
@@ -51,6 +64,8 @@ type Props = {
   lang?: UiLang;
   /** Stamp venue (salon, barber, spa): no tables, no bills, no points per BHD. */
   stampVenue?: boolean;
+  /** Visit-card venue (0022): branches, gifts and automatic messages instead of tables and the points assistant. */
+  visitVenue?: boolean;
 };
 
 /** The owner dashboard in the venue's language (Arabic or English). */
@@ -58,7 +73,7 @@ export default function OwnerApp({ lang = "en", ...props }: Props) {
   return <UiLangProvider lang={lang}><OwnerScreen {...props} /></UiLangProvider>;
 }
 
-function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null, stampVenue = false }: Props) {
+function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null, stampVenue = false, visitVenue = false }: Props) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -77,7 +92,7 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null,
     [out],
   );
 
-  const tabs = visibleTabs(isOwner, stampVenue);
+  const tabs = visibleTabs(isOwner, stampVenue, visitVenue);
   // A manager cannot open owner-only sections, even through a stale tab value.
   const current: Tab = tabs.some((x) => x.id === tab) ? tab : "overview";
   const label = t(TABS.find((x) => x.id === current)?.label ?? "Overview");
@@ -130,8 +145,10 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null,
       <div className="ow-shell">
         <aside className="ow-side">
           <div className="ow-brand">
-            {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark; hidden when the client has no crest file */}
+            {brand.mark === "type" ? <VenueMark name={venue} slug={brand.slug} type className="ow-mark" /> : (
+            // eslint-disable-next-line @next/next/no-img-element -- small static brand mark; hidden when the client has no crest file
             <img className="ow-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${venue}, ${t("owner")}`} width={112} height={112} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            )}
           </div>
           <button className="ow-chip ow-lock" type="button" onClick={lock}>{t("Lock")}</button>
           <LangToggle className="ow-chip" />
@@ -154,15 +171,19 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null,
             </section>
           ) : (
             <>
-              {current === "overview" && <Overview call={call} isOwner={isOwner} stampVenue={stampVenue} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
+              {current === "overview" && <Overview call={call} isOwner={isOwner} stampVenue={stampVenue} visitVenue={visitVenue} onOpen={(x) => { setCompose(0); setTab(x); }} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
               {current === "service" && !stampVenue && <Service call={call} />}
-              {current === "guests" && <Guests call={call} isOwner={isOwner} />}
+              {current === "guests" && <Guests call={call} isOwner={isOwner} visitVenue={visitVenue} />}
               {current === "feedback" && <Feedback call={call} stampVenue={stampVenue} />}
-              {current === "rules" && <Rules call={call} isOwner={isOwner} />}
+              {current === "rules" && <Rules call={call} isOwner={isOwner} visitVenue={visitVenue} />}
               {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} />}
               {current === "assistant" && isOwner && !stampVenue && <Assistant call={call} />}
               {current === "team" && isOwner && <Team call={call} />}
               {current === "privacy" && isOwner && <Privacy call={call} venue={venue} />}
+              {current === "branches" && visitVenue && <Branches call={call} isOwner={isOwner} />}
+              {current === "gifts" && visitVenue && <Gifts call={call} isOwner={isOwner} />}
+              {current === "messages" && visitVenue && <AutoMessages call={call} isOwner={isOwner} />}
+              {current === "activity" && isOwner && <Activity call={call} />}
             </>
           )}
           <p className="ow-end">{t("Signed in as {name}", { name: me.name })}{brand.poweredBy ? ` · ${brand.poweredBy}` : ""}</p>

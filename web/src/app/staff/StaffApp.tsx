@@ -11,12 +11,23 @@ import { LARGE_BILL_BHD, MAX_BILL_BHD, pointsFor, readBill } from "@/lib/tillRul
 import { bahrainTime, bhd as bhdNumber, bhdText } from "@/lib/format";
 import { LangToggle, UiLangProvider, useT, type UiLang } from "@/lib/uiLang";
 import { tx } from "@/lib/uiArabic";
+import VenueMark from "@/components/VenueMark";
+import type { CardVoucher } from "@/lib/vouchers";
+import { BranchPicker, newVouchers, VisitResult, VisitSheet, type StaffBranch } from "./VisitGuest";
 
 type Me = { name: string; role: string; venue: string };
 type Guest = {
   cardId: string; firstName: string; code: string; points: number; visits: number; goal: number; rewardText: string; rewardReady: boolean; pointsPerBhd?: number;
   stampMode?: boolean; stamps?: { position: number; cycle: number; tiers: { at: number; text: string }[] };
+  /** Visit cards (0022): no points; a visit is recorded and the card's gifts are redeemed. */
+  visitMode?: boolean; lastVisit?: string | null; vouchers?: CardVoucher[];
+  /** True when the guest was found by scanning their own signed QR (lib/cardQr.ts), not by a typed code. */
+  verified?: boolean;
 };
+/** Where this phone works, remembered between shifts (visit venues with several places). */
+const BRANCH_KEY = "orbyn-staff-branch";
+const readSaved = () => { try { return localStorage.getItem(BRANCH_KEY); } catch { return null; } };
+const save = (id: string | null) => { try { if (id) localStorage.setItem(BRANCH_KEY, id); else localStorage.removeItem(BRANCH_KEY); } catch { /* private mode */ } };
 
 /** Stamp venues: the full ladder, one dot per stamp, the reward under each step. */
 function StampLadder({ g }: { g: Guest }) {
@@ -60,14 +71,14 @@ const stamp = () => Date.now();
 /** 1250 -> "1,250.000": three decimals like the receipt, with thousands marked so a typo stands out. */
 const bhdFull = bhdNumber;
 
-type StaffProps = { initialMe: Me | null; look?: SignInLook; brand: BrandProps; lang?: UiLang; stampVenue?: boolean };
+type StaffProps = { initialMe: Me | null; look?: SignInLook; brand: BrandProps; lang?: UiLang; stampVenue?: boolean; visitVenue?: boolean };
 
 /** The staff screen in the venue's language (Arabic or English). */
 export default function StaffApp({ lang = "en", ...props }: StaffProps) {
   return <UiLangProvider lang={lang}><StaffScreen {...props} /></UiLangProvider>;
 }
 
-function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
+function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false }: StaffProps) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>("guest");
@@ -88,8 +99,15 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
   /** A large bill waits for one more tap ("Yes, BHD 450.000"). Cleared when the amount changes. */
   const [confirmLarge, setConfirmLarge] = useState(false);
   const billBox = useRef<HTMLInputElement>(null);
+  // Visit venues: the places this person can work at, and the one this phone is at now.
+  const [places, setPlaces] = useState<{ fixed: boolean; branches: StaffBranch[] } | null>(null);
+  const [branchId, setBranchId] = useState<string | null>(null);
+  const [visitDone, setVisitDone] = useState<{ first: string; visits: number; unlocked: string[] } | null>(null);
+  const [justUsed, setJustUsed] = useState<string | null>(null);
+  /** The exact text scanned for the guest on screen: using a gift needs it (a typed code can be guessed). */
+  const [scanned, setScanned] = useState<string | null>(null);
 
-  const signedOut = useCallback(() => { setMe(null); setGuest(null); setTab("guest"); }, []);
+  const signedOut = useCallback(() => { setMe(null); setGuest(null); setTab("guest"); setPlaces(null); }, []);
 
   const loadRecent = useCallback(async () => {
     const r = await api<{ items: Recent[]; mine: MyDay }>("/api/staff/recent", undefined);
@@ -112,6 +130,21 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
     return () => { live = false; };
   }, [me]);
 
+  // Visit venues: which places this person may work at. One place (or a till tied to one) is chosen for them;
+  // otherwise the choice saved on this phone is used, and with none the screen asks first.
+  useEffect(() => {
+    if (!me || !visitVenue) return;
+    let live = true;
+    api<{ fixed: boolean; branches: StaffBranch[] }>("/api/staff/branches", undefined).then((r) => {
+      if (!live || !r.ok) return;
+      setPlaces(r.data);
+      const ids = r.data.branches.map((b) => b.id);
+      const saved = readSaved();
+      setBranchId(r.data.fixed || ids.length === 1 ? ids[0] ?? null : saved && ids.includes(saved) ? saved : null);
+    });
+    return () => { live = false; };
+  }, [me, visitVenue]);
+
   async function signIn(pin: string) {
     setBusy(true); setLoginError(null);
     const r = await api<Me>("/api/staff/pin-login", { pin, area: "staff", venue: brand.slug });
@@ -128,7 +161,7 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
     setScanning(false); setMsg(null); setBusy(true);
     const r = await api<Guest>(`/api/staff/card?code=${encodeURIComponent(code)}`, undefined);
     setBusy(false);
-    if (r.ok) { setGuest(r.data); setBill(""); setConfirmLarge(false); setLastEntry(null); setResult(null); }
+    if (r.ok) { setGuest(r.data); setScanned(code.startsWith("LOYALTY:") ? code : null); setBill(""); setConfirmLarge(false); setLastEntry(null); setResult(null); setVisitDone(null); setJustUsed(null); }
     else if (r.status === 401) signedOut();
     else setMsg({ kind: "bad", text: t(r.error) });
   }, [signedOut, setMsg, t]);
@@ -179,6 +212,36 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
   }
   const canUndo = lastEntry !== null;
 
+  // Visit venues: where this phone is, and whether it is a partner counter (gifts only, no visits).
+  const here = places?.branches.find((b) => b.id === branchId) ?? null;
+  const partner = here?.kind === "partner";
+  const mustPick = visitVenue && places !== null && places.branches.length > 1 && !places.fixed && !branchId;
+  function pick(id: string | null) { setBranchId(id); save(id); setGuest(null); setVisitDone(null); setMsg(null); }
+
+  async function recordVisit() {
+    if (!guest || busy) return;
+    setBusy(true); setMsg(null);
+    const r = await api<{ visits: number; vouchersIssued: number; guest: Guest }>("/api/staff/visit", { cardId: guest.cardId, branchId });
+    setBusy(false);
+    if (!r.ok) { if (r.status === 401) signedOut(); else setMsg({ kind: "bad", text: t(r.error) }); return; }
+    const unlocked = newVouchers(guest.vouchers, r.data.guest.vouchers).map((v) => (t.lang === "ar" && v.titleAr) || v.title);
+    setGuest({ ...r.data.guest, verified: guest.verified });
+    setVisitDone({ first: r.data.guest.firstName, visits: r.data.visits, unlocked });
+    setMsg({ kind: "ok", text: t("Visit recorded for {name}.", { name: r.data.guest.firstName }) });
+    void loadRecent();
+  }
+
+  async function redeemGift(v: CardVoucher) {
+    if (!guest || busy) return;
+    setBusy(true); setMsg(null);
+    const r = await api<{ redeemedAt: string; guest: Guest }>("/api/staff/voucher/redeem", { cardId: guest.cardId, cardVoucherId: v.id, branchId, ...(scanned ? { qr: scanned } : {}) });
+    setBusy(false);
+    if (!r.ok) { if (r.status === 401) signedOut(); else setMsg({ kind: "bad", text: t(r.error) }); return; }
+    setGuest({ ...r.data.guest, verified: guest.verified });
+    setJustUsed(v.id);
+    setMsg({ kind: "ok", text: t("Gift used. It is now marked as used on {name}'s card.", { name: r.data.guest.firstName }) });
+  }
+
 
   if (!me) return <PinPad role="staff" busy={busy} error={loginError} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} />;
 
@@ -187,10 +250,12 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
   return (
     <main className="app staff" dir={t.dir} lang={t.lang}>
       <header className="st-head">
-        {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
-        <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, ${t("staff")}`} width={96} height={96} />
+        {brand.mark === "type" ? <VenueMark name={me.venue} slug={brand.slug} type className="st-mark" /> : (
+          // eslint-disable-next-line @next/next/no-img-element -- small static brand mark
+          <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, ${t("staff")}`} width={96} height={96} />
+        )}
         <div className="st-actions">
-          {!stampVenue && <a className="chip" href="/staff/board">{t("Table board")}</a>}
+          {!stampVenue && !visitVenue && <a className="chip" href="/staff/board">{t("Table board")}</a>}
           <LangToggle />
           <button className="chip" type="button" onClick={lock}>{t("Lock")}</button>
         </div>
@@ -200,16 +265,22 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
         <div className="st-today" aria-label={t("Your day so far")}>
           <span><b>{mine.entries}</b> {t("entries")}</span>
           <span><b>{mine.guests}</b> {t("guests")}</span>
-          {!stampVenue && <span><b>{bhdFull(mine.bhd)}</b> {t("BHD")}</span>}
+          {!stampVenue && !visitVenue && <span><b>{bhdFull(mine.bhd)}</b> {t("BHD")}</span>}
         </div>
+      )}
+      {visitVenue && here && places && tab !== "end" && (
+        <p className="st-branch note st-left">
+          <span>{t("Counter:")} <b>{(t.lang === "ar" && here.nameAr) || here.name}</b></span>
+          {!places.fixed && places.branches.length > 1 && <button className="chip" type="button" onClick={() => pick(null)}>{t("Change")}</button>}
+        </p>
       )}
 
       {tab === "guest" ? (
-        !guest ? (
+        mustPick && places ? <BranchPicker branches={places.branches} onPick={pick} /> : !guest ? (
           <>
             <div className="eyebrow">{t("Hello {name}", { name: first })}</div>
             <h1 className="st-title">{t("Find the guest")}</h1>
-            <p className="sub">{t("Scan the QR on the guest's Wallet card, or type the 4-digit code under it.")}</p>
+            <p className="sub">{partner ? t("Scan the guest's card to use their gift.") : t("Scan the QR on the guest's Wallet card, or type the 4-digit code under it.")}</p>
             {scanning ? <div className="panel"><QrScanner onCode={find} onClose={() => setScanning(false)} /></div> : (
               <button className="sc" type="button" onClick={() => setScanning(true)}>
                 <span className="sc-box" aria-hidden="true"><i /><i /><i /><i /><span className="sc-line" /></span>
@@ -223,6 +294,10 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
               </form>
             </div>
           </>
+        ) : visitDone ? (
+          <VisitResult first={visitDone.first} visits={visitDone.visits} unlocked={visitDone.unlocked} onNext={() => { setVisitDone(null); setGuest(null); setMsg(null); }} onBack={() => setVisitDone(null)} />
+        ) : guest.visitMode ? (
+          <VisitSheet guest={guest} branchId={branchId} partner={partner} busy={busy} justUsed={justUsed} canRedeem={Boolean(guest.verified && scanned) || me.role === "owner" || me.role === "manager"} onScan={() => { setGuest(null); setMsg(null); setScanning(true); }} onVisit={recordVisit} onRedeem={redeemGift} onDone={() => { setGuest(null); setMsg(null); setJustUsed(null); }} />
         ) : result ? (
           <section className="sr" role="status">
             <svg className="sr-check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" pathLength={1} /><path d="M20 33l8 8 16-17" pathLength={1} /></svg>
@@ -300,7 +375,7 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
           <section className="panel feed">
             {recent.length === 0 ? <p className="note">{t("Nothing yet.")}</p> : recent.map((r) => (
               <div key={r.id}>
-                <span><b className={r.points >= 0 ? "st-plus" : "st-minus"}>{r.points > 0 ? "+" : ""}{r.points}</b> {r.guest}{r.billBhd ? ` · ${bhd(Number(r.billBhd))}` : ""}{r.kind === "undo" ? ` · ${t("undo")}` : r.kind === "redeem" ? ` · ${t("reward")}` : ""}{r.by ? ` · ${r.by}` : ""}</span>
+                <span>{visitVenue && r.kind === "earn" && r.points === 0 ? <b>{t("Visit")}</b> : <b className={r.points >= 0 ? "st-plus" : "st-minus"}>{r.points > 0 ? "+" : ""}{r.points}</b>} {r.guest}{r.billBhd ? ` · ${bhd(Number(r.billBhd))}` : ""}{r.kind === "undo" ? ` · ${t("undo")}` : r.kind === "redeem" ? ` · ${t("reward")}` : ""}{r.by ? ` · ${r.by}` : ""}</span>
                 <span>{time(r.at)}</span>
               </div>
             ))}
@@ -329,9 +404,9 @@ function StaffScreen({ initialMe, brand, stampVenue = false }: StaffProps) {
           <ol className="panel st-help">
             <li>{t("Scan the QR on the guest's card, or type the card code.")}</li>
             <li>{t("Check the first name with the guest.")}</li>
-            <li>{stampVenue ? t("Tap Add a stamp once for each paid visit.") : t("Type the bill and tap Add points.")}</li>
-            <li>{t("If a reward is ready, tap Give.")}</li>
-            <li>{t("Made a mistake? Undo works for 10 minutes.")}</li>
+            <li>{visitVenue ? t("Tap Record visit once for each paid visit.") : stampVenue ? t("Tap Add a stamp once for each paid visit.") : t("Type the bill and tap Add points.")}</li>
+            <li>{visitVenue ? t("If the card has a gift for this counter, tap Redeem and confirm. A gift is used once.") : t("If a reward is ready, tap Give.")}</li>
+            {!visitVenue && <li>{t("Made a mistake? Undo works for 10 minutes.")}</li>}
             <li>{t("At the end of your shift, open End to see your day and any thank-you waiting for you.")}</li>
           </ol>
         </>

@@ -4,7 +4,7 @@ import { loginLook } from "@/lib/loginStyle";
 import { brandName, brandProps } from "@/lib/brand";
 import { appIcons } from "@/lib/appIcons";
 import { getLocale } from "next-intl/server";
-import { isStampVenue } from "@/lib/venueKind";
+import { isStampVenue, isVisitVenue } from "@/lib/venueKind";
 import StaffApp from "./StaffApp";
 
 export function generateMetadata(): Metadata {
@@ -19,6 +19,6 @@ export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
   const { look } = await searchParams;
   const staff = await currentStaff("staff");
   const lang = (await getLocale()) === "ar" ? "ar" : "en";
-  const stampVenue = await isStampVenue(brandProps().slug);
-  return <StaffApp lang={lang} stampVenue={stampVenue} brand={brandProps()} look={loginLook("staff", look)} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} />;
+  const [stampVenue, visitVenue] = await Promise.all([isStampVenue(brandProps().slug), isVisitVenue(brandProps().slug)]);
+  return <StaffApp lang={lang} stampVenue={stampVenue} visitVenue={visitVenue} brand={brandProps()} look={loginLook("staff", look)} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} />;
 }

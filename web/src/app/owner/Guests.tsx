@@ -7,7 +7,8 @@ import { Confirm, Loading, LoadError, Msg, PageHead, Sheet, useDebounced, useGet
 import type { Call, Guest, Note } from "./types";
 import { useT } from "@/lib/uiLang";
 
-export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean }) {
+/** visitVenue: a visit-card venue (0022) has no points, so the balance column goes and the delete text names visits and gifts. */
+export default function Guests({ call, isOwner, visitVenue = false }: { call: Call; isOwner: boolean; visitVenue?: boolean }) {
   const [q, setQ] = useState("");
   const dq = useDebounced(q.trim(), 250);
   const list = useGet<{ guests: Guest[] }>(call, `/api/owner/guests?q=${encodeURIComponent(dq)}`);
@@ -59,7 +60,7 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
                   <th scope="col" className="ow-c-code">{t("Code")}</th>
                   <th scope="col" className="ow-c-visits">{t("Visits")}</th>
                   <th scope="col" className="ow-c-last">{t("Last visit")}</th>
-                  <th scope="col" className="ow-c-pts">{t("Balance")}</th>
+                  {!visitVenue && <th scope="col" className="ow-c-pts">{t("Balance")}</th>}
                   <th scope="col" className="ow-c-act"><span className="ow-sr">{t("Actions")}</span></th>
                 </tr>
               </thead>
@@ -70,7 +71,7 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
                     <td className="ow-c-code">{g.code}</td>
                     <td className="ow-c-visits">{n(g.visits)}</td>
                     <td className="ow-c-last">{ago(g.lastVisit, t)}</td>
-                    <td className="ow-c-pts">{n(g.points)}</td>
+                    {!visitVenue && <td className="ow-c-pts">{n(g.points)}</td>}
                     <td className="ow-c-act">
                       <button type="button" className="ow-btn small" onClick={() => setShowing(g)} aria-label={t("Show the card of {name}", { name: g.name })}>{t("Show card")}</button>
                       {isOwner && <button type="button" className="ow-btn small" onClick={() => { setNote(null); setTarget(g); }} aria-label={t("Delete {name}", { name: g.name })}>{t("Delete")}</button>}
@@ -89,7 +90,7 @@ export default function Guests({ call, isOwner }: { call: Call; isOwner: boolean
       )}
       {target && (
         <Confirm title={t("Delete {name}?", { name: target.name })} confirmLabel={t("Delete for good")} danger busy={busy} onConfirm={erase} onClose={() => setTarget(null)}>
-          <p className="ow-note ow-dialog-text">{t("Their name, phone, email, card and points are erased for good. This cannot be undone.")}</p>
+          <p className="ow-note ow-dialog-text">{visitVenue ? t("Their name, phone, email, card, visits and gifts are erased for good. This cannot be undone.") : t("Their name, phone, email, card and points are erased for good. This cannot be undone.")}</p>
         </Confirm>
       )}
     </>

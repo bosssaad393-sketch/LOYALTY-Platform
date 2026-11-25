@@ -7,7 +7,22 @@ import { Msg, PageHead, useGet } from "./ui";
 import type { Call, Note } from "./types";
 import { useT } from "@/lib/uiLang";
 
-export default function Rules({ call, isOwner }: { call: Call; isOwner: boolean }) {
+export default function Rules({ call, isOwner, visitVenue = false }: { call: Call; isOwner: boolean; visitVenue?: boolean }) {
+  const t = useT();
+  // A visit-card venue (0022) has no points or reward goal: only the guest page's links and Wi-Fi stay here.
+  if (visitVenue) {
+    return (
+      <>
+        <PageHead eyebrow={t("Programme")} title={t("Rules")}>{t("Your card counts visits, and gifts unlock on it (see Gifts). Here: the links and Wi-Fi on your guest page.")}</PageHead>
+        <Links call={call} isOwner={isOwner} />
+        <Wifi call={call} isOwner={isOwner} />
+      </>
+    );
+  }
+  return <PointsRules call={call} isOwner={isOwner} />;
+}
+
+function PointsRules({ call, isOwner }: { call: Call; isOwner: boolean }) {
   const editor = useRewardEditor(call);
   const t = useT();
 

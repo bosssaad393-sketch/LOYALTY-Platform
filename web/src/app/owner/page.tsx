@@ -5,7 +5,7 @@ import { brandName, brandProps } from "@/lib/brand";
 import { appIcons } from "@/lib/appIcons";
 import { sampleNote } from "@/lib/demo";
 import { getLocale } from "next-intl/server";
-import { isStampVenue } from "@/lib/venueKind";
+import { isStampVenue, isVisitVenue } from "@/lib/venueKind";
 import OwnerApp from "./OwnerApp";
 
 export function generateMetadata(): Metadata {
@@ -22,6 +22,6 @@ export default async function OwnerPage(props: PageProps<"/owner">) {
   const brand = brandProps();
   const staff = await currentStaff("owner");
   const lang = (await getLocale()) === "ar" ? "ar" : "en";
-  const stampVenue = await isStampVenue(brand.slug);
-  return <OwnerApp lang={lang} stampVenue={stampVenue} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} sample={sampleNote()} />;
+  const [stampVenue, visitVenue] = await Promise.all([isStampVenue(brand.slug), isVisitVenue(brand.slug)]);
+  return <OwnerApp lang={lang} stampVenue={stampVenue} visitVenue={visitVenue} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} sample={sampleNote()} />;
 }
