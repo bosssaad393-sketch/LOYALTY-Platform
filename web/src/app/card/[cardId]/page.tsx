@@ -2,14 +2,21 @@ import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import QRCode from "qrcode";
+import { qrMessage } from "@/lib/cardQr";
 import { getCardView, isUuid } from "@/lib/cards";
 import { googleWalletConfigured } from "@/lib/googleWallet";
 import { appleWalletConfigured } from "@/lib/appleWallet";
 import BlackCard from "@/components/BlackCard";
 import CardSheet, { SHEET_AR, SHEET_EN } from "./CardSheet";
 import RememberCard from "./RememberCard";
-import { brandColors, footerLine } from "@/lib/brand";
+import { brandColors, brandMark, footerLine } from "@/lib/brand";
 import { directionOf } from "@/i18n/locale";
+import { getTranslations } from "next-intl/server";
+import type { CardView } from "@/lib/cards";
+import VisitCard from "@/components/VisitCard";
+import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
+import { listBranches } from "@/lib/branchesDb";
+import VisitSheet from "./VisitSheet";
 
 // Live data on every request: allow this page to block instead of prerendering.
 export const instant = false;
@@ -41,6 +48,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
   const { card, venue, memberName, stamps } = view;
   const locale = await getLocale();
   const ar = locale === "ar";
+  if (view.visitMode) return <VisitCardPage view={view} locale={locale} ar={ar} welcome={welcome === "1"} />;
   const w = ar ? WORDS.ar : WORDS.en;
   const unit = stamps ? w.stamps : w.points;
 
@@ -48,7 +56,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
   const tiers = stamps?.tiers.map((t) => ({ at: t.at, text: (ar && t.ar) || t.text }));
   const goal = stamps ? stamps.cost : venue.reward_goal;
   const rewardText = stamps && tiers ? tiers[stamps.index].text : venue.reward_text;
-  const qr = await QRCode.toDataURL(`LOYALTY:${venue.slug}:${card.code}`, {
+  const qr = await QRCode.toDataURL(qrMessage(venue.slug, card.code, card.id), {
     margin: 0,
     color: { dark: brandColors().bg, light: brandColors().text },
   });
@@ -97,5 +105,66 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
         <p className="foot after">{footerLine(venue.name)}</p>
       </main>
     </>
+  );
+}
+
+const shortDate = (iso: string, ar: boolean) =>
+  new Date(iso).toLocaleDateString(ar ? "ar-BH" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bahrain" });
+
+/**
+ * Visit card (migration 0022): the member card with visits instead of points, then the gift, then the branches.
+ * Words come from messages/<locale>.json (visitCard). Points and stamp venues never reach this.
+ */
+async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; locale: string; ar: boolean; welcome: boolean }) {
+  const { card, venue, memberName } = view;
+  const t = await getTranslations("visitCard");
+  const [vouchers, defs, branches] = await Promise.all([cardVouchers(card.id, venue.id), listVouchers(venue.id), listBranches(venue.id)]);
+  // Before the first visit: name the gift the first visit unlocks, if the venue has one switched on.
+  const next = !vouchers.length ? defs.find((d) => d.active && d.trigger === "first_visit") : undefined;
+  const upcoming = next ? (ar && next.titleAr) || next.title : null;
+  const qr = await QRCode.toDataURL(qrMessage(venue.slug, card.code, card.id), { margin: 0, color: { dark: brandColors().bg, light: brandColors().text } });
+  const first = memberName.trim().split(/\s+/)[0];
+
+  return (
+    <main className="app vp" lang={locale} dir={directionOf(locale)}>
+      {welcome && (
+        <p className="welcome" role="status">
+          <b>{t("welcome", { name: first })}</b>
+          <span>{t("keep")}</span>
+        </p>
+      )}
+      <VisitCard
+        venueName={venue.name}
+        venueSlug={venue.slug}
+        markType={brandMark() === "type"}
+        memberName={memberName}
+        code={card.code}
+        qr={qr}
+        visits={card.visits}
+        labels={{
+          aria: t("aria", { venue: venue.name }),
+          code: t("code"),
+          since: card.created_at ? t("since", { date: shortDate(card.created_at, ar) }) : "",
+          visits: t("visits"),
+          lastVisit: view.lastVisit ? t("lastVisit", { date: shortDate(view.lastVisit, ar) }) : t("noVisit"),
+          noVisit: t("noVisit"),
+          qrAlt: t("qrAlt", { code: card.code }),
+        }}
+      />
+      <div className="rv" style={{ "--i": 2 } as CSSProperties}>
+        <VisitSheet vouchers={vouchers} upcoming={upcoming} branches={branches} ar={ar} />
+      </div>
+      <div className="actions after">
+        {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> {t("apple")}</a>}
+        {googleWalletConfigured() && (
+          <a className="gw-badge" href={`/api/wallet/google/${card.id}`} aria-label="Add to Google Wallet">
+            {/* eslint-disable-next-line @next/next/no-img-element -- official Google Wallet button artwork */}
+            <img src="/badges/add-to-google-wallet-en.svg" alt="Add to Google Wallet" width={283} height={50} />
+          </a>
+        )}
+      </div>
+      <p className="note after" style={{ marginTop: 14 }}>{t("tip")}</p>
+      <p className="foot after">{footerLine(venue.name)}</p>
+    </main>
   );
 }
