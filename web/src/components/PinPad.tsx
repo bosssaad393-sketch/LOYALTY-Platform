@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import "./pinpad.css";
 import NetworkBackdrop from "./NetworkBackdrop";
+import VenueMark from "./VenueMark";
 import { useT } from "@/lib/uiLang";
 
 type Props = {
@@ -15,6 +16,8 @@ type Props = {
   poweredBy?: string;
   /** Sample mode only: a line under the keypad that says this is sample data and gives the sample PIN. */
   note?: string;
+  /** BRAND_MARK=type: the venue name set in a thin frame instead of the crest file. */
+  markType?: boolean;
 };
 
 const STAFF_LEN = 4;
@@ -22,7 +25,7 @@ const OWNER_LEN = 6;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"] as const;
 
 /** PIN sign-in for staff and owners: a keypad that also takes the keyboard. No email, no password. */
-export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewards", venueSlug = "orbyn", poweredBy = "Powered by Orbyn", note }: Props) {
+export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewards", venueSlug = "orbyn", poweredBy = "Powered by Orbyn", note, markType }: Props) {
   const [pin, setPin] = useState("");
   const t = useT();
   const owner = role === "owner";
@@ -62,9 +65,13 @@ export default function PinPad({ role, busy, error, onSubmit, venueName = "Rewar
       <i className="pp-orb o1" aria-hidden="true" /><i className="pp-orb o2" aria-hidden="true" /><i className="pp-orb o3" aria-hidden="true" /><i className="pp-orb o4" aria-hidden="true" />
       <div className="pp-card">
         <div className="pp-subject">
-        {/* eslint-disable-next-line @next/next/no-img-element -- brand mark; hidden when the client has no crest file */}
-        <img className="pp-crest" src={`/venues/${venueSlug}/crest.png`} alt="" width={140} height={140} onError={(e) => { e.currentTarget.style.display = "none"; }} />
-        <p className="pp-venue">{venueName}</p>
+        {markType ? <VenueMark name={venueName} slug={venueSlug} type className="pp-mark" /> : (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- brand mark; hidden when the client has no crest file */}
+            <img className="pp-crest" src={`/venues/${venueSlug}/crest.png`} alt="" width={140} height={140} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+            <p className="pp-venue">{venueName}</p>
+          </>
+        )}
         <h1 className="pp-title">{owner ? t("Owner") : t("Staff")}</h1>
         <p className="pp-sub">{owner ? t("Enter your PIN") : t("Enter your PIN to start your shift")}</p>
         </div>

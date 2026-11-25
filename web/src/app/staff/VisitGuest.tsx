@@ -97,11 +97,11 @@ export function VisitSheet({ guest, branchId, partner, busy, justUsed, canRedeem
               const done = justUsed === v.id && state === "used";
               const where = v.redeemBranchName ?? t("any branch");
               return (
-                <article key={v.id} className={`st-v${state === "ready" ? " ready" : ""}${done ? " done" : ""}`}>
+                <article key={v.id} className={`st-v${state === "ready" && here ? " ready" : ""}${done ? " done" : ""}`}>
                   <p className="st-v-state">
                     {done ? t("Used just now") : state === "ready" ? t("Ready") : state === "used" ? t("Used on {date}", { date: v.redeemedAt ? date(v.redeemedAt) : "" }) : t("Expired on {date}", { date: v.expiresAt ? date(v.expiresAt) : "" })}
                   </p>
-                  <h3 className="st-v-title">{(t.lang === "ar" && v.titleAr) || v.title}</h3>
+                  <h3 className="st-v-title" dir="auto">{(t.lang === "ar" && v.titleAr) || v.title}</h3>
                   {state === "ready" && <p className="st-v-where">{here ? t("Can be used here, once.") : t("Only at {place}. Not at this counter.", { place: where })}</p>}
                   {here && !canRedeem && (
                     <>
@@ -127,7 +127,7 @@ export function VisitSheet({ guest, branchId, partner, busy, justUsed, canRedeem
           </div>
         )}
       </section>
-      <button className="btn" type="button" onClick={onDone}>{t("Done, next guest")}</button>
+      <button className="btn st-next" type="button" onClick={onDone}>{t("Done, next guest")}</button>
     </>
   );
 }
@@ -140,7 +140,7 @@ export function VisitResult({ first, visits, unlocked, onNext, onBack }: { first
       <svg className="sr-check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" pathLength={1} /><path d="M20 33l8 8 16-17" pathLength={1} /></svg>
       <h1 className="st-title">{t("Visit recorded")}</h1>
       <p className="sr-fig"><CountUp value={visits} /><small>{visits === 1 ? t("visit") : t("visits")}</small></p>
-      <p className="sub">{t("{name} has visited {n} times.", { name: first, n: visits })}</p>
+      <p className="sub">{visits === 1 ? t("This is {name}'s first visit.", { name: first }) : t("{name} has visited {n} times.", { name: first, n: visits })}</p>
       {unlocked.map((title) => (
         <p key={title} className="st-unlocked"><b>{t("Gift unlocked:")}</b> {t("{gift}. Tell {name} it is now on the card.", { gift: title, name: first })}</p>
       ))}

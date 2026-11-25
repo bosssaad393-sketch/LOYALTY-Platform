@@ -205,5 +205,5 @@ function OwnerSignIn({ onSignIn, brand, note }: { onSignIn: (pin: string) => Pro
     if (err) setError(err);
   }
 
-  return <PinPad role="owner" busy={busy} error={error} onSubmit={submit} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} note={note} />;
+  return <PinPad role="owner" busy={busy} error={error} onSubmit={submit} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} markType={brand.mark === "type"} note={note} />;
 }

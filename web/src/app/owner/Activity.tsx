@@ -63,11 +63,11 @@ export default function Activity({ call }: { call: Call }) {
         <div className="ow-grid">
           {days.map((d) => (
             <section key={d.key} className="ow-panel ow-flush" aria-label={d.label}>
-              <h2 className="ow-h ow-act-day">{d.label}</h2>
-              <ul className="ow-list ow-act">
+              <h2 className="ow-h ow-log-day">{d.label}</h2>
+              <ul className="ow-list ow-log">
                 {d.items.map((a) => (
                   <li key={a.id} className="ow-item">
-                    <span className="ow-act-time" dir="ltr">{bahrainTime(a.at)}</span>
+                    <span className="ow-log-time" dir="ltr">{bahrainTime(a.at)}</span>
                     <span className="ow-item-main">
                       <b>{t(a.what)}</b>
                       <small>{[said(a.who, t), a.branch, a.extra ? said(a.extra, t) : null].filter(Boolean).join(" · ")}</small>

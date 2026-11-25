@@ -6,7 +6,7 @@
 export default function VenueMark({ name, slug, type, className = "", size = 160 }: { name: string; slug: string; type?: boolean; className?: string; size?: number }) {
   if (type) {
     return (
-      <span className={`vm ${className}`} role="img" aria-label={name}>
+      <span className={`vm ${className}`} role="img" aria-label={name} dir="ltr" lang="en">
         <b aria-hidden="true">{name}</b>
       </span>
     );

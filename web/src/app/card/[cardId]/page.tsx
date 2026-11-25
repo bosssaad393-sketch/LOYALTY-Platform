@@ -12,6 +12,7 @@ import RememberCard from "./RememberCard";
 import { brandColors, brandMark, footerLine } from "@/lib/brand";
 import { directionOf } from "@/i18n/locale";
 import { getTranslations } from "next-intl/server";
+import { connection } from "next/server";
 import type { CardView } from "@/lib/cards";
 import VisitCard from "@/components/VisitCard";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
@@ -109,7 +110,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
 }
 
 const shortDate = (iso: string, ar: boolean) =>
-  new Date(iso).toLocaleDateString(ar ? "ar-BH" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bahrain" });
+  new Date(iso).toLocaleDateString(ar ? "ar-BH-u-nu-latn" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bahrain" });
 
 /**
  * Visit card (migration 0022): the member card with visits instead of points, then the gift, then the branches.
@@ -117,6 +118,8 @@ const shortDate = (iso: string, ar: boolean) =>
  */
 async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; locale: string; ar: boolean; welcome: boolean }) {
   const { card, venue, memberName } = view;
+  // A gift's state (ready, expired) depends on today's date, so this part always runs per request.
+  await connection();
   const t = await getTranslations("visitCard");
   const [vouchers, defs, branches] = await Promise.all([cardVouchers(card.id, venue.id), listVouchers(venue.id), listBranches(venue.id)]);
   // Before the first visit: name the gift the first visit unlocks, if the venue has one switched on.

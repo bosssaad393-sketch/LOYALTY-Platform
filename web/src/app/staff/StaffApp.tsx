@@ -243,7 +243,7 @@ function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false 
   }
 
 
-  if (!me) return <PinPad role="staff" busy={busy} error={loginError} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} />;
+  if (!me) return <PinPad role="staff" busy={busy} error={loginError} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} markType={brand.mark === "type"} />;
 
   const first = me.name.split(" ")[0];
 
@@ -289,7 +289,7 @@ function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false 
             )}
             <div className="panel st-or">
               <form className="row" onSubmit={(e) => { e.preventDefault(); const c = new FormData(e.currentTarget).get("code"); if (c) find(String(c)); }}>
-                <label className="field"><span className="lbl">{t("Card code (4 digits)")}</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="4827" autoComplete="off" required onChange={(e) => { const c = e.target.value.replace(/\D/g, ""); if (c.length === 4 && !busy) find(c); }} /></label>
+                <label className="field"><span className="lbl">{t("Card code (4 digits)")}</span><input className="in st-code" name="code" inputMode="numeric" pattern="[0-9]{4}|LOYALTY:.+" maxLength={120} placeholder="4827" autoComplete="off" required onChange={(e) => { const v = e.target.value; if (v.startsWith("LOYALTY:")) return; /* a handheld scanner types the QR text, then Enter */ const c = v.replace(/\D/g, ""); if (c.length === 4 && !busy) find(c); }} /></label>
                 <button className="btn" type="submit" disabled={busy}>{t("Find")}</button>
               </form>
             </div>

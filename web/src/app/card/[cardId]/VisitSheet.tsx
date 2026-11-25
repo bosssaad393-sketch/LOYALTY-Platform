@@ -4,7 +4,7 @@ import { voucherState, type CardVoucher } from "@/lib/vouchers";
 import { directionsUrl, telUrl } from "@/lib/placeLinks";
 
 const day = (iso: string, ar: boolean) =>
-  new Date(iso).toLocaleDateString(ar ? "ar-BH" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" });
+  new Date(iso).toLocaleDateString(ar ? "ar-BH-u-nu-latn" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" });
 
 type Props = {
   vouchers: CardVoucher[];
@@ -29,7 +29,7 @@ export default async function VisitSheet({ vouchers, upcoming, branches, ar }: P
       {(shown.length > 0 || upcoming) && (
         <section className="gs" aria-labelledby="gs-h">
           <h2 className="gs-h" id="gs-h">{t("giftTitle")}</h2>
-          {shown.length === 0 && upcoming && <p className="gs-wait">{t("giftLocked", { gift: upcoming })}</p>}
+          {shown.length === 0 && upcoming && <p className="gs-wait" dir="auto">{t("giftLocked", { gift: upcoming })}</p>}
           {shown.map((v) => {
             const state = voucherState(v);
             const where = branches.find((b) => b.id === v.redeemBranchId);
@@ -44,8 +44,8 @@ export default async function VisitSheet({ vouchers, upcoming, branches, ar }: P
                     : state === "expired" ? t("giftExpired", { date: v.expiresAt ? day(v.expiresAt, ar) : "" })
                     : t("giftCancelled")}
                 </p>
-                <h3 className="gift-title">{title}</h3>
-                {detail && <p className="gift-detail">{detail}</p>}
+                <h3 className="gift-title" dir="auto">{title}</h3>
+                {detail && <p className="gift-detail" dir="auto">{detail}</p>}
                 {state === "ready" && (
                   <>
                     <dl className="gift-meta">
@@ -71,8 +71,8 @@ export default async function VisitSheet({ vouchers, upcoming, branches, ar }: P
               const tel = telUrl(b.phone);
               return (
                 <li key={b.id} className="pl-item">
-                  <h3 className="pl-name">{nameOf(b)}</h3>
-                  {b.address && <p className="pl-addr">{b.address}</p>}
+                  <h3 className="pl-name" dir="auto">{nameOf(b)}</h3>
+                  {b.address && <p className="pl-addr" dir="auto">{b.address}</p>}
                   {(b.menuUrl || go || tel) && (
                     <div className="pl-acts">
                       {b.menuUrl && <a className="pl-act" href={b.menuUrl} target="_blank" rel="noopener noreferrer">{t("menu")}<span className="sr-only"> ({t("newTab")})</span></a>}

@@ -7,6 +7,7 @@
 
 /* ---- Matte finish: flat colour, fine lines, no light effects. Only when BRAND_FINISH=matte. ---- */
 .look-matte {
+  --ok: #9ccfa9;
   --ground: color-mix(in srgb, var(--bg) 74%, #000);
   --r-tight: 3px;
   --r-sm: 3px;
@@ -41,6 +42,8 @@
 .look-matte .ow-btn.primary:hover:not(:disabled) { border-color: var(--muted); background: var(--muted); }
 .look-matte .ow-head { background: var(--deep); }
 .look-matte .ow-side { background: var(--ground); }
+.look-matte .welcome { border-color: var(--line); background: var(--bg); }
+.look-matte .welcome b { color: var(--text); }
 .look-matte ::selection { background: rgb(var(--gold-rgb) / 0.35); color: var(--text); }
 
 /* ---- The venue's name set in type, in a thin frame (BRAND_MARK=type): a stand-in until the real logo file arrives. ---- */
@@ -51,7 +54,8 @@
 .st-mark { font-size: 13px; }
 .ow-mark { font-size: 13px; }
 .pp-mark { font-size: 16px; }
-[dir="rtl"] .vm b { letter-spacing: 0.3em !important; }
+/* The global Arabic rule switches tracking and capitals off; the Latin wordmark keeps both. */
+:is([dir="rtl"], :lang(ar)) .vm b, .vm b:lang(en) { letter-spacing: 0.3em !important; text-transform: uppercase !important; }
 
 /* ---- Join: date of birth as a day and a month ---- */
 .jb { border: 0; padding: 0; min-width: 0; }
@@ -137,7 +141,7 @@ img.vc-mark { width: auto; height: 15cqw; }
 .st-v-title { margin-block-start: 2px; font: 400 21px/1.25 var(--serif); }
 .st-v-where { margin-block-start: 4px; color: var(--muted); font-size: var(--fs-base); }
 .st-v .btn { margin-block-start: 12px; }
-.st-v-ask { margin-block-start: 12px; padding: 12px 14px; border: 1px solid var(--gold); border-radius: var(--r-sm); font-size: var(--fs-md); line-height: 1.45; }
+.st-v-ask { margin-block-start: 12px; font-size: var(--fs-md); font-weight: 600; line-height: 1.45; }
 .st-v-ask + .st-v-two { margin-block-start: 10px; }
 .st-v-two { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 10px; }
 .st-v-two .btn { margin: 0; }
@@ -171,7 +175,26 @@ img.vc-mark { width: auto; height: 15cqw; }
 .ow-works .ow-in { width: auto; min-width: 180px; min-height: 44px; font-size: var(--fs-base); }
 
 /* Owner: the activity log, one dense readable line per action, a heading per day. */
-.ow-act-day { padding-block-start: 16px; }
-.ow-act .ow-item { flex-wrap: nowrap; justify-content: flex-start; align-items: baseline; gap: 16px; padding: 12px 0; }
-.ow-act-time { flex: none; width: 46px; color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
-.ow-act .ow-item-main b { font-weight: 500; }
+.ow-log-day { padding-block-start: 16px; }
+.ow-log .ow-item { flex-wrap: nowrap; justify-content: flex-start; align-items: baseline; gap: 16px; padding: 12px 0; }
+.ow-log-time { flex: none; width: 46px; color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.ow-log .ow-item-main b { font-weight: 500; }
+
+/* Sign-in (PIN pad) in the matte finish: flat ground, no orbs or glass, the keypad in the text colour. */
+.look-matte .pp { background: var(--ground); }
+.look-matte .pp-orb { display: none; }
+.look-matte .pp-card { background: var(--bg); border-color: rgb(var(--gold-rgb) / 0.4); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.look-matte .pp .pp-sheet { background: var(--bg); }
+.look-matte .pp-key { background: transparent; border-color: var(--line); font-weight: 400; }
+.look-matte .pp-dots i { border-color: var(--muted); }
+.look-matte .pp-dots i.on { background: var(--text); border-color: var(--text); }
+.look-matte .pp .pp-go, .look-matte .pp-go { background: var(--text); border-color: var(--text); color: var(--bg); }
+.pp .vm.pp-mark { margin: 0 auto 20px; }
+.staff .btn.st-next { margin-block-start: 12px; }
+
+/* Owner menu on a phone, matte finish: the language switch sits beside Lock instead of taking a row of its own. */
+@media (max-width: 899px) {
+  .look-matte .ow-side { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "brand lang lock" "nav nav nav"; column-gap: 8px; }
+  .look-matte .ow-side > .ow-chip:not(.ow-lock) { grid-area: lang; }
+}
+.look-matte .ow-sample { letter-spacing: 0.02em; text-transform: none; font-weight: 500; line-height: 1.45; padding: 8px 12px; }

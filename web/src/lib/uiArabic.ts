@@ -839,4 +839,5 @@ export const AR: Record<string, string> = {
   "Menu, directions and review link for each place": "القائمة والاتجاهات ورابط التقييم لكل مكان",
   "Visits by branch, last 7 days": "الزيارات حسب الفرع، آخر 7 أيام",
   "Your card counts visits, and gifts unlock on it (see Gifts). Here: the links and Wi-Fi on your guest page.": "بطاقتك تحسب الزيارات، وتُفتح عليها الهدايا (انظر الهدايا). وهنا: الروابط والواي فاي في صفحة الضيوف.",
+  "This is {name}'s first visit.": "هذه أول زيارة لـ{name}.",
 };
