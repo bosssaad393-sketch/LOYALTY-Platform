@@ -14,6 +14,7 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
   const list = useGet<{ guests: Guest[] }>(call, `/api/owner/guests?q=${encodeURIComponent(dq)}`);
   const [target, setTarget] = useState<Guest | null>(null);
   const [showing, setShowing] = useState<Guest | null>(null);
+  const [gifting, setGifting] = useState<Guest | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
   const t = useT();
@@ -74,6 +75,7 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
                     {!visitVenue && <td className="ow-c-pts">{n(g.points)}</td>}
                     <td className="ow-c-act">
                       <button type="button" className="ow-btn small" onClick={() => setShowing(g)} aria-label={t("Show the card of {name}", { name: g.name })}>{t("Show card")}</button>
+                      {visitVenue && <button type="button" className="ow-btn small" onClick={() => setGifting(g)} aria-label={t("Gifts of {name}", { name: g.name })}>{t("Gifts")}</button>}
                       {isOwner && <button type="button" className="ow-btn small" onClick={() => { setNote(null); setTarget(g); }} aria-label={t("Delete {name}", { name: g.name })}>{t("Delete")}</button>}
                     </td>
                   </tr>
@@ -86,6 +88,11 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
       {showing && (
         <Sheet eyebrow={t("Code {code}", { code: showing.code })} title={t("Card of {name}", { name: showing.name })} onClose={() => setShowing(null)}>
           <CardQr cardId={showing.cardId} name={showing.name} />
+        </Sheet>
+      )}
+      {gifting && (
+        <Sheet eyebrow={t("Code {code}", { code: gifting.code })} title={t("Gifts of {name}", { name: gifting.name })} onClose={() => setGifting(null)}>
+          <GuestGifts call={call} cardId={gifting.cardId} />
         </Sheet>
       )}
       {target && (
@@ -108,6 +115,66 @@ function CardQr({ cardId, name }: { cardId: string; name: string }) {
     <div style={{ display: "grid", gap: 12, justifyItems: "center", paddingBlock: 8 }}>
       <QrSvg text={url} label={t("QR code for the card of {name}", { name })} size={220} />
       <p className="ow-note" style={{ textAlign: "center" }}>{t("Ask the guest to scan this with their phone camera. Their card opens with everything on it. Check it is really them first: this code opens their card.")}</p>
+    </div>
+  );
+}
+
+type GuestGift = { id: string; title: string; state: "ready" | "used" | "expired" | "cancelled"; issuedAt: string; redeemedAt: string | null; redeemBranchName: string | null };
+type GiftChoice = { id: string; title: string };
+
+/**
+ * The gifts on one guest's card (visit venues). A gift that is still waiting can be cancelled, for example when it was
+ * unlocked by mistake; a gift the guest does not hold yet can be given by hand. Both are written to the activity log.
+ */
+function GuestGifts({ call, cardId }: { call: Call; cardId: string }) {
+  const t = useT();
+  const list = useGet<{ gifts: GuestGift[]; canGive: GiftChoice[] }>(call, `/api/owner/guests/gifts?cardId=${cardId}`);
+  const [picked, setPick] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<Note | null>(null);
+  const gifts = list.data?.gifts ?? null;
+  const canGive = list.data?.canGive ?? [];
+  const pick = canGive.some((g) => g.id === picked) ? picked : canGive[0]?.id ?? "";
+
+  const day = (iso: string) => new Date(iso).toLocaleDateString(`${t.locale}-u-nu-latn`, { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" });
+  const state = (g: GuestGift) => g.state === "used" ? t("Used on {date}", { date: day(g.redeemedAt ?? g.issuedAt) }) : g.state === "cancelled" ? t("Cancelled") : g.state === "expired" ? t("Expired") : t("Ready");
+  const waiting = (g: GuestGift) => g.state === "ready";
+
+  async function run(path: string, body: unknown, done: string) {
+    setBusy(true); setNote(null);
+    const r = await call(path, "POST", body);
+    setBusy(false);
+    if (r.ok) { setNote({ kind: "ok", text: done }); list.reload(); }
+    else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
+  }
+
+  if (list.error) return <LoadError text={list.error} onRetry={list.reload} />;
+  if (!gifts) return <Loading />;
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <Msg note={note} />
+      {gifts.length === 0 ? <p className="ow-note">{t("No gift on this card yet. A gift appears here when a visit unlocks it, or when you give one below.")}</p> : (
+        <ul className="ow-list">
+          {gifts.map((g) => (
+            <li key={g.id} className="ow-item">
+              <span className="ow-item-main"><span dir="auto">{g.title}</span><small className="ow-c-meta">{state(g)}{g.redeemBranchName && waiting(g) ? ` · ${t("Used at: {place}", { place: g.redeemBranchName })}` : ""}</small></span>
+              {waiting(g) && <button type="button" className="ow-btn small" disabled={busy} onClick={() => run("/api/owner/vouchers/void", { cardVoucherId: g.id }, t("Gift cancelled. It is no longer on the guest's card."))}>{t("Cancel this gift")}</button>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {canGive.length > 0 && (
+        <div style={{ display: "grid", gap: 8 }}>
+          <label className="ow-field">
+            <span className="ow-lbl">{t("Give a gift by hand")}</span>
+            <select className="ow-in" value={pick} onChange={(e) => setPick(e.target.value)}>
+              {canGive.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}
+            </select>
+          </label>
+          <button type="button" className="ow-btn" disabled={busy || !pick} onClick={() => run("/api/owner/guests/gifts", { cardId, voucherId: pick }, t("Gift given. It is on the guest's card now."))}>{t("Give this gift")}</button>
+          <p className="ow-note">{t("A guest gets each gift once. Giving and cancelling are written to the activity log with your name.")}</p>
+        </div>
+      )}
     </div>
   );
 }

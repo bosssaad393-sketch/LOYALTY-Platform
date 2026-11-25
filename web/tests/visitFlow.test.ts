@@ -38,6 +38,8 @@ import { GET as activity } from "../src/app/api/owner/activity/route";
 import { GET as exportGuests } from "../src/app/api/owner/export/route";
 import { GET as team, PATCH as moveTeam } from "../src/app/api/owner/team/route";
 import { GET as cron } from "../src/app/api/cron/daily/route";
+import { GET as guestGifts, POST as giveGift } from "../src/app/api/owner/guests/gifts/route";
+import { GET as recent } from "../src/app/api/staff/recent/route";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const VENUE = id(1), SANAD = id(500), ZALLAQ = id(501), ASMAK = id(590);
@@ -190,6 +192,36 @@ describe("the owner", () => {
     const { data: waiting } = await db().from("card_vouchers").select("id").eq("status", "issued").limit(1);
     expect((await voidVoucher(post({ cardVoucherId: waiting![0].id }))).status).toBe(200);
     expect((await voidVoucher(post({ cardVoucherId: gift }))).status).toBe(400);
+  });
+
+  it("gives a guest a gift by hand, once, and it shows on that guest's card only", async () => {
+    h.staff = OWNER;
+    const list = () => guestGifts(new Request(`http://test.local/api/owner/guests/gifts?cardId=${cardId}`));
+    const before = await (await list()).json();
+    expect(before.gifts).toHaveLength(1);
+    expect(before.canGive.map((g: { title: string }) => g.title)).toEqual(["Free karak"]);
+    const karak = before.canGive[0].id;
+    expect((await giveGift(post({ cardId, voucherId: karak }))).status).toBe(200);
+    expect((await giveGift(post({ cardId, voucherId: karak }))).status).toBe(409);
+    expect((await giveGift(post({ cardId, voucherId: id(777777) }))).status).toBe(404);
+    const after = await (await list()).json();
+    expect(after.gifts.map((g: { title: string; status: string }) => [g.title, g.status]).sort()).toEqual([["50% off at Asmak", "redeemed"], ["Free karak", "issued"]]);
+    expect(after.canGive).toEqual([]);
+    h.staff = OUTSIDER;
+    expect((await list()).status).toBe(404);
+    expect((await giveGift(post({ cardId, voucherId: karak }))).status).toBe(404);
+    h.staff = SANAD_TILL;
+    expect((await giveGift(post({ cardId, voucherId: karak }))).status).toBe(403);
+  });
+
+  it("the till's day counts gifts used, so a counter that only takes gifts does not read zero", async () => {
+    h.staff = ASMAK_TILL;
+    const day = await (await recent()).json();
+    expect(day.mine).toMatchObject({ entries: 1, guests: 1 });
+    expect(day.items.some((i: { kind: string }) => i.kind === "gift")).toBe(true);
+    h.staff = SANAD_TILL;
+    // The sample's own visits today are this till's too, so at least the one recorded above.
+    expect((await (await recent()).json()).mine.entries).toBeGreaterThanOrEqual(1);
   });
 
   it("only the owner changes settings and downloads the guest list", async () => {

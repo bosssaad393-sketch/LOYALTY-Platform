@@ -155,3 +155,26 @@ export async function voucherCounts(venueId: string): Promise<Record<string, { i
   } catch { /* best effort */ }
   return out;
 }
+
+/**
+ * The owner or a manager puts a gift on one guest's card by hand (any active gift of this venue; a guest holds each
+ * gift once, ever). The card and the gift must both belong to the signed-in person's venue. Audited.
+ */
+export async function giveVoucher(staff: Staff, cardId: string, voucherId: string): Promise<"given" | "no_card" | "no_gift" | "has_it"> {
+  const { data: card, error } = await db().from("cards").select("id").eq("id", cardId).eq("venue_id", staff.venueId).maybeSingle();
+  if (error) throw error;
+  if (!card) return "no_card";
+  const gift = (await listVouchers(staff.venueId)).find((v) => v.id === voucherId && v.active);
+  if (!gift) return "no_gift";
+  const { data: held } = await db().from("card_vouchers").select("id").eq("card_id", cardId).eq("voucher_id", voucherId).maybeSingle();
+  if (held) return "has_it";
+  const now = Date.now();
+  const { error: e2 } = await db().from("card_vouchers").insert({
+    card_id: cardId, venue_id: staff.venueId, voucher_id: voucherId, status: "issued", issued_at: new Date(now).toISOString(), issued_by: staff.id,
+    expires_at: gift.validDays ? new Date(now + gift.validDays * 86_400_000).toISOString() : null,
+  });
+  // 23505: two taps at once. The first one gave it.
+  if (e2) { if ((e2 as { code?: string }).code === "23505") return "has_it"; throw e2; }
+  await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "voucher_given", detail: { card: cardId, voucher: voucherId, title: gift.title } });
+  return "given";
+}

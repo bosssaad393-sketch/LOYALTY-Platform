@@ -275,6 +275,12 @@ class Query implements PromiseLike<Result> {
     const out: Row = { ...row };
     if (this.columns.includes("venues(")) out.venues = store.venues.find((v) => v.id === row.venue_id) ?? null;
     if (this.table === "cards" && this.columns.includes("members(")) out.members = store.members.find((m) => m.id === row.member_id) ?? null;
+    // The till's "Recent" list: who served and which guest.
+    if (this.table === "ledger" && this.columns.includes("staff_users(")) out.staff_users = store.staff_users.find((s) => s.id === row.staff_id) ?? null;
+    if (this.table === "ledger" && this.columns.includes("cards(members(")) {
+      const card = store.cards.find((c) => c.id === row.card_id);
+      out.cards = card ? { members: store.members.find((m) => m.id === card.member_id) ?? null } : null;
+    }
     return out;
   }
 }

@@ -48,7 +48,7 @@ function StampLadder({ g }: { g: Guest }) {
     </div>
   );
 }
-type Recent = { id: number; kind: string; points: number; billBhd: number | null; at: string; by: string; guest: string };
+type Recent = { id: number | string; kind: string; points: number; billBhd: number | null; at: string; by: string; guest: string };
 type Perk = { id: string; title: string; note: string | null; validUntil: string | null; from: string };
 type MyDay = { entries: number; guests: number; bhd: number };
 type Tab = "guest" | "recent" | "help" | "end";
@@ -375,7 +375,7 @@ function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false 
           <section className="panel feed">
             {recent.length === 0 ? <p className="note">{t("Nothing yet.")}</p> : recent.map((r) => (
               <div key={r.id}>
-                <span>{visitVenue && r.kind === "earn" && r.points === 0 ? <b>{t("Visit")}</b> : <b className={r.points >= 0 ? "st-plus" : "st-minus"}>{r.points > 0 ? "+" : ""}{r.points}</b>} {r.guest}{r.billBhd ? ` · ${bhd(Number(r.billBhd))}` : ""}{r.kind === "undo" ? ` · ${t("undo")}` : r.kind === "redeem" ? ` · ${t("reward")}` : ""}{r.by ? ` · ${r.by}` : ""}</span>
+                <span>{r.kind === "gift" ? <b>{t("Gift used")}</b> : visitVenue && r.kind === "earn" && r.points === 0 ? <b>{t("Visit")}</b> : <b className={r.points >= 0 ? "st-plus" : "st-minus"}>{r.points > 0 ? "+" : ""}{r.points}</b>} {r.guest}{r.billBhd ? ` · ${bhd(Number(r.billBhd))}` : ""}{r.kind === "undo" ? ` · ${t("undo")}` : r.kind === "redeem" ? ` · ${t("reward")}` : ""}{r.by ? ` · ${r.by}` : ""}</span>
                 <span>{time(r.at)}</span>
               </div>
             ))}
