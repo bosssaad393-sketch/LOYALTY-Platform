@@ -14,10 +14,19 @@ export const SAMPLE_STAFF_PIN = "4826";
 /** Sample mode with a visit-card venue (fakeDb.ts): the till of the partner counter that only redeems vouchers. */
 export const SAMPLE_PARTNER_PIN = "7391";
 
-export type SampleNote = { ownerPin: string; staffPin: string } | null;
+/**
+ * Sample mode only: the developer screen signs in with an email and password (a real deployment checks them with the
+ * database's own login service, which a sample has not got). These two are shown on the developer sign-in screen, like
+ * the sample PINs, and open the sample developer and nothing else.
+ */
+export const SAMPLE_DEV_EMAIL = "developer@sample.orbyn.co";
+export const SAMPLE_DEV_PASSWORD = "orbyn-sample";
+export const SAMPLE_DEV_ID = "00000000-0000-4000-8000-000000000901";
+
+export type SampleNote = { ownerPin: string; staffPin: string; devEmail: string; devPassword: string } | null;
 
 export function sampleNote(env: Env = process.env): SampleNote {
-  return sampleMode(env) ? { ownerPin: SAMPLE_OWNER_PIN, staffPin: SAMPLE_STAFF_PIN } : null;
+  return sampleMode(env) ? { ownerPin: SAMPLE_OWNER_PIN, staffPin: SAMPLE_STAFF_PIN, devEmail: SAMPLE_DEV_EMAIL, devPassword: SAMPLE_DEV_PASSWORD } : null;
 }
 
 /**

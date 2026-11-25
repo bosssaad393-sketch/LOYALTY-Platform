@@ -1,5 +1,5 @@
 import "server-only";
-import { serverSecret } from "./demo";
+import { serverSecret, sampleMode, SAMPLE_DEV_EMAIL, SAMPLE_DEV_ID, SAMPLE_DEV_PASSWORD } from "./demo";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
@@ -70,6 +70,8 @@ export const loadStaffByPin = (venueId: string, pinLookup: string) => loadStaff(
 
 /** Checks email + password with Supabase Auth, then finds the active staff record. */
 export async function signIn(email: string, password: string): Promise<Staff | null> {
+  // Sample mode has no login service: only the sample developer shown on the sign-in screen gets in (see demo.ts).
+  if (sampleMode()) return email.toLowerCase() === SAMPLE_DEV_EMAIL && password === SAMPLE_DEV_PASSWORD ? loadStaff({ id: SAMPLE_DEV_ID }) : null;
   // A throwaway client, so the signed-in user's token never replaces the service key elsewhere.
   const auth = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
     auth: { persistSession: false, autoRefreshToken: false },

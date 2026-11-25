@@ -27,14 +27,22 @@ export default async function Home() {
   const reward = venue?.reward_text?.trim() ?? "";
   const links = venue ? await readLinks(venue.id) : { instagram: null, googleReview: null };
 
-  const steps = [
-    { title: t("step1"), text: t("step1Text") },
-    { title: t("step2"), text: t("step2Text") },
-    {
-      title: t("step3"),
-      text: rate > 0 && goal > 0 && reward ? t("step3Text", { rate, goal, reward }) : t("step3Plain"),
-    },
-  ];
+  // A visit-card venue (0022) has no points: the same three steps in its own words.
+  const visits = venue?.card_mode === "visits";
+  const steps = visits
+    ? [
+        { title: t("step1"), text: t("step1TextVisits") },
+        { title: t("step2Visits"), text: t("step2TextVisits") },
+        { title: t("step3Visits"), text: t("step3TextVisits") },
+      ]
+    : [
+        { title: t("step1"), text: t("step1Text") },
+        { title: t("step2"), text: t("step2Text") },
+        {
+          title: t("step3"),
+          text: rate > 0 && goal > 0 && reward ? t("step3Text", { rate, goal, reward }) : t("step3Plain"),
+        },
+      ];
 
   return (
     <NextIntlClientProvider>
@@ -42,7 +50,7 @@ export default async function Home() {
       <main className="app" lang={locale} dir={directionOf(locale)}>
         <LanguageSwitch languages={brandLanguages()} />
         <div className="dots rv" style={{ "--i": 0 } as CSSProperties}>
-          <VenueHeader venueName={name} venueSlug={slug} eyebrow={t("eyebrow", { venue: name })} title={t("title")} sub={t("sub")} />
+          <VenueHeader venueName={name} venueSlug={slug} eyebrow={t("eyebrow", { venue: name })} title={t("title")} sub={visits ? t("subVisits") : t("sub")} />
         </div>
 
         <div className="actions rv" style={{ "--i": 2 } as CSSProperties}>

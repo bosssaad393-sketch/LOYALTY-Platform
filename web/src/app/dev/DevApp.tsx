@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { SampleNote } from "@/lib/demo";
 import NetworkBackdrop from "@/components/NetworkBackdrop";
 import SignIn, { type SignInLook } from "@/components/SignIn";
 import type { BrandProps } from "@/lib/brand";
@@ -46,7 +47,7 @@ function useCopy() {
 }
 
 /** Developer area: one place to see the health of this client, connect the till, answer the owner's requests, and give people their first PIN. */
-export default function DevApp({ initialMe, look, brand, initialSection = "overview" }: { initialMe: Me | null; look: SignInLook; brand: BrandProps; initialSection?: Section }) {
+export default function DevApp({ initialMe, look, brand, initialSection = "overview", sample = null }: { initialMe: Me | null; look: SignInLook; brand: BrandProps; initialSection?: Section; /** Sample mode: the sample developer login to show on the sign-in screen. */ sample?: SampleNote }) {
   const [me, setMe] = useState<Me | null>(initialMe);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -77,7 +78,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
     if (r.ok) setMe(r.data); else setError(r.error);
   }
 
-  if (!me) return <SignIn role="owner" look={look} busy={busy} error={error} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} roleLabel="Developer" crestSrc="/orbyn-mark.svg" />;
+  if (!me) return <SignIn role="owner" look={look} busy={busy} error={error} onSubmit={signIn} venueName={brand.name} venueSlug={brand.slug} poweredBy={brand.poweredBy} roleLabel="Developer" crestSrc="/orbyn-mark.svg" note={sample ? `Sample data. Email ${sample.devEmail}, password ${sample.devPassword}` : undefined} />;
 
   const open = reqs?.filter((r) => r.status !== "done").length ?? 0;
   const NAV: { id: Section; label: string; badge?: number }[] = [

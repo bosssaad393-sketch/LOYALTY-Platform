@@ -167,7 +167,13 @@
     "owner": "Owner",
     "menu": "Menu",
     "review": "Leave a Google review",
-    "linksLabel": "Menu and links"
+    "linksLabel": "Menu and links",
+    "subVisits": "Show it on every visit. Gifts appear on it. Nothing to download.",
+    "step1TextVisits": "Scan the QR code at the counter or tap the button. A few details and your card is in your Wallet.",
+    "step2Visits": "Show it when you visit",
+    "step2TextVisits": "The staff scan your card each time you come in. That is all you do.",
+    "step3Visits": "Gifts on your card",
+    "step3TextVisits": "When a gift is ready it appears on your card. Show it to the staff to use it, once."
   },
   "menuPage": {
     "title": "Menu",

@@ -21,6 +21,8 @@ type Props = {
   roleLabel?: string;
   /** A logo to show instead of the venue's crest (the developer screen is Orbyn's own). */
   crestSrc?: string;
+  /** A line under the form, for example the sample login in sample mode. */
+  note?: string;
 };
 
 const Icon = ({ d }: { d: ReactNode }) => (
@@ -37,7 +39,7 @@ const SCAN = <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 
 const PLUS = <><circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" /></>;
 const SMILE = <><circle cx="12" cy="12" r="9" /><path d="M8 14.5s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01" /></>;
 
-export default function SignIn({ role, look, busy, error, onSubmit, venueName = "Rewards", venueSlug = "orbyn", poweredBy = "Powered by Orbyn", roleLabel = "Owner", crestSrc }: Props) {
+export default function SignIn({ role, look, busy, error, onSubmit, venueName = "Rewards", venueSlug = "orbyn", poweredBy = "Powered by Orbyn", roleLabel = "Owner", crestSrc, note }: Props) {
   const [show, setShow] = useState(false);
   const crest = crestSrc ?? `/venues/${venueSlug}/crest.png`;
   const marble = `/venues/${venueSlug}/marble.jpg`;
@@ -74,6 +76,7 @@ export default function SignIn({ role, look, busy, error, onSubmit, venueName = 
         </span>
       </label>
       {error && <p className="si-err" role="alert">{error}</p>}
+      {note && <p className="si-s" style={{ overflowWrap: "anywhere" }}>{note}</p>}
       <button className="si-go" type="submit" disabled={busy}>
         <span>{label}</span>
         {staff && !busy && <Icon d={ARROW} />}

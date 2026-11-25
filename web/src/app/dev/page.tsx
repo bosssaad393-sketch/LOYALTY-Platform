@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { currentStaff } from "@/lib/staffAuth";
 import { loginLook } from "@/lib/loginStyle";
 import { brandName, brandProps } from "@/lib/brand";
+import { sampleNote } from "@/lib/demo";
 import DevApp, { type Section } from "./DevApp";
 
 export function generateMetadata(): Metadata {
@@ -19,5 +20,5 @@ export default async function DevPage(props: PageProps<"/dev">) {
   const SECTIONS: Section[] = ["overview", "screens", "till", "requests", "calabos", "access"];
   const initialSection = SECTIONS.find((s) => s === q.section) ?? "overview";
   const staff = await currentStaff("dev");
-  return <DevApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} initialSection={initialSection} />;
+  return <DevApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} initialSection={initialSection} sample={sampleNote()} />;
 }
