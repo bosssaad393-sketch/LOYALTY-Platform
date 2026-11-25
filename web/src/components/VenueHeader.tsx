@@ -1,21 +1,29 @@
+import { brandMark } from "@/lib/brand";
+import VenueMark from "./VenueMark";
+
 /** Crest, spaced foil name and a short title: the top of every guest page, matching the member card. */
 export default function VenueHeader({
   venueName,
   venueSlug,
+  markType = brandMark() === "type",
   eyebrow,
   title,
   sub,
 }: {
   venueName: string;
   venueSlug: string;
+  /** BRAND_MARK=type: the name set in type in a thin frame instead of the crest file (no clean logo yet). */
+  markType?: boolean;
   eyebrow: string;
   title: string;
   sub?: string;
 }) {
   return (
     <header className="vh">
-      {/* eslint-disable-next-line @next/next/no-img-element -- small static brand mark */}
-      <img className="vh-crest" src={`/venues/${venueSlug}/crest.png`} alt={venueName} width={160} height={160} />
+      {markType ? <VenueMark name={venueName} slug={venueSlug} type className="vh-mark" /> : (
+        // eslint-disable-next-line @next/next/no-img-element -- small static brand mark
+        <img className="vh-crest" src={`/venues/${venueSlug}/crest.png`} alt={venueName} width={160} height={160} />
+      )}
       <div className="rc-rule" />
       <div className="rc-tag">{eyebrow}</div>
       <h1 className="vh-title">{title}</h1>

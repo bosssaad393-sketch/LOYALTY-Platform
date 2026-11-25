@@ -74,3 +74,45 @@ describe("the moving Orbyn ground", () => {
     expect(usesOrbynLook({ BRAND_BG: "#141210", BRAND_TEXT: "#f3e9d2", BRAND_ACCENT: "#cda55b" })).toBe(false);
   });
 });
+
+describe("type set and finish", () => {
+  it("keeps the template's type and finish with no settings", async () => {
+    const { brandFont, brandFinish } = await import("@/lib/brand");
+    expect(brandFont({})).toBe("default");
+    expect(brandFont({ BRAND_FONT: "comic" })).toBe("default");
+    expect(brandFinish({})).toBe("default");
+    expect(brandFinish({ BRAND_FINISH: "shiny" })).toBe("default");
+  });
+
+  it("baskerville sets the serif, the text face and the Arabic face", async () => {
+    const { brandFont } = await import("@/lib/brand");
+    const style = brandStyle({ BRAND_FONT: " Baskerville " });
+    expect(brandFont({ BRAND_FONT: "baskerville" })).toBe("baskerville");
+    expect(style["--serif"]).toContain("var(--font-baskerville)");
+    expect(style["--font-sans"]).toBe("var(--font-jost)");
+    expect(style["--font-ar"]).toBe("var(--font-naskh)");
+    // classic still works as before
+    expect(brandStyle({ BRAND_FONT: "classic" })["--serif"]).toBe('Georgia, "Times New Roman", serif');
+  });
+
+  it("matte switches the moving ground off and puts the Wallet pass on the brand colour itself", async () => {
+    const env = { BRAND_BG: "#013220", BRAND_TEXT: "#faf8f3", BRAND_ACCENT: "#c9a96e", BRAND_FINISH: "matte" };
+    const style = brandStyle(env);
+    expect(style["--net"]).toBe("none");
+    expect(style["--bg"]).toBe("#013220");
+    expect(walletColors(env).appleBackground).toBe("rgb(1, 50, 32)");
+    expect(walletColors(env).appleLabel).toBe("rgb(201, 169, 110)");
+    // without matte the pass keeps the darker shade, as before
+    expect(walletColors({ ...env, BRAND_FINISH: "" }).appleBackground).toBe(rgbText(mix("#013220", "#000000", 0.6)));
+  });
+});
+
+describe("the venue mark", () => {
+  it("is the crest image unless the client sets its name in type", async () => {
+    const { brandMark, brandProps } = await import("@/lib/brand");
+    expect(brandMark({})).toBe("image");
+    expect(brandProps({}).mark).toBeUndefined();
+    expect(brandMark({ BRAND_MARK: "type" })).toBe("type");
+    expect(brandProps({ BRAND_MARK: "type", BRAND_NAME: "Al Example" })).toMatchObject({ name: "Al Example", mark: "type" });
+  });
+});

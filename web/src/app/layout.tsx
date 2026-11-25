@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
-import { Amiri, Cormorant_Garamond, Outfit, Tajawal } from "next/font/google";
+import { Amiri, Cormorant_Garamond, Jost, Libre_Baskerville, Noto_Naskh_Arabic, Outfit, Tajawal } from "next/font/google";
 import "./globals.css";
 import "./ground.css";
 import "./screens.css";
+import "./visit.css";
 import "@/components/motion.css";
-import { brandColors, brandName, brandStyle, brandVenue, usesOrbynLook } from "@/lib/brand";
+import { brandColors, brandFinish, brandName, brandStyle, brandVenue, usesOrbynLook } from "@/lib/brand";
 
 // The client's name, colours and venue come from environment variables (src/lib/brand.ts, .env.example).
 export function generateMetadata(): Metadata {
@@ -29,13 +30,17 @@ const arabic = Tajawal({ subsets: ["arabic"], weight: ["400", "500", "700"], var
 // Only drawn when a client sets BRAND_FONT=classic, so they are not preloaded.
 const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["600", "700"], variable: "--display-classic", display: "swap", preload: false });
 const displayArabic = Amiri({ subsets: ["arabic"], weight: "700", variable: "--display-classic-ar", display: "swap", preload: false });
+// BRAND_FONT=baskerville (a heritage look): headings, text and Arabic. Self-hosted at build time, never fetched from Google by the browser.
+const baskerville = Libre_Baskerville({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-baskerville", display: "swap", preload: false });
+const jost = Jost({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-jost", display: "swap", preload: false });
+const naskh = Noto_Naskh_Arabic({ subsets: ["arabic"], weight: ["400", "600", "700"], variable: "--font-naskh", display: "swap", preload: false });
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const venue = brandVenue();
   const orbyn = usesOrbynLook();
   const style = { ...brandStyle(), "--brand-marble": `url("/venues/${venue}/marble.jpg")` } as CSSProperties;
   return (
-    <html lang="en" style={style} className={`${orbyn ? "look-orbyn " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable}`}>
+    <html lang="en" style={style} className={`${orbyn ? "look-orbyn " : ""}${brandFinish() === "matte" ? "look-matte " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable} ${baskerville.variable} ${jost.variable} ${naskh.variable}`}>
       <body>
         {orbyn && (
           <div className="og" aria-hidden="true">

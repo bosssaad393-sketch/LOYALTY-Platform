@@ -55,11 +55,20 @@ export function footerLine(venueName: string, env: Env = process.env): string {
   return [`${venueName} Loyalty Rewards`, poweredBy(env)].filter(Boolean).join(" · ");
 }
 
+/**
+ * BRAND_MARK=type: the client has no clean logo file yet, so the screens set the name in type inside a thin frame
+ * instead of showing public/venues/<slug>/crest.png. When the real logo arrives: replace crest.png and icon.png and
+ * remove the setting. Default = the crest image.
+ */
+export function brandMark(env: Env = process.env): "image" | "type" {
+  return env.BRAND_MARK?.trim().toLowerCase() === "type" ? "type" : "image";
+}
+
 /** What the staff and owner screens need to show the client's identity. Built on the server, passed down as a prop. */
-export type BrandProps = { name: string; slug: string; poweredBy: string };
+export type BrandProps = { name: string; slug: string; poweredBy: string; mark?: "type" };
 
 export function brandProps(env: Env = process.env): BrandProps {
-  return { name: brandName(env), slug: brandVenue(env), poweredBy: poweredBy(env) };
+  return { name: brandName(env), slug: brandVenue(env), poweredBy: poweredBy(env), ...(brandMark(env) === "type" ? { mark: "type" as const } : {}) };
 }
 
 // ---- colour maths ------------------------------------------------------------------------------------------------
@@ -129,6 +138,40 @@ const CLASSIC_FONTS = {
   "--display-arabic": "var(--display-classic-ar)",
 };
 
+/**
+ * BRAND_FONT=baskerville: Libre Baskerville for headings and figures, Jost for text, Noto Naskh Arabic for Arabic
+ * (a heritage restaurant look). The three faces are self-hosted by next/font (layout.tsx) and only drawn when chosen.
+ */
+const BASKERVILLE_FONTS = {
+  "--font-sans": "var(--font-jost)",
+  "--font-ar": "var(--font-naskh)",
+  "--serif": 'var(--font-baskerville), var(--font-naskh), Georgia, "Times New Roman", serif',
+  "--sans": 'var(--font-jost), var(--font-naskh), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+  "--display": "var(--serif)",
+  "--display-arabic": "var(--font-naskh), var(--serif)",
+};
+
+export type BrandFont = "default" | "classic" | "baskerville";
+
+/** Which type set the client chose. Anything unknown = the template's own (Outfit and Tajawal). */
+export function brandFont(env: Env = process.env): BrandFont {
+  const v = env.BRAND_FONT?.trim().toLowerCase();
+  return v === "classic" || v === "baskerville" ? v : "default";
+}
+
+export type BrandFinish = "default" | "matte";
+
+/**
+ * BRAND_FINISH=matte: the quiet finish for a client whose brand is flat colour and fine lines. No moving network, no
+ * travelling light on the cards, no foil gradients or glows; primary buttons in the text colour; the accent kept for
+ * hairlines and the gift. The Wallet pass uses the brand colour itself as its background. Default = the template finish.
+ */
+export function brandFinish(env: Env = process.env): BrandFinish {
+  return env.BRAND_FINISH?.trim().toLowerCase() === "matte" ? "matte" : "default";
+}
+
+const MATTE_TOKENS = { "--net": "none", "--scrim-a": "1" };
+
 /** True when a deployment has no client colours: it gets the Orbyn look, including the moving ground. */
 export function usesOrbynLook(env: Env = process.env): boolean {
   const c = brandColors(env);
@@ -139,15 +182,22 @@ export function usesOrbynLook(env: Env = process.env): boolean {
 export function brandStyle(env: Env = process.env): Record<string, string> {
   const c = brandColors(env);
   const same = c.bg === DEFAULT_COLORS.bg && c.text === DEFAULT_COLORS.text && c.accent === DEFAULT_COLORS.accent;
-  return { ...(same ? {} : brandTokens(c)), ...(env.BRAND_FONT?.trim().toLowerCase() === "classic" ? CLASSIC_FONTS : {}) };
+  const font = brandFont(env);
+  return {
+    ...(same ? {} : brandTokens(c)),
+    ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : {}),
+    ...(brandFinish(env) === "matte" ? MATTE_TOKENS : {}),
+  };
 }
 
 /** Wallet colours. With the template colours these are exactly the values the app always used. */
 export function walletColors(env: Env = process.env) {
   const c = brandColors(env);
+  // Matte finish: the brand colour itself (a deep green stays green on the lock screen instead of going near black).
+  const matte = brandFinish(env) === "matte";
   return {
-    appleBackground: rgbText(mix(c.bg, "#000000", 0.6)),
-    applePreviewBackground: rgbText(mix(c.bg, "#000000", 0.3)),
+    appleBackground: rgbText(matte ? c.bg : mix(c.bg, "#000000", 0.6)),
+    applePreviewBackground: rgbText(matte ? c.bg : mix(c.bg, "#000000", 0.3)),
     appleForeground: rgbText(c.text),
     appleLabel: rgbText(c.accent),
     googleBackground: c.bg,
