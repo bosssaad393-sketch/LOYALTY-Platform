@@ -60,6 +60,15 @@ export function footerLine(venueName: string, env: Env = process.env): string {
  * instead of showing public/venues/<slug>/crest.png. When the real logo arrives: replace crest.png and icon.png and
  * remove the setting. Default = the crest image.
  */
+/**
+ * Whether the "send me news and offers" box on the join page starts ticked. Ticked unless BRAND_OFFERS_BOX=unticked.
+ * Unticked is the careful choice under Bahrain's data law (the guest opts in by their own tap); fewer guests then
+ * receive offers and automatic notices. The terms box is separate and is not affected.
+ */
+export function offersBoxTicked(env: Env = process.env): boolean {
+  return env.BRAND_OFFERS_BOX?.trim().toLowerCase() !== "unticked";
+}
+
 export function brandMark(env: Env = process.env): "image" | "type" {
   return env.BRAND_MARK?.trim().toLowerCase() === "type" ? "type" : "image";
 }

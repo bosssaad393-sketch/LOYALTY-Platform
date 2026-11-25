@@ -23,9 +23,9 @@ import { useLocale, useTranslations } from "next-intl";
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const monthName = (m: number, locale: string) => new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-GB", { month: "long", timeZone: "UTC" }).format(Date.UTC(2000, m - 1, 1));
 
-type Props = { venue: string; venueName: string; fields?: JoinField[]; branch?: string; markType?: boolean };
+type Props = { venue: string; venueName: string; fields?: JoinField[]; branch?: string; markType?: boolean; /** Does the offers box start ticked? (BRAND_OFFERS_BOX) */ newsTicked?: boolean };
 
-export default function JoinForm({ venue, venueName, fields = ["mobile"], branch, markType }: Props) {
+export default function JoinForm({ venue, venueName, fields = ["mobile"], branch, markType, newsTicked = true }: Props) {
   const t = useTranslations("join");
   const locale = useLocale();
   const [day, setDay] = useState("");
@@ -134,7 +134,7 @@ export default function JoinForm({ venue, venueName, fields = ["mobile"], branch
         </fieldset>
       )}
       <label className="check">
-        <input type="checkbox" name="news" defaultChecked />
+        <input type="checkbox" name="news" defaultChecked={newsTicked} />
         <span>{t("news", { venue: venueName })}</span>
       </label>
       <label className="check">

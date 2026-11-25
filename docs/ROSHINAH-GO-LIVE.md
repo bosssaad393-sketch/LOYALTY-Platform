@@ -16,7 +16,7 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 1. New Supabase project for Al Roshinah only. Run migrations 0001 to 0022 in order, then `supabase/seeds/roshinah.sql`.
 2. New Vercel project from this repo, root `web`, with:
    `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `PUBLIC_BASE_URL`, `LOGIN_MODE=pin`, `CRON_SECRET`,
-   `BRAND_NAME=Al Roshinah`, `BRAND_DEFAULT_VENUE=roshinah`, `BRAND_BG=#013220`, `BRAND_TEXT=#faf8f3`, `BRAND_ACCENT=#c9a96e`, `BRAND_LANGUAGES=en,ar`,
+   `BRAND_NAME=Al Roshinah`, `BRAND_DEFAULT_VENUE=roshinah`, `BRAND_BG=#013220`, `BRAND_TEXT=#faf8f3`, `BRAND_ACCENT=#c9a96e`, `BRAND_LANGUAGES=en,ar`, `BRAND_OFFERS_BOX=unticked` (Saad, 2026-11-25: the offers box starts empty on the Roshinah join page),
    and the Apple settings `APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT`, `APPLE_PASS_KEY`, `APPLE_WWDR_CERT` (Saad pastes these himself; never in chat or in the repo).
 3. Developer login, then the owner PIN, then one PIN per till. Give each till its branch (`staff_users.branch_id`): Sanad tills = Sanad, the Asmak till = Asmak.
 4. In the owner dashboard: map pin (latitude, longitude) and Google review link for Sanad.

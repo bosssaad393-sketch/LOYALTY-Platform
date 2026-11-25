@@ -7,7 +7,7 @@ import NetworkBackdrop from "@/components/NetworkBackdrop";
 import VenueHeader from "@/components/VenueHeader";
 import LanguageSwitch from "@/components/LanguageSwitch";
 import { directionOf } from "@/i18n/locale";
-import { brandLanguages, brandMark, poweredBy } from "@/lib/brand";
+import { brandLanguages, brandMark, poweredBy, offersBoxTicked } from "@/lib/brand";
 import { joinFields } from "@/lib/joinFields";
 import JoinForm from "./JoinForm";
 
@@ -41,7 +41,7 @@ export default async function JoinPage({ params, searchParams }: PageProps<"/joi
         sub={t("sub")}
       />
       </div>
-      <JoinForm venue={venue.slug} venueName={venue.name} fields={joinFields(venue.join_fields)} branch={branch} markType={markType} />
+      <JoinForm venue={venue.slug} venueName={venue.name} fields={joinFields(venue.join_fields)} branch={branch} markType={markType} newsTicked={offersBoxTicked()} />
       <p className="foot">{foot}</p>
     </main>
     </NextIntlClientProvider>

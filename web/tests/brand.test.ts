@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandColors, brandName, brandStyle, brandTokens, brandVenue, footerLine, mix, poweredBy, rgbText, walletColors, DEFAULT_COLORS } from "../src/lib/brand";
+import { brandColors, brandName, brandStyle, brandTokens, brandVenue, footerLine, mix, poweredBy, rgbText, walletColors, DEFAULT_COLORS, offersBoxTicked } from "../src/lib/brand";
 
 describe("brand settings", () => {
   it("falls back to the template with no settings", () => {
@@ -114,5 +114,13 @@ describe("the venue mark", () => {
     expect(brandProps({}).mark).toBeUndefined();
     expect(brandMark({ BRAND_MARK: "type" })).toBe("type");
     expect(brandProps({ BRAND_MARK: "type", BRAND_NAME: "Al Example" })).toMatchObject({ name: "Al Example", mark: "type" });
+  });
+});
+
+describe("offers box on the join page", () => {
+  it("starts ticked unless the client asks for it empty", () => {
+    expect(offersBoxTicked({})).toBe(true);
+    expect(offersBoxTicked({ BRAND_OFFERS_BOX: "ticked" })).toBe(true);
+    expect(offersBoxTicked({ BRAND_OFFERS_BOX: " Unticked " })).toBe(false);
   });
 });
