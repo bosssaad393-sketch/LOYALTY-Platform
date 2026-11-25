@@ -16,6 +16,7 @@ export const ACTIVITY_TEXT: Record<string, string> = {
   staff_activated: "Switched a team member on",
   staff_deactivated: "Switched a team member off",
   pin_set: "Set a PIN",
+  pin_locked: "Sign-in was paused after too many wrong PINs",
   guests_exported: "Downloaded the guest list",
   guest_erased: "Erased a guest",
   auto_message_changed: "Changed an automatic message",

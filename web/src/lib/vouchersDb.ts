@@ -128,19 +128,29 @@ export async function saveVoucher(staff: Staff, input: VoucherInput): Promise<Vo
   return toVoucher(data as Raw);
 }
 
-/** Owner's numbers per voucher: how many unlocked, used, waiting. */
+/**
+ * Counts rows in the database without fetching them (Supabase returns at most 1000 rows per read, so counting fetched
+ * rows would go wrong for a busy venue). `q` is a select built with { count: "exact", head: true }.
+ */
+export async function countOf(q: PromiseLike<{ count?: number | null; data?: unknown; error: unknown }>): Promise<number> {
+  const r = await q;
+  if (r.error) return 0;
+  return typeof r.count === "number" ? r.count : Array.isArray(r.data) ? r.data.length : 0;
+}
+
+/** Owner's numbers per voucher: how many unlocked, used, and still waiting (not used, not cancelled, not expired). */
 export async function voucherCounts(venueId: string): Promise<Record<string, { issued: number; redeemed: number; waiting: number }>> {
   const out: Record<string, { issued: number; redeemed: number; waiting: number }> = {};
   try {
-    const { data, error } = await db().from("card_vouchers").select("voucher_id, status, expires_at").eq("venue_id", venueId);
-    if (error) return out;
-    const now = Date.now();
-    for (const r of (data ?? []) as Raw[]) {
-      const c = (out[String(r.voucher_id)] ??= { issued: 0, redeemed: 0, waiting: 0 });
-      if (r.status === "void") continue;
-      c.issued++;
-      if (r.status === "redeemed") c.redeemed++;
-      else if (!r.expires_at || Date.parse(String(r.expires_at)) > now) c.waiting++;
+    const now = new Date().toISOString();
+    const of = (voucherId: string, status: string) => db().from("card_vouchers").select("id", { count: "exact", head: true }).eq("venue_id", venueId).eq("voucher_id", voucherId).eq("status", status);
+    for (const v of await listVouchers(venueId)) {
+      const [redeemed, open, expired] = await Promise.all([
+        countOf(of(v.id, "redeemed")),
+        countOf(of(v.id, "issued")),
+        countOf(of(v.id, "issued").lt("expires_at", now)),
+      ]);
+      out[v.id] = { issued: redeemed + open, redeemed, waiting: Math.max(0, open - expired) };
     }
   } catch { /* best effort */ }
   return out;

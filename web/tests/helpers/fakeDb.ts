@@ -153,6 +153,11 @@ export function makeDb(state: FakeState) {
           described.push(`in ${c}`);
           return b;
         },
+        lt(c: string, v: string) {
+          filters.push((r) => r[c] !== null && r[c] !== undefined && String(r[c]) < v);
+          described.push(`lt ${c}`);
+          return b;
+        },
         gte(c: string, v: string) {
           filters.push((r) => String(r[c]) >= v);
           described.push(`gte ${c}`);

@@ -190,6 +190,10 @@ class Query implements PromiseLike<Result> {
     this.filters.push((r) => Number(r[column]) > value);
     return this;
   }
+  lt(column: string, value: string) {
+    this.filters.push((r) => r[column] !== null && r[column] !== undefined && String(r[column]) < value);
+    return this;
+  }
   gte(column: string, value: string) {
     this.filters.push((r) => String(r[column]) >= value);
     return this;
@@ -250,6 +254,9 @@ class Query implements PromiseLike<Result> {
       const value = (r: Row) => r[col];
       hits = hits.sort((a, b) => {
         const x = value(a), y = value(b);
+        // Like the app's real queries (nullsFirst: false): rows with no value go last, whichever way the sort runs.
+        const xn = x === null || x === undefined, yn = y === null || y === undefined;
+        if (xn || yn) return xn === yn ? 0 : xn ? 1 : -1;
         const c = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true });
         return asc ? c : -c;
       });

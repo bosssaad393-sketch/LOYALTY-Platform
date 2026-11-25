@@ -46,9 +46,17 @@ export async function saveAutoMessage(staff: Staff, input: z.infer<typeof AutoMe
 }
 
 async function guestsOf(venueId: string): Promise<AutoGuest[]> {
-  const { data, error } = await db().from("cards").select("id, last_visit, member_id, members(name, consent_news, deleted_at, birth_day, birth_month)").eq("venue_id", venueId);
-  if (error) throw error;
-  return ((data ?? []) as Raw[]).map((c) => {
+  // Supabase hands back at most 1000 rows per read: page through, so guest 1001 gets a birthday greeting too.
+  const PAGE = 1000;
+  const all: Raw[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db().from("cards").select("id, last_visit, member_id, members(name, consent_news, deleted_at, birth_day, birth_month)")
+      .eq("venue_id", venueId).order("created_at", { ascending: true }).range(from, from + PAGE - 1);
+    if (error) throw error;
+    all.push(...((data ?? []) as Raw[]));
+    if ((data ?? []).length < PAGE) break;
+  }
+  return all.map((c) => {
     const m = (c.members ?? {}) as Raw;
     return {
       cardId: String(c.id),

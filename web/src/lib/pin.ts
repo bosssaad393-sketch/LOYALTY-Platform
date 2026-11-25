@@ -72,6 +72,10 @@ export async function signInWithPin(pin: string, caller: string, venueSlug: stri
 
   if (!staff) {
     await db().from("pin_attempts").insert({ who, at: new Date(now).toISOString() });
+    // The try that pauses sign-in for everyone is written to the log once, so the owner sees that someone was guessing.
+    if (venueId && (all.data ?? []).length + 1 === OVERALL) {
+      await db().from("audit_log").insert({ venue_id: venueId, actor: "system", action: "pin_locked", detail: { wrong_tries: OVERALL, minutes: WINDOW_MS / 60_000 } });
+    }
     return { ok: false, reason: "wrong" };
   }
   return { ok: true, staff };
