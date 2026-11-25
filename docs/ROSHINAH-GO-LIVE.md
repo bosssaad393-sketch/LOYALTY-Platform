@@ -47,3 +47,8 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 - It runs on SAMPLE data (`ORBYN_DEMO=1`): invented guests, kept in memory, lost on restart, no Wallet card, no automatic notices. For showing the owner only. Sample PINs are on the sign-in screens.
 - The project's production branch is still `main` in Vercel's settings: a push to `main` would deploy `main`'s older code here. Deploy this project from `agent/roshinah` until the branch is merged.
 - To go live with real guests, in this order: (1) a Supabase project for Al Roshinah, migrations 0001 to 0022, then the seed; (2) in Vercel: remove `ORBYN_DEMO` and the three `SAMPLE_*` settings, add `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `CRON_SECRET` and the five `APPLE_*` settings (Saad pastes these himself); (3) redeploy; (4) developer login, owner PIN, till PINs with their branch. `PUBLIC_BASE_URL` is already `https://roshinah.orbyn.co`: keep it, Wallet cards call this address for life.
+
+## Glass look (2026-11-25)
+- `BRAND_FINISH=glass`: frosted glass panels, a round-key passcode screen and glass dashboards over a background picture (`web/src/app/glass.css`). The matte finish's quiet rules stay underneath.
+- The two pictures (`web/public/venues/roshinah/glass-portrait.webp`, `glass-wide.webp`) were made on Higgsfield for this client: a deep green plaster wall with morning palm-leaf shadows, no people, no text. Cost 8 credits; balance after about 258 (floor 155).
+- Phones that cannot blur, and people who ask their phone for less transparency, get solid panes.

@@ -168,7 +168,7 @@ export function brandFont(env: Env = process.env): BrandFont {
   return v === "classic" || v === "baskerville" ? v : "default";
 }
 
-export type BrandFinish = "default" | "matte";
+export type BrandFinish = "default" | "matte" | "glass";
 
 /**
  * BRAND_FINISH=matte: the quiet finish for a client whose brand is flat colour and fine lines. No moving network, no
@@ -176,8 +176,17 @@ export type BrandFinish = "default" | "matte";
  * hairlines and the gift. The Wallet pass uses the brand colour itself as its background. Default = the template finish.
  */
 export function brandFinish(env: Env = process.env): BrandFinish {
-  return env.BRAND_FINISH?.trim().toLowerCase() === "matte" ? "matte" : "default";
+  const v = env.BRAND_FINISH?.trim().toLowerCase();
+  return v === "matte" || v === "glass" ? v : "default";
 }
+
+/**
+ * BRAND_FINISH=glass: the matte finish's calm rules (no network, no foil, the accent as a hairline) with frosted glass
+ * surfaces over the client's own background picture: public/venues/<slug>/glass-portrait.webp (phones) and
+ * glass-wide.webp (wide screens). Styles in app/glass.css. Without the two pictures the glass sits on the plain
+ * brand colour.
+ */
+export const isQuietFinish = (env: Env = process.env) => brandFinish(env) !== "default";
 
 const MATTE_TOKENS = { "--net": "none", "--scrim-a": "1" };
 
@@ -195,7 +204,7 @@ export function brandStyle(env: Env = process.env): Record<string, string> {
   return {
     ...(same ? {} : brandTokens(c)),
     ...(font === "classic" ? CLASSIC_FONTS : font === "baskerville" ? BASKERVILLE_FONTS : {}),
-    ...(brandFinish(env) === "matte" ? MATTE_TOKENS : {}),
+    ...(isQuietFinish(env) ? MATTE_TOKENS : {}),
   };
 }
 
@@ -203,7 +212,7 @@ export function brandStyle(env: Env = process.env): Record<string, string> {
 export function walletColors(env: Env = process.env) {
   const c = brandColors(env);
   // Matte finish: the brand colour itself (a deep green stays green on the lock screen instead of going near black).
-  const matte = brandFinish(env) === "matte";
+  const matte = isQuietFinish(env);
   return {
     appleBackground: rgbText(matte ? c.bg : mix(c.bg, "#000000", 0.6)),
     applePreviewBackground: rgbText(matte ? c.bg : mix(c.bg, "#000000", 0.3)),

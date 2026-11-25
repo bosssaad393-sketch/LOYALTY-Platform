@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SAMPLE_SECRET, serverSecret } from "../src/lib/demo";
-import { brandColors, brandName, brandStyle, brandTokens, brandVenue, footerLine, mix, poweredBy, rgbText, walletColors, DEFAULT_COLORS, offersBoxTicked } from "../src/lib/brand";
+import { brandColors, brandName, brandStyle, brandTokens, brandVenue, footerLine, mix, poweredBy, rgbText, walletColors, DEFAULT_COLORS, offersBoxTicked, brandFinish, isQuietFinish } from "../src/lib/brand";
 
 describe("brand settings", () => {
   it("falls back to the template with no settings", () => {
@@ -134,5 +134,19 @@ describe("the server secret", () => {
     // A real deployment, and local development, get nothing: sign-in stays closed until a secret is set.
     expect(serverSecret({})).toBeUndefined();
     expect(serverSecret({ LOYALTY_FAKE_DB: "1", NODE_ENV: "production" })).toBeUndefined();
+  });
+});
+
+describe("the glass finish", () => {
+  const env = { BRAND_FINISH: "glass", BRAND_BG: "#013220", BRAND_TEXT: "#faf8f3", BRAND_ACCENT: "#c9a96e" };
+  it("is its own finish and keeps the matte finish's quiet rules", () => {
+    expect(brandFinish(env)).toBe("glass");
+    expect(isQuietFinish(env)).toBe(true);
+    expect(isQuietFinish({ BRAND_FINISH: "matte" })).toBe(true);
+    expect(isQuietFinish({})).toBe(false);
+    expect(brandFinish({ BRAND_FINISH: "shiny" })).toBe("default");
+    // No moving network, and the Wallet pass in the brand colour itself, exactly as with matte.
+    expect(brandStyle(env)["--net"]).toBe("none");
+    expect(walletColors(env).appleBackground).toBe(walletColors({ ...env, BRAND_FINISH: "matte" }).appleBackground);
   });
 });

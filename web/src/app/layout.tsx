@@ -5,6 +5,7 @@ import "./globals.css";
 import "./ground.css";
 import "./screens.css";
 import "./visit.css";
+import "./glass.css";
 import "@/components/motion.css";
 import { brandColors, brandFinish, brandName, brandStyle, brandVenue, usesOrbynLook } from "@/lib/brand";
 
@@ -38,9 +39,14 @@ const naskh = Noto_Naskh_Arabic({ subsets: ["arabic"], weight: ["400", "600", "7
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const venue = brandVenue();
   const orbyn = usesOrbynLook();
-  const style = { ...brandStyle(), "--brand-marble": `url("/venues/${venue}/marble.jpg")` } as CSSProperties;
+  const finish = brandFinish();
+  const style = {
+    ...brandStyle(),
+    "--brand-marble": `url("/venues/${venue}/marble.jpg")`,
+    ...(finish === "glass" ? { "--glass-photo-p": `url("/venues/${venue}/glass-portrait.webp")`, "--glass-photo-w": `url("/venues/${venue}/glass-wide.webp")` } : {}),
+  } as CSSProperties;
   return (
-    <html lang="en" style={style} className={`${orbyn ? "look-orbyn " : ""}${brandFinish() === "matte" ? "look-matte " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable} ${baskerville.variable} ${jost.variable} ${naskh.variable}`}>
+    <html lang="en" style={style} className={`${orbyn ? "look-orbyn " : ""}${finish !== "default" ? "look-matte " : ""}${finish === "glass" ? "look-glass " : ""}${sans.variable} ${arabic.variable} ${display.variable} ${displayArabic.variable} ${baskerville.variable} ${jost.variable} ${naskh.variable}`}>
       <body>
         {orbyn && (
           <div className="og" aria-hidden="true">
