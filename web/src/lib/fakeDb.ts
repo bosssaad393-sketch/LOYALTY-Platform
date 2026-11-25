@@ -427,3 +427,35 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
 }
 
 export const fakeDb = () => ({ from: (table: string) => new Query(table), rpc: async (fn: string, args: Record<string, unknown>) => fakeRpc(fn, args) });
+
+/**
+ * A hosted sample runs as several server processes (on Vercel the pages are one, the API routes another), and each
+ * keeps its own copy of this in-memory data. A guest who joins through the API would be unknown to the card page.
+ * These two functions carry ONE card across: the API process gives its rows for a card, the page process takes them in.
+ * Sample mode only (see lib/sampleSync.ts); a real deployment has a real database and never calls them.
+ */
+export type SampleCardRows = { card: Row; member: Row | null; card_vouchers: Row[]; ledger: Row[] };
+
+export function sampleCardRows(cardId: string): SampleCardRows | null {
+  const card = (store.cards ?? []).find((c) => c.id === cardId);
+  if (!card) return null;
+  return {
+    card,
+    member: (store.members ?? []).find((m) => m.id === card.member_id) ?? null,
+    card_vouchers: (store.card_vouchers ?? []).filter((v) => v.card_id === cardId),
+    ledger: (store.ledger ?? []).filter((l) => l.card_id === cardId).slice(-20),
+  };
+}
+
+export function sampleTakeCard(rows: SampleCardRows): void {
+  const put = (table: string, row: Row | null) => {
+    if (!row || typeof row.id === "undefined") return;
+    const list = (store[table] ??= []);
+    const i = list.findIndex((r) => r.id === row.id);
+    if (i >= 0) list[i] = { ...list[i], ...row };
+    else list.push({ ...row });
+  };
+  put("members", rows.member);
+  put("cards", rows.card);
+  for (const v of rows.card_vouchers ?? []) put("card_vouchers", v);
+}

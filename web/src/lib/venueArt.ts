@@ -17,13 +17,14 @@ export function cardArt(slug: string): CardArt | null {
   let art: CardArt | null = null;
   try {
     const dir = path.join(process.cwd(), "public", "venues", slug);
-    if (existsSync(path.join(dir, "card.webp"))) {
-      const meta = JSON.parse(readFileSync(path.join(dir, "card.json"), "utf8")) as { niche?: Partial<CardArt["niche"]> };
+    // Only card.json is read here: on the host the pictures are served from the edge and are not on the server's disk.
+    if (existsSync(path.join(dir, "card.json"))) {
+      const meta = JSON.parse(readFileSync(path.join(dir, "card.json"), "utf8")) as { niche?: Partial<CardArt["niche"]>; lit?: boolean };
       const n = meta.niche ?? {};
       const pct = (v: unknown, d: number) => (typeof v === "number" && v >= 0 && v <= 100 ? v : d);
       art = {
         src: `/venues/${slug}/card.webp`,
-        lit: existsSync(path.join(dir, "card-lit.webp")) ? `/venues/${slug}/card-lit.webp` : null,
+        lit: meta.lit ? `/venues/${slug}/card-lit.webp` : null,
         niche: { x: pct(n.x, 60), y: pct(n.y, 20), w: pct(n.w, 32), h: pct(n.h, 64) },
       };
     }

@@ -44,6 +44,8 @@ const nextConfig: NextConfig = {
   // Apple Wallet pass images are read from disk at request time.
   // The owner and staff pages check for the venue's own home-screen icons (lib/appIcons.ts).
   outputFileTracingIncludes: {
+    // The card picture's small description (lib/venueArt.ts) is read by pages at run time.
+    "/**": ["./public/venues/*/card.json"],
     "/api/wallet/apple/**": ["./passes/**/*"],
     "/api/applewallet/**": ["./passes/**/*"],
     "/owner": ["./public/venues/*/app-192.png"],

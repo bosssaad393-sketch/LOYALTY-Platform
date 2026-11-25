@@ -15,6 +15,7 @@ import { getTranslations } from "next-intl/server";
 import { connection } from "next/server";
 import type { CardView } from "@/lib/cards";
 import { cardArt } from "@/lib/venueArt";
+import { pullSampleCard } from "@/lib/sampleSync";
 import { voucherState } from "@/lib/vouchers";
 import VisitCard from "@/components/VisitCard";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
@@ -46,6 +47,8 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
   const { cardId } = await params;
   const { welcome } = await searchParams;
   if (!isUuid(cardId)) notFound();
+  // A hosted sample keeps its data per server process: fetch this card from the API process first (no-op when live).
+  await pullSampleCard(cardId);
   const view = await getCardView(cardId);
   if (!view) notFound();
   const { card, venue, memberName, stamps } = view;

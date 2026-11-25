@@ -40,6 +40,8 @@ import { GET as team, PATCH as moveTeam } from "../src/app/api/owner/team/route"
 import { GET as cron } from "../src/app/api/cron/daily/route";
 import { GET as guestGifts, POST as giveGift } from "../src/app/api/owner/guests/gifts/route";
 import { GET as recent } from "../src/app/api/staff/recent/route";
+import { GET as sampleCard } from "../src/app/api/sample/card/[id]/route";
+import { sampleCardRows, sampleTakeCard } from "../src/lib/fakeDb";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const VENUE = id(1), SANAD = id(500), ZALLAQ = id(501), ASMAK = id(590);
@@ -271,5 +273,34 @@ describe("the daily job", () => {
     await runDailyMessages();
     const { data: again } = await db().from("message_log").select("id").eq("card_id", cardId);
     expect(again).toHaveLength(1);
+  });
+});
+
+describe("a hosted sample that runs as several server processes", () => {
+  const ctx = (id: string) => ({ params: Promise.resolve({ id }) }) as never;
+
+  it("hands one card with its gifts to the page process, and nothing for an unknown card", async () => {
+    const res = await sampleCard(new Request("http://test.local/api/sample/card/x"), ctx(cardId));
+    expect(res.status).toBe(200);
+    const rows = await res.json();
+    expect(rows.card).toMatchObject({ id: cardId, visits: 1 });
+    expect(rows.member.name).toBe("Maryam Test");
+    expect(rows.card_vouchers.length).toBeGreaterThanOrEqual(1);
+    expect((await sampleCard(new Request("http://test.local/api/sample/card/x"), ctx(id(424242)))).status).toBe(404);
+    expect((await sampleCard(new Request("http://test.local/api/sample/card/x"), ctx("not-a-card"))).status).toBe(404);
+  });
+
+  it("taking a card in adds it once and refreshes it after that", () => {
+    const fresh = { card: { id: id(88001), venue_id: VENUE, member_id: id(88002), code: "8800", visits: 0 }, member: { id: id(88002), name: "Carried Over" }, card_vouchers: [], ledger: [] };
+    sampleTakeCard(fresh);
+    sampleTakeCard({ ...fresh, card: { ...fresh.card, visits: 3 } });
+    expect(sampleCardRows(id(88001))).toMatchObject({ card: { visits: 3 }, member: { name: "Carried Over" } });
+  });
+
+  it("does not exist outside sample mode", async () => {
+    const before = process.env.LOYALTY_FAKE_DB;
+    delete process.env.LOYALTY_FAKE_DB;
+    expect((await sampleCard(new Request("http://test.local/api/sample/card/x"), ctx(cardId))).status).toBe(404);
+    process.env.LOYALTY_FAKE_DB = before;
   });
 });
