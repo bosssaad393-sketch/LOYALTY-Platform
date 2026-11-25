@@ -26,5 +26,5 @@ export async function GET() {
     return new Response(rows.join("\n") + "\n", {
       headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="${staff.venueSlug}-guests.csv"`, "cache-control": "no-store" },
     });
-  });
+  }, true);
 }

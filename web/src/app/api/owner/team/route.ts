@@ -4,18 +4,19 @@ import { fail } from "@/lib/staffApi";
 import { withOwner } from "@/lib/ownerApi";
 import { generatePin, pinProblem, setPin } from "@/lib/pin";
 import { waitingIds } from "@/lib/teamInvite";
+import { listBranches } from "@/lib/branchesDb";
 
 export async function GET() {
   return withOwner(async (staff) => {
-    const { data, error } = await db().from("staff_users").select("id, name, role, active, pin_lookup").eq("venue_id", staff.venueId).neq("role", "developer").order("created_at");
+    const { data, error } = await db().from("staff_users").select("id, name, role, active, pin_lookup, branch_id").eq("venue_id", staff.venueId).neq("role", "developer").order("created_at");
     if (error) throw error;
     const waiting = await waitingIds(staff.venueId);
-    const team = (data ?? []).map((s) => ({ id: s.id, name: s.name, role: s.role, active: s.active, hasPin: !!s.pin_lookup, me: s.id === staff.id, waiting: waiting.has(s.id as string) }));
+    const team = (data ?? []).map((s) => ({ id: s.id, name: s.name, role: s.role, active: s.active, hasPin: !!s.pin_lookup, branchId: (s as { branch_id?: string | null }).branch_id ?? null, me: s.id === staff.id, waiting: waiting.has(s.id as string) }));
     return Response.json({ team });
   }, true);
 }
 
-const Invite = z.object({ name: z.string().trim().min(1).max(60), role: z.enum(["staff", "manager"]), pin: z.string().max(8).optional() });
+const Invite = z.object({ name: z.string().trim().min(1).max(60), role: z.enum(["staff", "manager"]), pin: z.string().max(8).optional(), branchId: z.uuid().nullable().optional() });
 
 /** Adds a team member and returns a one-time PIN to hand over in person. No email or password. */
 export async function POST(request: Request) {
@@ -28,7 +29,10 @@ export async function POST(request: Request) {
       const problem = pinProblem(chosen, role);
       if (problem) return fail(problem);
     }
-    const { data, error } = await db().from("staff_users").insert({ venue_id: staff.venueId, name, role, active: true }).select("id").single();
+    // The branch this person works at (0022). It must be one of this venue's own places.
+    const branchId = parsed.data.branchId ?? null;
+    if (branchId && !(await listBranches(staff.venueId, { includeInactive: true })).some((b) => b.id === branchId)) return fail("That branch is not one of yours.");
+    const { data, error } = await db().from("staff_users").insert({ venue_id: staff.venueId, name, role, active: true, ...(branchId ? { branch_id: branchId } : {}) }).select("id").single();
     if (error || !data) throw error ?? new Error("insert failed");
     let pin = "";
     if (chosen) {
@@ -50,10 +54,23 @@ export async function POST(request: Request) {
 }
 
 const Toggle = z.object({ id: z.uuid(), active: z.boolean() });
+const Move = z.object({ id: z.uuid(), branchId: z.uuid().nullable() });
 
 export async function PATCH(request: Request) {
   return withOwner(async (staff) => {
-    const parsed = Toggle.safeParse(await request.json().catch(() => null));
+    const body = await request.json().catch(() => null);
+    // { id, branchId }: put a team member at one branch (null = may work at every branch).
+    const move = Move.safeParse(body);
+    if (move.success && !("active" in (body as object))) {
+      const { id, branchId } = move.data;
+      if (branchId && !(await listBranches(staff.venueId, { includeInactive: true })).some((b) => b.id === branchId)) return fail("That branch is not one of yours.");
+      const { data, error } = await db().from("staff_users").update({ branch_id: branchId }).eq("id", id).eq("venue_id", staff.venueId).neq("role", "developer").select("id");
+      if (error) throw error;
+      if (!(data ?? []).length) return fail("Team member not found.", 404);
+      await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "staff_branch_changed", detail: { staff: id, branch: branchId } });
+      return Response.json({ ok: true });
+    }
+    const parsed = Toggle.safeParse(body);
     if (!parsed.success) return fail("Team member missing.");
     if (parsed.data.id === staff.id) return fail("You can't deactivate yourself.");
     const { error } = await db().from("staff_users").update({ active: parsed.data.active }).eq("id", parsed.data.id).eq("venue_id", staff.venueId).neq("role", "owner");

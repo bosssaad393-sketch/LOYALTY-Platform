@@ -1,4 +1,5 @@
 import "server-only";
+import { qrMessage } from "./cardQr";
 import { readFileSync } from "node:fs";
 import { GoogleAuth } from "google-auth-library";
 import jwt from "jsonwebtoken";
@@ -79,7 +80,7 @@ export function cardObject(venue: Venue, card: Card, memberName: string) {
     accountName: memberName,
     loyaltyPoints: { label: "Points", balance: { int: card.points } },
     secondaryLoyaltyPoints: { label: "Reward at", balance: { int: venue.reward_goal } },
-    barcode: { type: "QR_CODE", value: `LOYALTY:${venue.slug}:${card.code}`, alternateText: card.code },
+    barcode: { type: "QR_CODE", value: qrMessage(venue.slug, card.code, card.id), alternateText: card.code },
     hexBackgroundColor: walletColors().googleBackground,
   };
 }

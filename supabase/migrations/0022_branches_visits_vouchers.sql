@@ -213,6 +213,11 @@ begin
   if v_staff.branch_id is not null and v_staff.branch_id is distinct from p_branch then
     raise exception 'staff member is not allowed at this branch';
   end if;
+  -- Fraud guard, like visits: one person cannot use up more vouchers in 24 hours than the venue's daily scan limit.
+  if (select count(*) from card_vouchers x where x.redeemed_by = p_staff and x.redeemed_at > v_now - interval '24 hours')
+       >= (select visit_cap_per_staff from venues where id = v_cv.venue_id) then
+    raise exception 'daily scan limit reached';
+  end if;
   if v_cv.status = 'redeemed' then raise exception 'voucher already used'; end if;
   if v_cv.status <> 'issued' then raise exception 'voucher is not valid'; end if;
   if v_cv.expires_at is not null and v_cv.expires_at < v_now then raise exception 'voucher has expired'; end if;

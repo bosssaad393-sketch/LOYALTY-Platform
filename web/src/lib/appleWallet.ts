@@ -16,6 +16,7 @@ import { passLocations, PASS_RADIUS_M } from "./branches";
 import { cardVouchers } from "./vouchersDb";
 import { passVoucher, voucherState } from "./vouchers";
 import { noticeForCard } from "./autoMessagesDb";
+import { qrMessage } from "./cardQr";
 
 /**
  * The Arabic side of a stamp card (Apple's ar.lproj): iPhones set to Arabic show the Arabic strip, the Arabic logo
@@ -219,7 +220,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
 
   const poster = posterEnabled();
   const images = venueImages(venue.slug, poster);
-  if (preview === "qr") Object.assign(images, await qrStripImages(venue.slug, `LOYALTY:${venue.slug}:${card.code}`));
+  if (preview === "qr") Object.assign(images, await qrStripImages(venue.slug, qrMessage(venue.slug, card.code, card.id)));
   if (preview === "card") Object.assign(images, cardStripImages(venue.slug));
   if (ladderStrip) Object.assign(images, ladderStrip);
   const pass = new PKPass(
@@ -273,8 +274,10 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
         ? { key: "gift", label: "YOUR GIFT", value: gift.title, textAlignment: "PKTextAlignmentRight" as const, changeMessage: "Your gift is ready: %@" }
         : { key: "gift", label: "MEMBER CODE", value: card.code, textAlignment: "PKTextAlignmentRight" as const },
     );
+    // Wallet renders a little HTML here; names, addresses and links come from the owner's settings, so escape them.
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     const link = (key: string, label: string, text: string, url: string | null | undefined) =>
-      url ? [{ key, label, value: text, attributedValue: `<a href="${url}">${text}</a>` }] : [];
+      url && /^https?:\/\//i.test(url) ? [{ key, label, value: text, attributedValue: `<a href="${esc(url)}">${esc(text)}</a>` }] : [];
     storeCard.backFields.push(
       ...(notice ? [{ key: "notice", label: `From ${venue.name}`, value: notice.message, changeMessage: "%@" }] : []),
       ...(offer ? [backFields[0]] : []),
@@ -338,7 +341,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   if (locations.length && !preview) pass.setLocations(...locations);
   if (preview !== "qr") pass.setBarcodes({
     format: "PKBarcodeFormatQR",
-    message: `LOYALTY:${venue.slug}:${card.code}`,
+    message: qrMessage(venue.slug, card.code, card.id),
     messageEncoding: "iso-8859-1",
     altText: card.code,
   });
