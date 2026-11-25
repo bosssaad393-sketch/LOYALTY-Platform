@@ -232,3 +232,44 @@ html[style*="--venue-card"] .jp .jp-mark { inset-inline-start: 20px; inset-inlin
 html[style*="--venue-card"] .jp .jp-code { display: none; }
 html[style*="--venue-card"] .jp .jp-name, html[style*="--venue-card"] .jp .jp-venue { max-width: 52%; }
 @media (prefers-reduced-motion: reduce) { .vca-lit { transition: none; } }
+
+/* ---- The guest hub (components/VisitHub.tsx): the venue's mark, one line, the card, then a short column of rows.
+   Each row is one thing a guest wants at the table: a plain icon, a title, one line under it. ---- */
+.hub { padding-block-start: max(20px, env(safe-area-inset-top)); }
+.hub-head { display: grid; justify-items: center; text-align: center; gap: 0; padding-block: 22px 6px; }
+.hub-head .hub-mark { font-size: 16px; margin: 0 0 26px; }
+img.hub-mark { width: 96px; height: auto; }
+.hub-title { font: 400 clamp(30px, 8.6vw, 40px)/1.12 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
+.hub-lead { max-width: 30ch; margin-block-start: 12px; color: var(--muted); font-size: var(--fs-lg); line-height: 1.5; text-wrap: pretty; }
+.hub-card { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-block-start: 24px; padding: 20px 20px 20px 22px; min-height: 148px; border-radius: 22px; overflow: hidden; isolation: isolate; color: var(--text); text-decoration: none; background: var(--bg); box-shadow: 0 22px 54px rgb(0 0 0 / 0.4), inset 0 0 0 1px rgb(255 255 255 / 0.12); transition: transform 0.2s ease; }
+.hub-card.art { background: linear-gradient(to right, rgb(0 14 8 / 0.5), rgb(0 14 8 / 0.12) 55%, transparent 70%), var(--venue-card) right center / cover no-repeat, var(--bg); }
+[dir="rtl"] .hub-card.art { background: linear-gradient(to left, rgb(0 14 8 / 0.5), rgb(0 14 8 / 0.12) 55%, transparent 70%), var(--venue-card) left center / cover no-repeat, var(--bg); }
+.hub-card:active { transform: scale(0.985); }
+.hub-card-tx { display: grid; gap: 6px; max-width: 58%; }
+.hub-card-tx b { font: 400 26px/1.15 var(--serif); }
+.hub-card-tx small { font-size: var(--fs-base); line-height: 1.45; color: rgb(255 255 255 / 0.84); }
+.hub-card-go { flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; border-radius: 999px; background: var(--text); color: var(--bg); font-weight: 600; font-size: var(--fs-md); box-shadow: 0 8px 22px rgb(0 0 0 / 0.3); }
+.hub-list { display: grid; gap: 10px; margin-block-start: 14px; }
+.hub-row, .hub-wifi > summary { display: grid; grid-template-columns: 24px minmax(0, 1fr) 20px; align-items: center; gap: 16px; }
+.hub-row { min-height: 72px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--bg); color: var(--text); text-decoration: none; transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease; }
+a.hub-row:hover { border-color: rgb(255 255 255 / 0.32); }
+a.hub-row:active { transform: scale(0.985); }
+.hub-ic { color: var(--gold2); }
+.hub-tx { display: grid; gap: 2px; min-width: 0; }
+.hub-tx b { font: 400 20px/1.25 var(--serif); }
+.hub-tx small { color: var(--muted); font-size: var(--fs-sm); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub-go { color: var(--muted); }
+[dir="rtl"] .hub-go { transform: scaleX(-1); }
+.hub-wifi { display: block; padding: 0; }
+.hub-wifi > summary { list-style: none; cursor: pointer; min-height: 72px; padding: 14px 18px; }
+.hub-wifi > summary::-webkit-details-marker { display: none; }
+.hub-wifi[open] .hub-go { transform: rotate(90deg); }
+.hub-wifi-in { display: grid; gap: 10px; margin: 0; padding: 4px 18px 18px 58px; }
+.hub-wifi-in div { display: grid; gap: 2px; }
+.hub-wifi-in dt { color: var(--muted); font-size: var(--fs-sm); }
+.hub-wifi-in dd { margin: 0; font: 500 18px/1.3 var(--sans); letter-spacing: 0.02em; overflow-wrap: anywhere; user-select: all; }
+.hub-branches { margin-block-start: 22px; text-align: center; color: var(--muted); font-size: var(--fs-base); }
+.hub-branches a { color: var(--text); text-underline-offset: 4px; }
+.hub-branches b { color: var(--text); font-weight: 600; }
+:is(.hub-row, .hub-card, .hub-wifi > summary):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .hub-row, .hub-card { transition: none; } }

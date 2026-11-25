@@ -14,6 +14,7 @@ import { getVenue } from "@/lib/supabase";
 import { GUEST_CARD_COOKIE, guestCardFrom, venueCard } from "@/lib/table/points";
 import FeedbackForm from "./FeedbackForm";
 import { readLinks } from "@/lib/venueLinks";
+import VisitHub from "@/components/VisitHub";
 
 // Reads the guest's card cookie on every request.
 export const instant = false;
@@ -24,10 +25,14 @@ export async function generateMetadata({ params }: PageProps<"/counter/[venue]">
 }
 
 /** The page behind the QR code at the till or reception: the rewards card, the contact card, follow us, and feedback for members. */
-export default async function CounterPage({ params }: PageProps<"/counter/[venue]">) {
+export default async function CounterPage({ params, searchParams }: PageProps<"/counter/[venue]">) {
   const { venue: slug } = await params;
   const venue = await getVenue(slug);
   if (!venue) notFound();
+  if (venue.card_mode === "visits") {
+    const { b } = await searchParams;
+    return <NextIntlClientProvider><VisitHub venue={venue} branchSlug={typeof b === "string" ? b : undefined} /></NextIntlClientProvider>;
+  }
   const locale = await getLocale();
   const t = await getTranslations("door");
   const raw = (await cookies()).get(GUEST_CARD_COOKIE)?.value;

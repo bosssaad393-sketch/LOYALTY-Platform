@@ -63,7 +63,9 @@ const PARTNER = fakeId(590);
 const VOUCHER = fakeId(600);
 const sampleBranches: Row[] = VISITS
   ? [
-      ...BRANCH_NAMES.map((name, i) => ({ id: fakeId(500 + i), venue_id: VENUE, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_ar: null, kind: "branch", address: null, phone: null, maps_url: null, review_url: null, menu_url: null, lat: null, lng: null, sort: i, active: true })),
+      // The first branch can carry the venue's own public details (SAMPLE_MENU_URL, SAMPLE_PHONE, SAMPLE_MAPS_URL,
+      // SAMPLE_ADDRESS), so the guest hub of a hosted sample shows working buttons. Unset = no such button.
+      ...BRANCH_NAMES.map((name, i) => ({ id: fakeId(500 + i), venue_id: VENUE, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_ar: null, kind: "branch", address: (i === 0 && process.env.SAMPLE_ADDRESS) || null, phone: (i === 0 && process.env.SAMPLE_PHONE) || null, maps_url: (i === 0 && process.env.SAMPLE_MAPS_URL) || null, review_url: null, menu_url: (i === 0 && process.env.SAMPLE_MENU_URL) || null, lat: null, lng: null, sort: i, active: true })),
       { id: PARTNER, venue_id: VENUE, slug: "partner", name: PARTNER_NAME, name_ar: null, kind: "partner", address: null, phone: null, maps_url: null, review_url: null, menu_url: null, lat: null, lng: null, sort: 9, active: true },
     ]
   : [];
@@ -83,7 +85,7 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
       points_per_bhd: 2,
       reward_goal: 500,
       reward_text: "A dessert on the house",
-      instagram_url: VISITS ? null : "https://www.instagram.com/calabos04",
+      instagram_url: VISITS ? process.env.SAMPLE_INSTAGRAM_URL ?? null : "https://www.instagram.com/calabos04",
       card_mode: VISITS ? "visits" : null,
       join_fields: VISITS ? ["mobile", "email", "birthday"] : null,
       visit_gap_minutes: 180,

@@ -165,3 +165,34 @@
 @media (prefers-reduced-transparency: reduce) {
   .look-glass { --g-tint: color-mix(in srgb, var(--bg) 94%, transparent); --g-tint-strong: var(--bg); --g-blur: none; }
 }
+
+/* ---- Guest hub rows are glass too ---- */
+.look-glass .hub-row { background: var(--g-sheen), var(--g-tint); border: 1px solid var(--g-line); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12); }
+.look-glass a.hub-row:hover { background: linear-gradient(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.1)), var(--g-tint); }
+.look-glass .hub-ic { color: var(--text); opacity: 0.92; }
+
+/* ---- The living wall: on the guest's pages the picture moves the way a wall does in the morning. The palm shadows
+   sway a little in the breeze and a patch of warm light drifts across. Slow, transform and opacity only, and still for
+   anyone who asks their phone for less motion. ---- */
+@keyframes wall-sway {
+  0% { transform: scale(1.1) translate3d(-1.2%, -0.6%, 0) rotate(-0.5deg); }
+  50% { transform: scale(1.13) translate3d(0.9%, 0.5%, 0) rotate(0.35deg); }
+  100% { transform: scale(1.1) translate3d(1.4%, -0.3%, 0) rotate(0.6deg); }
+}
+@keyframes wall-light {
+  0% { transform: translate3d(-34%, -8%, 0) scale(1); opacity: 0.0; }
+  18% { opacity: 0.55; }
+  50% { transform: translate3d(6%, 4%, 0) scale(1.18); opacity: 0.38; }
+  82% { opacity: 0.5; }
+  100% { transform: translate3d(42%, -6%, 0) scale(1.05); opacity: 0.0; }
+}
+.look-glass body:has(main.app)::before { transform-origin: 30% 12%; animation: wall-sway 19s ease-in-out infinite alternate; will-change: transform; inset: -4%; }
+.look-glass body:has(main.app)::after {
+  content: ""; position: fixed; z-index: -1; pointer-events: none; inset-inline-start: -10%; top: -6%; width: 90vmax; height: 62vmax;
+  background: radial-gradient(closest-side, rgb(255 214 150 / 0.2), rgb(255 214 150 / 0.07) 46%, transparent 72%);
+  mix-blend-mode: screen; animation: wall-light 27s ease-in-out infinite; will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .look-glass body:has(main.app)::before { animation: none; inset: 0; }
+  .look-glass body:has(main.app)::after { display: none; }
+}

@@ -8,6 +8,7 @@ import { directionOf } from "@/i18n/locale";
 import { brandLanguages, brandName, brandVenue, poweredBy } from "@/lib/brand";
 import { getVenue } from "@/lib/supabase";
 import { readLinks } from "@/lib/venueLinks";
+import VisitHub from "@/components/VisitHub";
 
 // The venue's rules are read live and the guest's language comes from their cookie, so this page is made per request.
 export const instant = false;
@@ -16,11 +17,16 @@ export const instant = false;
  * The front door: someone who opens the site's address instead of a QR code. It says what the card is, how it works with this
  * venue's real rules, and gets them to their card. The foot links to the menu, Google reviews and Instagram.
  */
-export default async function Home() {
+export default async function Home({ searchParams }: PageProps<"/">) {
   const locale = await getLocale();
   const t = await getTranslations("home");
   const slug = brandVenue();
   const venue = await getVenue(slug).catch(() => null);
+  // A visit-card venue's home page is its guest hub (card, menu, message, directions, review, Wi-Fi, contact).
+  if (venue?.card_mode === "visits") {
+    const { b } = await searchParams;
+    return <NextIntlClientProvider><VisitHub venue={venue} branchSlug={typeof b === "string" ? b : undefined} /></NextIntlClientProvider>;
+  }
   const name = venue?.name ?? brandName();
   const rate = Number(venue?.points_per_bhd ?? 0);
   const goal = Number(venue?.reward_goal ?? 0);

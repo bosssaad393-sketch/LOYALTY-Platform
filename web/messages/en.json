@@ -238,5 +238,32 @@
     "reviewNote": "Your honest opinion helps other guests.",
     "newTab": "opens in a new tab",
     "show": "Show this at the counter"
+  },
+  "hub": {
+    "title": "Welcome to {venue}",
+    "lead": "Your card, the menu and everything you need while you are here.",
+    "hello": "Welcome back, {name}",
+    "leadMember": "Your card and everything you need while you are here.",
+    "getCard": "Get your card",
+    "getCardSub": "Free, in your phone's Wallet. A gift unlocks on your first visit.",
+    "join": "Join",
+    "myCard": "My card",
+    "myCardSub": "Show it to the staff on every visit.",
+    "open": "Open",
+    "listLabel": "What you can do here",
+    "menu": "Menu",
+    "menuSub": "Breakfast, mains and drinks",
+    "message": "Message us",
+    "messageSub": "On WhatsApp · {phone}",
+    "directions": "Directions",
+    "review": "Leave a Google review",
+    "reviewSub": "Your honest opinion helps other guests",
+    "wifi": "Wi-Fi",
+    "wifiSub": "Network and password",
+    "network": "Network",
+    "password": "Password",
+    "contact": "Save our contact",
+    "contactSub": "Add {venue} to your phone",
+    "branches": "Branches:"
   }
 }
