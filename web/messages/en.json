@@ -236,6 +236,7 @@
     "call": "Call",
     "review": "Leave a Google review",
     "reviewNote": "Your honest opinion helps other guests.",
-    "newTab": "opens in a new tab"
+    "newTab": "opens in a new tab",
+    "show": "Show this at the counter"
   }
 }

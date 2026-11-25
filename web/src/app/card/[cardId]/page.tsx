@@ -14,6 +14,8 @@ import { directionOf } from "@/i18n/locale";
 import { getTranslations } from "next-intl/server";
 import { connection } from "next/server";
 import type { CardView } from "@/lib/cards";
+import { cardArt } from "@/lib/venueArt";
+import { voucherState } from "@/lib/vouchers";
 import VisitCard from "@/components/VisitCard";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import { listBranches } from "@/lib/branchesDb";
@@ -144,7 +146,10 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
         code={card.code}
         qr={qr}
         visits={card.visits}
+        art={cardArt(venue.slug)}
+        lit={vouchers.some((v) => voucherState(v) === "ready")}
         labels={{
+          show: t("show"),
           aria: t("aria", { venue: venue.name }),
           code: t("code"),
           since: card.created_at ? t("since", { date: shortDate(card.created_at, ar) }) : "",

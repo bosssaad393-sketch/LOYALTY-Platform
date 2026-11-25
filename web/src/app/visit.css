@@ -198,3 +198,37 @@ img.vc-mark { width: auto; height: 15cqw; }
   .look-matte .ow-side > .ow-chip:not(.ow-lock) { grid-area: lang; }
 }
 .look-matte .ow-sample { letter-spacing: 0.02em; text-transform: none; font-weight: 500; line-height: 1.45; padding: 8px 12px; }
+
+/* ---- The card as a picture (lib/venueArt.ts): the venue's own subject is the face of the card. The open space in
+   the picture holds the visit count; the second picture (the light on) fades in while a gift is waiting. The QR sits
+   under the card, large, where a till scanner reads it fastest. In Arabic the picture is mirrored with the text. ---- */
+.vca { padding: 0; overflow: hidden; isolation: isolate; border-radius: 4.6cqw; background: var(--bg); box-shadow: 0 26px 60px rgb(0 0 0 / 0.42), inset 0 0 0 1px rgb(255 255 255 / 0.1); }
+.vca-face { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.vca-lit { opacity: 0; transition: opacity 1.4s ease; z-index: -1; }
+.vca.lit .vca-lit { opacity: 1; }
+[dir="rtl"] .vca-face { transform: scaleX(-1); }
+.vca-shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(to right, rgb(0 14 8 / 0.36), rgb(0 14 8 / 0.1) 46%, transparent 60%); }
+[dir="rtl"] .vca-shade { background: linear-gradient(to left, rgb(0 14 8 / 0.36), rgb(0 14 8 / 0.1) 46%, transparent 60%); }
+.vca::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); pointer-events: none; }
+.vca .vca-mark { position: absolute; inset-block-start: 6.6cqw; inset-inline-start: 6.6cqw; }
+.vca-who { position: absolute; inset-block-end: 6.4cqw; inset-inline-start: 6.6cqw; max-width: 50%; }
+.vca-who .vc-name { margin: 0; font-size: clamp(17px, 5.4cqw, 24px); }
+.vca-who .vc-since { margin-block-start: 1.2cqw; color: rgb(255 255 255 / 0.78); }
+.vca-count { position: absolute; margin: 0; display: grid; align-content: center; justify-items: center; gap: 1cqw; text-align: center; }
+.vca-count b { font: 400 clamp(34px, 13.5cqw, 60px)/1 var(--serif); font-variant-numeric: lining-nums tabular-nums; color: var(--text); text-shadow: 0 1px 16px rgb(0 0 0 / 0.5); }
+.vca-count small { font-size: clamp(12px, 3.1cqw, 14px); color: rgb(255 255 255 / 0.84); text-shadow: 0 1px 10px rgb(0 0 0 / 0.5); }
+.vq { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px; margin-block-start: 14px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--bg); }
+.vq-qr { display: block; width: 132px; height: 132px; padding: 10px; border-radius: 12px; background: var(--text); image-rendering: pixelated; }
+.vq-lead { font: 400 19px/1.25 var(--serif); }
+.vq-code { margin-block-start: 10px; }
+.vq-code small { display: block; color: var(--muted); font-size: var(--fs-sm); }
+.vq-code b { display: block; font: 400 30px/1.15 var(--serif); letter-spacing: 0.12em; font-variant-numeric: lining-nums tabular-nums; }
+.vq-last { margin-block-start: 6px; color: var(--muted); font-size: var(--fs-sm); }
+@media (max-width: 350px) { .vq { gap: 12px; } .vq-qr { width: 112px; height: 112px; } }
+/* The join page's preview is the same card face. */
+html[style*="--venue-card"] .jp { background: var(--venue-card) right center / cover no-repeat, var(--bg); min-height: 0; aspect-ratio: 428 / 270; border-radius: 18px; }
+html[style*="--venue-card"] [dir="rtl"] .jp { background-position: left center; }
+html[style*="--venue-card"] .jp .jp-mark { inset-inline-start: 20px; inset-inline-end: auto; inset-block-start: 20px; }
+html[style*="--venue-card"] .jp .jp-code { display: none; }
+html[style*="--venue-card"] .jp .jp-name, html[style*="--venue-card"] .jp .jp-venue { max-width: 52%; }
+@media (prefers-reduced-motion: reduce) { .vca-lit { transition: none; } }

@@ -158,6 +158,18 @@ function cardStripImages(slug: string): Record<string, Buffer> {
   return files;
 }
 
+/** "A gift is waiting" strip (passes/<venue>/lit/strip*.png): the same picture with the light on. Empty when the venue has none. */
+function litStripImages(slug: string): Record<string, Buffer> {
+  const dir = path.join(process.cwd(), "passes", slug, "lit");
+  const files: Record<string, Buffer> = {};
+  try {
+    for (const name of readdirSync(dir)) if (/^strip(@[23]x)?\.png$/.test(name)) files[name] = readFileSync(path.join(dir, name));
+  } catch {
+    /* no lit strip for this venue */
+  }
+  return files;
+}
+
 /** The per-card secret Apple sends back when it asks for updates. Created on first use. */
 export async function authTokenFor(cardId: string): Promise<string> {
   const { data, error } = await db().from("cards").select("apple_auth_token").eq("id", cardId).single();
@@ -223,6 +235,8 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   if (preview === "qr") Object.assign(images, await qrStripImages(venue.slug, qrMessage(venue.slug, card.code, card.id)));
   if (preview === "card") Object.assign(images, cardStripImages(venue.slug));
   if (ladderStrip) Object.assign(images, ladderStrip);
+  // Visit card with a gift ready: the niche on the card is lit, on the lock screen too.
+  if (visitMode && gift && !preview) Object.assign(images, litStripImages(venue.slug));
   const pass = new PKPass(
     images,
     appleCertificates(),

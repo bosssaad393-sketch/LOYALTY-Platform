@@ -6,6 +6,7 @@ import "./ground.css";
 import "./screens.css";
 import "./visit.css";
 import "./glass.css";
+import { cardArt } from "@/lib/venueArt";
 import "@/components/motion.css";
 import { brandColors, brandFinish, brandName, brandStyle, brandVenue, usesOrbynLook } from "@/lib/brand";
 
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   const style = {
     ...brandStyle(),
     "--brand-marble": `url("/venues/${venue}/marble.jpg")`,
+    ...(cardArt(venue) ? { "--venue-card": `url("${cardArt(venue)!.src}")` } : {}),
     ...(finish === "glass" ? { "--glass-photo-p": `url("/venues/${venue}/glass-portrait.webp")`, "--glass-photo-w": `url("/venues/${venue}/glass-wide.webp")` } : {}),
   } as CSSProperties;
   return (
