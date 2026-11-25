@@ -67,7 +67,7 @@ export function VisitSheet({ guest, branchId, partner, busy, justUsed, canRedeem
   const t = useT();
   const [asking, setAsking] = useState<string | null>(null);
   const list = sortVouchers(guest.vouchers ?? []).filter((v) => voucherState(v) !== "cancelled");
-  const date = (iso: string) => new Date(iso).toLocaleDateString(t.locale, { day: "numeric", month: "short", timeZone: "Asia/Bahrain" });
+  const date = (iso: string) => new Date(iso).toLocaleDateString(`${t.locale}-u-nu-latn`, { day: "numeric", month: "short", timeZone: "Asia/Bahrain" });
 
   return (
     <>
