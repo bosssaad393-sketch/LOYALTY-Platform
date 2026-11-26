@@ -18,7 +18,8 @@ export async function POST(request: Request) {
   // The owner's and a manager's PIN (six digits) are never held to it, so the owner cannot be locked out.
   const cookieHeader = request.headers.get("cookie");
   if (parsed.data.pin.length === 4) {
-    const venue = await getVenue(parsed.data.venue ?? brandVenue()).catch(() => null);
+    // Any failure to read the venue or the rule leaves the sign-in as it was before this rule existed.
+    const venue = await Promise.resolve().then(() => getVenue(parsed.data.venue ?? brandVenue())).catch(() => null);
     if (venue && !(await staffPinAllowed(venue.id, cookieHeader).catch(() => true))) {
       return fail("This device is not one of the venue's tills. Ask the owner to add it.", 403);
     }
