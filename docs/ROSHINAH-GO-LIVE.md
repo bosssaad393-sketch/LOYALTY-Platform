@@ -101,18 +101,20 @@ Honest limits:
 - The file runs ONCE on a new, empty project. The two seeds alone are safe to run again.
 - Apple Wallet: the pass certificate for `pass.co.orbyn.roshinah` (team `BT22978JVQ`) is valid until 25 December 2027 and matches its private key. On Vercel: `APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT` and `APPLE_WWDR_CERT` are set (identifiers and public certificates only).
 
-**Not done, and why**
-- The Supabase project for Al Roshinah does not exist yet. Creating it from the assistant was blocked by the app's safety check; the quoted cost was 0 a month. Saad creates it (Supabase > New project, name `roshinah`, region Frankfurt `eu-central-1`, organization `loyalty-platform`), then the setup file is run on it.
+**The database (done 2026-11-26, night)**
+- Saad created the Supabase project `roshinah` (ref `ysxkmpzyrojjhothohdt`, Frankfurt, organization `loyalty-platform`, free plan).
+- Migrations 0001 to 0031 were applied to it one by one (each is in its migration history under its own name), then both seeds. Nothing failed.
+- Checked against the tested copy (the setup file run on PGlite), by fingerprint: the 37 tables and 353 columns, 230 rules, 102 indexes and the bodies of all 19 functions are identical; so are the business, the three places, the gift, the two notices and all 90 dishes with their prices. Every table is locked, there are no policies, and no function of ours can be called with the public keys.
+- A walk-through on the real database, undone afterwards (nothing was kept): a till bill counted the visit, kept its two dishes and unlocked the gift; the same bill again changed nothing; the gift was refused at Sanad, used at Asmak, refused a second time; a scan the same evening was refused.
+- `SUPABASE_URL` is set on Vercel (production). The site still runs on sample data until step 2 below.
+- Known and left as they are: the sample venue `orbyn` from migration 0001 is in this database too (as in the tested file); Supabase's own `rls_auto_enable` function is theirs, not ours; `stamp_due` has no fixed search path (it is not used by a visit card).
 
 **Left, in order**
-1. Create the Supabase project (above).
-2. Run `supabase/roshinah-setup.sql` on it (SQL editor: paste and Run; or the assistant applies it once the project exists).
-3. On Vercel, project `roshinah`, add by hand (they are secrets and are never put in a chat or a file in the repository):
-   - `SUPABASE_URL`: the project's address (not a secret; the assistant can add it).
+1. On Vercel, project `roshinah`, add by hand (they are secrets and are never put in a chat or a file in the repository):
    - `SUPABASE_SERVICE_ROLE_KEY`: Supabase > Project settings > API keys > service role.
    - `STAFF_SESSION_SECRET` and `CRON_SECRET`: two different long random values.
    - `APPLE_PASS_KEY`: the contents of `roshinah-pass.key` in the private Apple folder on Saad's PC.
-4. On Vercel, remove the sample settings: `ORBYN_DEMO`, `SAMPLE_CARD_MODE`, `SAMPLE_BRANCHES`, `SAMPLE_PARTNER`, `SAMPLE_MENU`, `SAMPLE_MENU_URL`, `SAMPLE_PHONE`, `SAMPLE_INSTAGRAM_URL`, `SAMPLE_ADDRESS`, `TAP_FAKE`. Then redeploy from branch `agent/roshinah`. From that moment the site shows real, empty data.
-5. Supabase > Authentication > Users > Add user: the developer login (Saad's own email and a password he chooses). Then link it as the venue's developer, set the owner's passcode, and one passcode per till with its branch (`docs/NEW-CLIENT.md`).
-6. First test on real phones, before any guest: join, add to Apple Wallet, a staff scan, the gift appears, use it at the Asmak till, a second use is refused; stand near the branch for the lock screen; switch alerts on and call the waiter from a table.
-7. Still from the owner: the map link and Google review link for Sanad, the voucher terms, the menu prices check, the vector logo.
+2. On Vercel, remove the sample settings: `ORBYN_DEMO`, `SAMPLE_CARD_MODE`, `SAMPLE_BRANCHES`, `SAMPLE_PARTNER`, `SAMPLE_MENU`, `SAMPLE_MENU_URL`, `SAMPLE_PHONE`, `SAMPLE_INSTAGRAM_URL`, `SAMPLE_ADDRESS`, `TAP_FAKE`. Then redeploy from branch `agent/roshinah`. From that moment the site shows real, empty data.
+3. Supabase > Authentication > Users > Add user: the developer login (Saad's own email and a password he chooses). Then link it as the venue's developer, set the owner's passcode, and one passcode per till with its branch (`docs/NEW-CLIENT.md`).
+4. First test on real phones, before any guest: join, add to Apple Wallet, a staff scan, the gift appears, use it at the Asmak till, a second use is refused; stand near the branch for the lock screen; switch alerts on and call the waiter from a table.
+5. Still from the owner: the map link and Google review link for Sanad, the voucher terms, the menu prices check, the vector logo.
