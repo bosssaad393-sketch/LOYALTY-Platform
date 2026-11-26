@@ -59,7 +59,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
   const { card, venue, memberName, stamps } = view;
   const locale = await getLocale();
   const ar = locale === "ar";
-  if (view.visitMode) return <VisitCardPage view={view} locale={locale} ar={ar} welcome={welcome === "1"} />;
+  if (view.visitMode) return <VisitCardPage view={view} locale={locale} ar={ar} />;
   const w = ar ? WORDS.ar : WORDS.en;
   const unit = stamps ? w.stamps : w.points;
 
@@ -126,7 +126,7 @@ const shortDate = (iso: string, ar: boolean) =>
  * Visit card (migration 0022): the member card with visits instead of points, then the gift, then the branches.
  * Words come from messages/<locale>.json (visitCard). Points and stamp venues never reach this.
  */
-async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; locale: string; ar: boolean; welcome: boolean }) {
+async function VisitCardPage({ view, locale, ar }: { view: CardView; locale: string; ar: boolean }) {
   const { card, venue, memberName } = view;
   // A gift's state (ready, expired) depends on today's date, so this part always runs per request.
   await connection();
@@ -147,7 +147,6 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
   const step = nextMilestone(defs, card.visits, vouchers.map((v) => v.voucherId));
   const ahead = step ? { gift: (ar && step.gift.titleAr) || step.gift.title, left: step.left } : null;
   const qr = await QRCode.toDataURL(qrMessage(venue.slug, card.code, card.id), { margin: 0, color: { dark: brandColors().bg, light: brandColors().text } });
-  const first = memberName.trim().split(/\s+/)[0];
   const giftReady = vouchers.some((v) => voucherState(v) === "ready");
 
   return (
@@ -158,12 +157,6 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
           {venue.name}
         </Link>
       </div>
-      {welcome && (
-        <p className="welcome" role="status">
-          <b>{t("welcome", { name: first })}</b>
-          <span>{t("keep")}</span>
-        </p>
-      )}
       <VisitCard
         venueName={venue.name}
         venueSlug={venue.slug}
