@@ -16,11 +16,12 @@ export type Gift = {
   counts: { issued: number; redeemed: number; waiting: number };
 };
 
-const TRIGGER: Record<VoucherTrigger, string> = { first_visit: tx("First visit"), visit_count: tx("A chosen visit"), birthday: tx("Birthday"), every_visit: tx("Any visit"), manual: tx("Given by hand") };
+const TRIGGER: Record<VoucherTrigger, string> = { first_visit: tx("First visit"), visit_count: tx("A chosen visit"), birthday: tx("Birthday"), friend: tx("Bring a friend"), every_visit: tx("Any visit"), manual: tx("Given by hand") };
 const TRIGGER_NOTE: Record<VoucherTrigger, string> = {
   first_visit: tx("Unlocks once per guest, when their first visit is recorded."),
   visit_count: tx("Unlocks once per guest, on the visit you choose: the 5th, the 10th. Add several to make a ladder; the guest's card shows how many visits are left."),
   birthday: tx("Unlocks every year on the guest's birthday, for guests who gave their date of birth when joining. Give it an end date, for example 14 days."),
+  friend: tx("For the member who invites: unlocks each time a friend joins with their link and makes a first visit. Members find the link on their card. The friend gets your first-visit gift like any new guest."),
   every_visit: tx("Unlocks once per guest, at their next recorded visit, including guests who joined before you added it."),
   manual: tx("Never unlocks by itself. Only a team member can give it."),
 };

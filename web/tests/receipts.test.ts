@@ -250,3 +250,47 @@ describe("gift rules", () => {
     expect(await rows("select * from birthday_gifts($1,3,12,2029,false)", [V])).toEqual([]);
   });
 });
+
+// Migration 0027: bring a friend.
+describe("bring a friend", () => {
+  const FRIEND = "aaaaaaaa-0000-4000-8000-0000000000e7";
+  const STAFF = "aaaaaaaa-0000-4000-8000-0000000000a2";
+  const guest = (n: number) => `aaaaaaaa-0000-4000-8000-0000000000f${n}`;
+  const add = async (n: number, code: string, invitedBy: string | null) => {
+    await db.exec(`insert into members (id, name, phone, consent_terms) values ('aaaaaaaa-0000-4000-8000-00000000009${n}','Friend ${n}','+9731111111${n}',now());
+                   insert into cards (id, venue_id, member_id, code, invited_by) values ('${guest(n)}','${V}','aaaaaaaa-0000-4000-8000-00000000009${n}','${code}',${invitedBy ? `'${invitedBy}'` : "null"});`);
+  };
+  const friendGifts = (c: string) => rows<{ cycle: number }>("select cycle from card_vouchers where card_id=$1 and voucher_id=$2 order by cycle", [c, FRIEND]);
+
+  it("thanks the member once per friend, on that friend's first visit only", async () => {
+    await db.exec(`insert into vouchers (id, venue_id, title, trigger, valid_days) values ('${FRIEND}','${V}','A coffee on us for bringing a friend','friend',30)`);
+    await add(1, "4001", card(2));
+    await add(2, "4002", card(2));
+    expect(await friendGifts(card(2))).toEqual([]);
+    const [first] = await rows<{ vouchers_issued: number }>("select * from ledger_visit($1,$2,$3)", [guest(1), STAFF, SANAD]);
+    expect(first.vouchers_issued).toBe(1); // the friend's own first-visit gift; the member's thank-you is not counted here
+    expect(await friendGifts(card(2))).toEqual([{ cycle: 1 }]);
+    await db.exec(`update ledger set created_at = created_at - interval '1 day' where card_id='${guest(1)}'`);
+    await rows("select * from ledger_visit($1,$2,$3)", [guest(1), STAFF, SANAD]);
+    expect(await friendGifts(card(2))).toEqual([{ cycle: 1 }]);
+    await bill("4002", "INV-F2");
+    expect(await friendGifts(card(2))).toEqual([{ cycle: 1 }, { cycle: 2 }]);
+    expect(await rows("select 1 from audit_log where action='friend_gift'")).toHaveLength(2);
+    expect(await friendGifts(guest(1))).toEqual([]);
+  });
+
+  it("a guest who joined on their own thanks nobody, and an invite code is one of a kind", async () => {
+    await add(3, "4003", null);
+    await rows("select * from ledger_visit($1,$2,$3)", [guest(3), STAFF, SANAD]);
+    expect(await friendGifts(card(2))).toHaveLength(2);
+    await db.exec(`update cards set invite = 'abcdefgh23' where id = '${card(2)}'`);
+    await expect(db.exec(`update cards set invite = 'abcdefgh23' where id = '${card(3)}'`)).rejects.toThrow(/cards_invite_idx/);
+  });
+
+  it("a member who erased their data gets no thank-you", async () => {
+    await add(4, "4004", card(3));
+    await db.exec(`update members set deleted_at = now() where id = '${member(3)}'`);
+    await rows("select * from ledger_visit($1,$2,$3)", [guest(4), STAFF, SANAD]);
+    expect(await friendGifts(card(3))).toEqual([]);
+  });
+});

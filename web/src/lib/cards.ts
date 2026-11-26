@@ -9,7 +9,7 @@ export type CardView = { card: Card; venue: Venue; memberName: string; stamps?: 
 /** Creates a member and their card at a venue. Retries if the 4-digit code is already taken. */
 export async function createCard(
   venue: Venue,
-  input: { name: string; phone?: string; email?: string; news: boolean; birthday?: { day: number; month: number; year: number | null } | null; branchId?: string | null },
+  input: { name: string; phone?: string; email?: string; news: boolean; birthday?: { day: number; month: number; year: number | null } | null; branchId?: string | null; /** 0027: the card whose invite link this guest joined with. */ invitedBy?: string | null },
 ): Promise<Card> {
   const { data: member, error: mErr } = await db()
     .from("members")
@@ -27,12 +27,11 @@ export async function createCard(
 
   for (let attempt = 0; attempt < 20; attempt++) {
     const code = String(randomInt(1000, 10000));
-    const { data, error } = await db()
-      .from("cards")
-      .insert({ venue_id: venue.id, member_id: member.id, code, ...(input.branchId ? { joined_branch: input.branchId } : {}) })
-      .select("id, venue_id, member_id, code, points, visits")
-      .single();
-    if (!error) return data;
+    const row: Record<string, unknown> = { venue_id: venue.id, member_id: member.id, code, ...(input.branchId ? { joined_branch: input.branchId } : {}) };
+    let { data, error } = await db().from("cards").insert(input.invitedBy ? { ...row, invited_by: input.invitedBy } : row).select("id, venue_id, member_id, code, points, visits").single();
+    // A database without 0027 has no place for the invite: the guest still gets their card.
+    if (error && input.invitedBy && /invited_by/.test(error.message ?? "")) ({ data, error } = await db().from("cards").insert(row).select("id, venue_id, member_id, code, points, visits").single());
+    if (!error) return data as Card;
     if (error.code !== "23505") throw error; // 23505 = code already used at this venue
   }
   throw new Error("Could not find a free card code. The venue may be full.");
@@ -84,3 +83,49 @@ export async function getCardView(cardId: string): Promise<CardView | null> {
 }
 
 export { isUuid } from "./ids";
+
+// ---- Bring a friend (migration 0027)
+
+const INVITE_LETTERS = "abcdefghjkmnpqrstuvwxyz23456789";
+const newInvite = () => Array.from({ length: 10 }, () => INVITE_LETTERS[randomInt(0, INVITE_LETTERS.length)]).join("");
+export const isInvite = (v: unknown): v is string => typeof v === "string" && /^[a-z0-9]{8,16}$/.test(v);
+
+/** The guest's invite code, made the first time it is asked for. Null on a database without 0027. */
+export async function inviteOf(cardId: string): Promise<string | null> {
+  try {
+    const { data, error } = await db().from("cards").select("invite").eq("id", cardId).maybeSingle();
+    if (error || !data) return null;
+    if (typeof data.invite === "string" && data.invite) return data.invite;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = newInvite();
+      const { data: set, error: e } = await db().from("cards").update({ invite: code }).eq("id", cardId).is("invite", null).select("invite");
+      if (!e && (set ?? []).length) return code;
+      if (!e) break; // another tap set it first: read it below
+    }
+    const again = await db().from("cards").select("invite").eq("id", cardId).maybeSingle();
+    return typeof again.data?.invite === "string" && again.data.invite ? again.data.invite : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The card behind an invite code at this venue, or null. Never throws. */
+export async function cardByInvite(venueId: string, code: string): Promise<string | null> {
+  if (!isInvite(code)) return null;
+  try {
+    const { data, error } = await db().from("cards").select("id").eq("venue_id", venueId).eq("invite", code).maybeSingle();
+    return error || !data ? null : String(data.id);
+  } catch {
+    return null;
+  }
+}
+
+/** The card that invited this one, or null. Never throws. */
+export async function inviterOf(cardId: string): Promise<string | null> {
+  try {
+    const { data, error } = await db().from("cards").select("invited_by").eq("id", cardId).maybeSingle();
+    return error || !data?.invited_by ? null : String(data.invited_by);
+  } catch {
+    return null;
+  }
+}

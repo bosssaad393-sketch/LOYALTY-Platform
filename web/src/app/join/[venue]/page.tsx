@@ -18,7 +18,9 @@ export const instant = false;
 export default async function JoinPage({ params, searchParams }: PageProps<"/join/[venue]">) {
   const { venue: slug } = await params;
   // The branch whose QR the guest scanned (?b=<branch slug>), passed on so the owner sees where guests join.
-  const { b } = await searchParams;
+  const { b, r } = await searchParams;
+  // A member's invite link (?r=<code>): passed on so that member is thanked after this guest's first visit.
+  const invite = typeof r === "string" && /^[a-z0-9]{8,16}$/.test(r) ? r : undefined;
   const branch = typeof b === "string" && /^[a-z0-9-]{1,40}$/.test(b) ? b : undefined;
   const markType = brandMark() === "type";
   const venue = await getVenue(slug);
@@ -50,7 +52,8 @@ export default async function JoinPage({ params, searchParams }: PageProps<"/joi
         sub={t("sub")}
       />
       </div>
-      <JoinForm venue={venue.slug} venueName={venue.name} fields={joinFields(venue.join_fields)} branch={branch} markType={markType} newsTicked={offersBoxTicked()} />
+      {invite && <p className="note jn-invited">{t("invited")}</p>}
+      <JoinForm invite={invite} venue={venue.slug} venueName={venue.name} fields={joinFields(venue.join_fields)} branch={branch} markType={markType} newsTicked={offersBoxTicked()} />
       <p className="foot">{foot}</p>
     </main>
     </NextIntlClientProvider>

@@ -923,4 +923,9 @@ export const AR: Record<string, string> = {
   "Only these guests see it on their card. The group is fixed when you send: a guest who visits tomorrow keeps the message.": "هؤلاء الضيوف فقط يرونه على بطاقتهم. تُحدَّد المجموعة عند الإرسال: الضيف الذي يزور غداً يحتفظ بالرسالة.",
   "No guest who agreed to notifications is in that group right now.": "لا يوجد حالياً ضيف وافق على الإشعارات ضمن هذه المجموعة.",
   "Sending to one group needs a database update first. Ask Orbyn.": "الإرسال إلى مجموعة واحدة يحتاج إلى تحديث قاعدة البيانات أولاً. تواصل مع Orbyn.",
+
+  // ---- Bring a friend (0027)
+  "Bring a friend": "ادعُ صديقاً",
+  "For the member who invites: unlocks each time a friend joins with their link and makes a first visit. Members find the link on their card. The friend gets your first-visit gift like any new guest.": "للعضو الذي يدعو: تُفتح كل مرة ينضم صديق عبر رابطه ويقوم بزيارته الأولى. يجد الأعضاء الرابط على بطاقتهم. يحصل الصديق على هدية الزيارة الأولى كأي ضيف جديد.",
+  "Unlocked a bring-a-friend gift": "فُتحت هدية دعوة صديق",
 };

@@ -108,7 +108,7 @@ export const VoucherInput = z.object({
   titleAr: blank(80).optional().default(null),
   detail: blank(300).optional().default(null),
   detailAr: blank(300).optional().default(null),
-  trigger: z.enum(["first_visit", "every_visit", "manual", "visit_count", "birthday"]).default("first_visit"),
+  trigger: z.enum(["first_visit", "every_visit", "manual", "visit_count", "birthday", "friend"]).default("first_visit"),
   atVisit: z.number().int().min(2).max(1000).nullable().optional().default(null),
   redeemBranchId: z.uuid().nullable().optional().default(null),
   validDays: z.number().int().min(1).max(730).nullable().optional().default(null),

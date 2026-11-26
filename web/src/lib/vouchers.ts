@@ -2,8 +2,8 @@
 // Pure rules shared by the staff screen, the guest card and the Wallet pass. The database enforces them (voucher_redeem).
 
 /** 0025 adds 'visit_count' (one chosen visit, see atVisit) and 'birthday' (every year, from the daily job). */
-export type VoucherTrigger = "first_visit" | "every_visit" | "manual" | "visit_count" | "birthday";
-export const VOUCHER_TRIGGERS: VoucherTrigger[] = ["first_visit", "visit_count", "birthday", "every_visit", "manual"];
+export type VoucherTrigger = "first_visit" | "every_visit" | "manual" | "visit_count" | "birthday" | "friend";
+export const VOUCHER_TRIGGERS: VoucherTrigger[] = ["first_visit", "visit_count", "birthday", "friend", "every_visit", "manual"];
 
 /**
  * The next gift on the ladder: the nearest 'visit_count' gift still ahead of this guest, with how many visits are left.

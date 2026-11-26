@@ -10,6 +10,7 @@ export const ACTIVITY_TEXT: Record<string, string> = {
   voucher_void: "Cancelled a voucher",
   voucher_given: "Gave a guest a gift",
   birthday_gift: "Unlocked a birthday gift",
+  friend_gift: "Unlocked a bring-a-friend gift",
   voucher_added: "Added a gift",
   voucher_changed: "Changed a gift",
   branch_added: "Added a branch",

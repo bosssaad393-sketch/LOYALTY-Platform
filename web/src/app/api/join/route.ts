@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getVenue } from "@/lib/supabase";
-import { createCard, hasCardAt } from "@/lib/cards";
+import { cardByInvite, createCard, hasCardAt } from "@/lib/cards";
 import { allowed, LIMITS } from "@/lib/rateLimitDb";
 import { joinFields, parseBirthday } from "@/lib/joinFields";
 import { listBranches } from "@/lib/branchesDb";
@@ -17,6 +17,8 @@ const JoinInput = z
     birthday: z.string().trim().max(10).optional().default(""),
     // The branch whose QR the guest scanned (its slug), for the owner's numbers. Unknown = ignored.
     branch: z.string().regex(/^[a-z0-9-]{1,40}$/).optional(),
+    // The invite code of the member whose link the guest opened (bring a friend). Unknown = ignored.
+    invite: z.string().regex(/^[a-z0-9]{8,16}$/).optional(),
   });
 
 export async function POST(request: Request) {
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return Response.json({ code: "incomplete", error: "Please fill in your name and mobile number, and accept the terms." }, { status: 400 });
   }
-  const { venue: slug, name, mobile, email, news, birthday, branch } = parsed.data;
+  const { venue: slug, name, mobile, email, news, birthday, branch, invite } = parsed.data;
 
   if (!mobile && !email) {
     return Response.json({ code: "contact_required", error: "Please add your mobile number." }, { status: 400 });
@@ -60,7 +62,8 @@ export async function POST(request: Request) {
     if (await hasCardAt(venue.id, { phone, email: mail })) {
       return Response.json({ code: "already_member", error: "You already have a card here. Open it from your Wallet or saved link, or ask staff to show it again." }, { status: 409 });
     }
-    const card = await createCard(venue, { name, phone, email: mail, news, birthday: born, branchId });
+    const invitedBy = invite ? await cardByInvite(venue.id, invite) : null;
+    const card = await createCard(venue, { name, phone, email: mail, news, birthday: born, branchId, invitedBy });
     return Response.json({ cardId: card.id });
   } catch (err) {
     console.error("join failed", err);

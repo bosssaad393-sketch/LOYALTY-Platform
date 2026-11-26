@@ -335,6 +335,18 @@ class Query implements PromiseLike<Result> {
   }
 }
 
+/** Migration 0027 in the sample: the member who invited this guest gets each 'friend' gift, once per friend. */
+function sampleFriendGift(card: Row, staff: unknown, branch: unknown) {
+  const inviter = card.invited_by ? store.cards.find((c) => c.id === card.invited_by && c.venue_id === card.venue_id) : null;
+  if (!inviter) return;
+  const held = (store.card_vouchers ??= []);
+  for (const v of (store.vouchers ??= []).filter((x) => x.venue_id === card.venue_id && x.active && x.trigger === "friend")) {
+    const cycle = held.filter((h) => h.card_id === inviter.id && h.voucher_id === v.id).length + 1;
+    held.push({ id: uuid(), card_id: inviter.id, venue_id: card.venue_id, voucher_id: v.id, cycle, status: "issued", issued_at: new Date().toISOString(), issued_by: staff ?? null, issued_branch: branch ?? null, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
+    (store.audit_log ??= []).push({ id: uuid(), venue_id: card.venue_id, actor: staff ?? "pos", action: "friend_gift", detail: { card: inviter.id, friend: card.id }, branch_id: branch ?? null, created_at: new Date().toISOString() });
+  }
+}
+
 /** The three point actions staff use, so the staff screens can be seen working. The real rules live in the database (0002_ledger.sql). */
 function fakeRpc(fn: string, args: Record<string, unknown>): Result {
   const ledger = (store.ledger ??= []);
@@ -418,6 +430,7 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
       held.push({ id: uuid(), card_id: card.id, venue_id: card.venue_id, voucher_id: v.id, status: "issued", issued_at: new Date().toISOString(), issued_by: args.p_staff, issued_branch: args.p_branch ?? null, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
       issued++;
     }
+    if (first) sampleFriendGift(card, args.p_staff, args.p_branch ?? null);
     audit(card.venue_id, "visit", { card: card.id, ledger: row.id, vouchers_issued: issued });
     return { data: [{ ledger_id: row.id, visits: card.visits, vouchers_issued: issued }], error: null };
   }
@@ -458,6 +471,7 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
         held.push({ id: uuid(), card_id: card.id, venue_id: card.venue_id, voucher_id: v.id, status: "issued", issued_at: new Date().toISOString(), issued_by: null, issued_branch: branch.id, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
         issued++;
       }
+      if (first) sampleFriendGift(card, null, branch.id);
       (store.audit_log ??= []).push({ id: uuid(), venue_id: card.venue_id, actor: "pos", action: "visit", detail: { card: card.id, ledger: row.id, vouchers_issued: issued, receipt: args.p_receipt }, branch_id: branch.id, created_at: new Date().toISOString() });
     }
     return { data: [{ receipt_id: id, guest_card: card.id, duplicate: false, visit_counted: counted, visits: card.visits, vouchers_issued: issued }], error: null };

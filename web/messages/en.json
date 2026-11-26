@@ -3,6 +3,7 @@
     "label": "Language"
   },
   "join": {
+    "invited": "A friend invited you. Welcome.",
     "eyebrow": "Membership",
     "title": "Join {venue} Rewards",
     "sub": "Your personal card, kept in your phone's Wallet. Nothing to download.",
@@ -233,6 +234,12 @@
     "giftOnce": "One use only. Show this card to the staff.",
     "giftLocked": "A gift unlocks on this card at your first visit: {gift}.",
     "giftNext": "{count, plural, one {One more visit} other {# more visits}} and this unlocks: {gift}.",
+    "inviteTitle": "Bring a friend",
+    "inviteLead": "When a friend joins with your link and makes a first visit, you get: {gift}.",
+    "inviteButton": "Share my link",
+    "inviteCopied": "Link copied. Send it to your friend.",
+    "inviteFailed": "The link could not be made. Please try again.",
+    "inviteShare": "Join me at {venue}: here is my link.",
     "placesTitle": "Visit us",
     "menu": "Menu",
     "directions": "Directions",

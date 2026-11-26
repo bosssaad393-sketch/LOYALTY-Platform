@@ -4,6 +4,7 @@ import { db } from "../supabase";
 import type { Staff } from "../staffAuth";
 import { posReceipt, posReceiptRefund, posRefund, posSale } from "../ledgerDb";
 import { refreshWalletCards } from "../staffApi";
+import { inviterOf } from "../cards";
 import { createRateLimiter } from "../rateLimit";
 import { bearerKey, hashKey, newKey, sameHash } from "./keys";
 
@@ -91,6 +92,7 @@ export async function receiveEvent(authorization: string | null, rawBody: unknow
       if (!r.duplicate) {
         try {
           await refreshWalletCards(r.guest_card, 0);
+          if (r.visit_counted && r.visits === 1) { const inviter = await inviterOf(r.guest_card); if (inviter) await refreshWalletCards(inviter, 0); }
         } catch (e) {
           console.error("wallet refresh after POS sale failed", e instanceof Error ? e.message : e);
         }

@@ -471,3 +471,10 @@ html[style*="--venue-wordmark"] .hub-intro-mark::before { display: none; }
 .sp-counts dd { font-size: 20px; }
 .sp-h { margin-block-start: 18px; }
 @media (max-width: 480px) { .sp-counts { grid-template-columns: 1fr; } .sp-counts div + div { padding-inline-start: 0; border-inline-start: 0; border-block-start: 1px solid var(--ow-rule); } }
+
+/* ---- Guest card: bring a friend (InviteFriend.tsx), and the line on the join page of an invited guest ---- */
+.iv { display: grid; gap: 12px; margin-block-start: 22px; }
+.iv-lead { color: var(--muted); font-size: var(--fs-md); line-height: 1.55; }
+.iv .btn { justify-self: start; }
+.iv-note { min-height: 1.4em; margin: 0; }
+.jn-invited { margin-block: 4px 14px; color: var(--muted); }

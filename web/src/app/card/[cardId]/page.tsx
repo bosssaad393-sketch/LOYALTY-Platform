@@ -23,6 +23,7 @@ import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import { listBranches } from "@/lib/branchesDb";
 import VisitSheet from "./VisitSheet";
 import RememberVisit from "./RememberVisit";
+import InviteFriend from "./InviteFriend";
 import { readMenu } from "@/lib/table/db";
 
 // Live data on every request: allow this page to block instead of prerendering.
@@ -138,6 +139,9 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
   // Before the first visit: name the gift the first visit unlocks, if the venue has one switched on.
   const next = !vouchers.length ? defs.find((d) => d.active && d.trigger === "first_visit") : undefined;
   const upcoming = next ? (ar && next.titleAr) || next.title : null;
+  // Bring a friend: shown when the venue has such a gift switched on.
+  const friend = defs.find((d) => d.active && d.trigger === "friend");
+  const friendGift = friend ? (ar && friend.titleAr) || friend.title : null;
   // The ladder: the nearest gift tied to a visit number that is still ahead.
   const step = nextMilestone(defs, card.visits, vouchers.map((v) => v.voucherId));
   const ahead = step ? { gift: (ar && step.gift.titleAr) || step.gift.title, left: step.left } : null;
@@ -182,6 +186,11 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
       <div className="rv" style={{ "--i": 2 } as CSSProperties}>
         <VisitSheet vouchers={vouchers} upcoming={upcoming} ahead={ahead} branches={branches} ar={ar} ownMenu={hasMenu ? `/menu/${encodeURIComponent(venue.slug)}` : null} />
       </div>
+      {friendGift && (
+        <div className="rv" style={{ "--i": 3 } as CSSProperties}>
+          <InviteFriend cardId={card.id} words={{ title: t("inviteTitle"), lead: t("inviteLead", { gift: friendGift }), button: t("inviteButton"), copied: t("inviteCopied"), failed: t("inviteFailed"), shareText: t("inviteShare", { venue: venue.name }) }} />
+        </div>
+      )}
       <div className="actions after">
         {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> {t("apple")}</a>}
         {googleWalletConfigured() && (
