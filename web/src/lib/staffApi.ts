@@ -2,6 +2,7 @@ import "server-only";
 import { currentStaff, type Staff } from "./staffAuth";
 import { db } from "./supabase";
 import { updatePoints, googleWalletConfigured } from "./googleWallet";
+import { visitCardExtra } from "./googleVisitCard";
 import { notifyAppleDevices } from "./apns";
 import { parseTiers, stampState, type StampState } from "./stamps";
 import { cardVouchers } from "./vouchersDb";
@@ -96,7 +97,9 @@ export async function guestView(cardId: string, staff: Staff): Promise<GuestView
 export async function refreshWalletCards(cardId: string, points: number) {
   await notifyAppleDevices(cardId);
   if (!googleWalletConfigured()) return;
-  await updatePoints({ id: cardId, points } as Parameters<typeof updatePoints>[0]).catch((e) =>
+  // A visit card shows visits and the gift, so its Google card gets those; any other card gets its points.
+  const visit = await visitCardExtra(cardId);
+  await updatePoints({ id: cardId, points } as Parameters<typeof updatePoints>[0], visit).catch((e) =>
     console.error("google wallet refresh failed", e instanceof Error ? e.message : e),
   );
 }

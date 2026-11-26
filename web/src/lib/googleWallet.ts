@@ -70,23 +70,51 @@ export async function ensureClass(venue: Venue): Promise<void> {
   if (created.status >= 300) throw new Error(`Google Wallet class create failed (${created.status}): ${JSON.stringify(created.data)}`);
 }
 
-/** The loyalty object for one guest card (what the guest sees in Google Wallet). */
-export function cardObject(venue: Venue, card: Card, memberName: string) {
+/**
+ * What a visit card (migration 0022) shows in Google Wallet besides the visits: the gift that is ready, and the
+ * venue's links. Worked out by lib/googleVisitCard.ts; null for a points or stamp venue.
+ */
+export type VisitCardExtra = { visits: number; gift: { title: string; place: string | null } | null; links: { label: string; url: string }[] };
+
+/** The parts of a visit card that change: the visit count and the gift line. Used when saving and when updating. */
+export function visitFields(extra: VisitCardExtra) {
   return {
+    loyaltyPoints: { label: "Visits", balance: { int: extra.visits } },
+    textModulesData: [{
+      id: "gift",
+      header: "Your gift",
+      body: extra.gift ? (extra.gift.place ? `${extra.gift.title}. Use it at ${extra.gift.place}.` : extra.gift.title) : "No gift waiting right now.",
+    }],
+  };
+}
+
+/** The loyalty object for one guest card (what the guest sees in Google Wallet). A visit card shows visits and the gift, never points. */
+export function cardObject(venue: Venue, card: Card, memberName: string, visit: VisitCardExtra | null = null) {
+  const base = {
     id: objectId(card),
     classId: classId(venue),
     state: "ACTIVE",
     accountId: card.code,
     accountName: memberName,
-    loyaltyPoints: { label: "Points", balance: { int: card.points } },
-    secondaryLoyaltyPoints: { label: "Reward at", balance: { int: venue.reward_goal } },
     barcode: { type: "QR_CODE", value: qrMessage(venue.slug, card.code, card.id), alternateText: card.code },
     hexBackgroundColor: walletColors().googleBackground,
+  };
+  if (visit) {
+    return {
+      ...base,
+      ...visitFields(visit),
+      ...(visit.links.length ? { linksModuleData: { uris: visit.links.map((l, i) => ({ id: `link${i}`, uri: l.url, description: l.label })) } } : {}),
+    };
+  }
+  return {
+    ...base,
+    loyaltyPoints: { label: "Points", balance: { int: card.points } },
+    secondaryLoyaltyPoints: { label: "Reward at", balance: { int: venue.reward_goal } },
   };
 }
 
 /** Signed "Save to Google Wallet" link for a guest card. */
-export function saveUrl(venue: Venue, card: Card, memberName: string, origin: string): string {
+export function saveUrl(venue: Venue, card: Card, memberName: string, origin: string, visit: VisitCardExtra | null = null): string {
   const sa = serviceAccount();
   const token = jwt.sign(
     {
@@ -94,7 +122,7 @@ export function saveUrl(venue: Venue, card: Card, memberName: string, origin: st
       aud: "google",
       typ: "savetowallet",
       origins: [origin],
-      payload: { loyaltyObjects: [cardObject(venue, card, memberName)] },
+      payload: { loyaltyObjects: [cardObject(venue, card, memberName, visit)] },
     },
     sa.private_key,
     { algorithm: "RS256" },
@@ -102,9 +130,12 @@ export function saveUrl(venue: Venue, card: Card, memberName: string, origin: st
   return `https://pay.google.com/gp/v/save/${token}`;
 }
 
-/** Pushes a new points balance to a card that is already saved in Google Wallet. */
-export async function updatePoints(card: Card): Promise<void> {
-  const res = await api("PATCH", `/loyaltyObject/${objectId(card)}`, {
+/**
+ * Pushes the new state to a card that is already saved in Google Wallet: the points balance, or for a visit card
+ * (pass `visit`) the visit count and the gift line.
+ */
+export async function updatePoints(card: Card, visit: VisitCardExtra | null = null): Promise<void> {
+  const res = await api("PATCH", `/loyaltyObject/${objectId(card)}`, visit ? visitFields(visit) : {
     loyaltyPoints: { label: "Points", balance: { int: card.points } },
   });
   if (res.status === 404) return; // guest never saved the card
