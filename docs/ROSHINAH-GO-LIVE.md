@@ -109,12 +109,14 @@ Honest limits:
 - `SUPABASE_URL` is set on Vercel (production). The site still runs on sample data until step 2 below.
 - Known and left as they are: the sample venue `orbyn` from migration 0001 is in this database too (as in the tested file); Supabase's own `rls_auto_enable` function is theirs, not ours; `stamp_due` has no fixed search path (it is not used by a visit card).
 
+**Switched to the real database (2026-11-26, night)**
+- Saad pasted the four secrets into Vercel (production, sensitive): `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `CRON_SECRET`, `APPLE_PASS_KEY`.
+- `ORBYN_DEMO` is `0` for production (and `1` for preview builds, which have no secrets and so stay on invented data). `TAP_FAKE` is `0`. The `SAMPLE_*` rows are still listed on Vercel: they are read only in sample mode, so they do nothing now and can be deleted by hand.
+- The venue's Instagram link, which the sample took from `SAMPLE_INSTAGRAM_URL`, is now in the venue's row. Address, phone and menu link were already in the Sanad branch row.
+- Production redeployed from `agent/roshinah` (commit `c705e72`). Checked on https://roshinah.orbyn.co without signing in: the pages open, the sample note and sample passcodes are gone, the guest page shows the phone and Instagram from the database, `/menu/roshinah` shows the real dishes, and the owner, staff and daily-job routes refuse a caller who is not signed in.
+- Nobody can sign in yet: there is no developer login, no owner and no till. That is step 1 below.
+
 **Left, in order**
-1. On Vercel, project `roshinah`, add by hand (they are secrets and are never put in a chat or a file in the repository):
-   - `SUPABASE_SERVICE_ROLE_KEY`: Supabase > Project settings > API keys > service role.
-   - `STAFF_SESSION_SECRET` and `CRON_SECRET`: two different long random values.
-   - `APPLE_PASS_KEY`: the contents of `roshinah-pass.key` in the private Apple folder on Saad's PC.
-2. On Vercel, remove the sample settings: `ORBYN_DEMO`, `SAMPLE_CARD_MODE`, `SAMPLE_BRANCHES`, `SAMPLE_PARTNER`, `SAMPLE_MENU`, `SAMPLE_MENU_URL`, `SAMPLE_PHONE`, `SAMPLE_INSTAGRAM_URL`, `SAMPLE_ADDRESS`, `TAP_FAKE`. Then redeploy from branch `agent/roshinah`. From that moment the site shows real, empty data.
-3. Supabase > Authentication > Users > Add user: the developer login (Saad's own email and a password he chooses). Then link it as the venue's developer, set the owner's passcode, and one passcode per till with its branch (`docs/NEW-CLIENT.md`).
-4. First test on real phones, before any guest: join, add to Apple Wallet, a staff scan, the gift appears, use it at the Asmak till, a second use is refused; stand near the branch for the lock screen; switch alerts on and call the waiter from a table.
-5. Still from the owner: the map link and Google review link for Sanad, the voucher terms, the menu prices check, the vector logo.
+1. Supabase > Authentication > Users > Add user: the developer login (Saad's own email and a password he chooses). Then link it as the venue's developer, set the owner's passcode, and one passcode per till with its branch (`docs/NEW-CLIENT.md`).
+2. First test on real phones, before any guest: join, add to Apple Wallet, a staff scan, the gift appears, use it at the Asmak till, a second use is refused; stand near the branch for the lock screen; switch alerts on and call the waiter from a table.
+3. Still from the owner: the map link and Google review link for Sanad, the voucher terms, the menu prices check, the vector logo.
