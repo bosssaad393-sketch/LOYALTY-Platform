@@ -204,7 +204,8 @@ img.vc-mark { width: auto; height: 15cqw; }
    under the card, large, where a till scanner reads it fastest. In Arabic the picture is mirrored with the text. ---- */
 .vca { padding: 0; overflow: hidden; isolation: isolate; border-radius: 4.6cqw; background: var(--bg); box-shadow: 0 26px 60px rgb(0 0 0 / 0.42), inset 0 0 0 1px rgb(255 255 255 / 0.1); }
 .vca-face { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-.vca-lit { opacity: 0; transition: opacity 1.4s ease; z-index: -1; }
+/* --lamp (lib/lamp.ts): the lamp burns a little brighter the more the guest has visited. */
+.vca-lit { opacity: var(--lamp, 0); transition: opacity 1.4s ease; z-index: -1; }
 .vca.lit .vca-lit { opacity: 1; }
 [dir="rtl"] .vca-face { transform: scaleX(-1); }
 .vca-shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(to right, rgb(0 14 8 / 0.36), rgb(0 14 8 / 0.1) 46%, transparent 60%); }

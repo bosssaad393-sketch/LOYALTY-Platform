@@ -17,6 +17,7 @@ import { cardVouchers } from "./vouchersDb";
 import { passVoucher, voucherState } from "./vouchers";
 import { noticeForCard } from "./autoMessagesDb";
 import { qrMessage } from "./cardQr";
+import { lampLevel, type LampLevel } from "./lamp";
 
 /**
  * The Arabic side of a stamp card (Apple's ar.lproj): iPhones set to Arabic show the Arabic strip, the Arabic logo
@@ -158,6 +159,24 @@ function cardStripImages(slug: string): Record<string, Buffer> {
   return files;
 }
 
+/**
+ * The card picture for a lamp level (lib/lamp.ts): passes/<venue>/lamp/<level>/strip*.png for the levels in between,
+ * the lit picture at the top level, and nothing (the venue's dark picture stays) at level 0 or where a venue has no
+ * such pictures.
+ */
+export function lampStripImages(slug: string, level: LampLevel): Record<string, Buffer> {
+  if (level === 0) return {};
+  if (level === 4) return litStripImages(slug);
+  const dir = path.join(process.cwd(), "passes", slug, "lamp", String(level));
+  const files: Record<string, Buffer> = {};
+  try {
+    for (const name of readdirSync(dir)) if (/^strip(@[23]x)?\.png$/.test(name)) files[name] = readFileSync(path.join(dir, name));
+  } catch {
+    /* no lamp pictures for this venue: its dark picture stays */
+  }
+  return files;
+}
+
 /** "A gift is waiting" strip (passes/<venue>/lit/strip*.png): the same picture with the light on. Empty when the venue has none. */
 function litStripImages(slug: string): Record<string, Buffer> {
   const dir = path.join(process.cwd(), "passes", slug, "lit");
@@ -235,8 +254,8 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   if (preview === "qr") Object.assign(images, await qrStripImages(venue.slug, qrMessage(venue.slug, card.code, card.id)));
   if (preview === "card") Object.assign(images, cardStripImages(venue.slug));
   if (ladderStrip) Object.assign(images, ladderStrip);
-  // Visit card with a gift ready: the niche on the card is lit, on the lock screen too.
-  if (visitMode && gift && !preview) Object.assign(images, litStripImages(venue.slug));
+  // Visit card: the lamp in the niche burns brighter with every few visits, and fully while a gift is waiting.
+  if (visitMode && !preview) Object.assign(images, lampStripImages(venue.slug, lampLevel(card.visits, Boolean(gift))));
   const pass = new PKPass(
     images,
     appleCertificates(),

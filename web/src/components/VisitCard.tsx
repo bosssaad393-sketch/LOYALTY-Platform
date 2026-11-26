@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import VenueMark from "./VenueMark";
 
 type Labels = { aria: string; code: string; since: string; visits: string; lastVisit: string; noVisit: string; qrAlt: string; show?: string };
@@ -15,6 +16,8 @@ type Props = {
   art?: { src: string; lit: string | null; niche: { x: number; y: number; w: number; h: number } } | null;
   /** A gift is waiting: the lit picture is shown. */
   lit?: boolean;
+  /** The lamp (lib/lamp.ts): how much of the lit picture shows, 0 to 1. A gift waiting shows all of it. */
+  glow?: number;
 };
 
 const ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
@@ -25,13 +28,13 @@ const ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
  * with the card width (container units) but text never goes under 12px. Same layout as the Wallet pass, so the two
  * read as one object.
  */
-export default function VisitCard({ venueName, venueSlug, markType, memberName, code, qr, visits, labels, art = null, lit = false }: Props) {
+export default function VisitCard({ venueName, venueSlug, markType, memberName, code, qr, visits, labels, art = null, lit = false, glow = 0 }: Props) {
   const arabic = ARABIC.test(memberName);
   const name = memberName.trim();
   if (art) {
     return (
       <div className="vc-wrap">
-        <VisitCardFace venueName={venueName} venueSlug={venueSlug} markType={markType} name={name} since={labels.since} visits={visits} visitsLabel={labels.visits} art={art} lit={lit} aria={labels.aria} />
+        <VisitCardFace venueName={venueName} venueSlug={venueSlug} markType={markType} name={name} since={labels.since} visits={visits} visitsLabel={labels.visits} art={art} lit={lit} glow={glow} aria={labels.aria} />
         <section className="vq" aria-label={labels.code}>
           {/* eslint-disable-next-line @next/next/no-img-element -- data URL QR code */}
           <img className="vq-qr" src={qr} alt={labels.qrAlt} width={148} height={148} />
@@ -80,21 +83,25 @@ type FaceProps = {
   visitsLabel?: string;
   art: NonNullable<Props["art"]>;
   lit?: boolean;
+  /** The lamp: how much of the lit picture shows when no gift is waiting, 0 to 1. */
+  glow?: number;
   /** Before joining, when a gift waits behind the first visit: the light comes and goes slowly. */
   breathe?: boolean;
   aria?: string;
 };
 
 /** The picture face of the card alone (no QR): the card page and the guest hub draw the same object. */
-export function VisitCardFace({ venueName, venueSlug, markType, name, empty, since, visits, visitsLabel, art, lit = false, breathe = false, aria }: FaceProps) {
+export function VisitCardFace({ venueName, venueSlug, markType, name, empty, since, visits, visitsLabel, art, lit = false, glow = 0, breathe = false, aria }: FaceProps) {
   const arabic = ARABIC.test(name);
   const n = art.niche;
+  // The lamp between dark and fully lit: only meaningful while no gift is waiting and nothing is breathing.
+  const ember = !lit && !breathe && art.lit ? Math.min(1, Math.max(0, glow)) : 0;
   return (
-    <section className={`vc vca${lit && art.lit ? " lit" : ""}${breathe && art.lit ? " breathe" : ""}`} aria-label={aria} aria-hidden={aria ? undefined : true}>
+    <section className={`vc vca${lit && art.lit ? " lit" : ""}${breathe && art.lit ? " breathe" : ""}`} style={ember ? ({ "--lamp": ember } as CSSProperties) : undefined} aria-label={aria} aria-hidden={aria ? undefined : true}>
       {/* eslint-disable-next-line @next/next/no-img-element -- the card face, a local file sized by the card */}
       <img className="vca-face" src={art.src} alt="" width={1284} height={810} fetchPriority="high" decoding="async" />
       {/* eslint-disable-next-line @next/next/no-img-element -- the same picture with the light on; fades in over the first */}
-      {art.lit && (lit || breathe) && <img className="vca-face vca-lit" src={art.lit} alt="" width={1284} height={810} aria-hidden="true" decoding="async" />}
+      {art.lit && (lit || breathe || ember > 0) && <img className="vca-face vca-lit" src={art.lit} alt="" width={1284} height={810} aria-hidden="true" decoding="async" />}
       <div className="vca-shade" aria-hidden="true" />
       <VenueMark name={venueName} slug={venueSlug} type={markType} className="vc-mark vca-mark" size={64} />
       {visits !== null && (

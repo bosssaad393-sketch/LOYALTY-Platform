@@ -19,6 +19,7 @@ import { readMenu } from "@/lib/table/db";
 import { voucherState } from "@/lib/vouchers";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import type { Venue } from "@/lib/supabase";
+import { lampGlow, lampLevel } from "@/lib/lamp";
 
 const Icon = ({ d }: { d: string }) => (
   <svg className="hub-ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
@@ -156,6 +157,7 @@ export default async function VisitHub({ venue, branchSlug, tableLabel, orderHre
             visitsLabel={t("visits")}
             art={art}
             lit={giftReady}
+            glow={mine ? lampGlow(lampLevel(mine.card.visits, giftReady)) : 0}
             breathe={giftAhead}
           />
         </a>

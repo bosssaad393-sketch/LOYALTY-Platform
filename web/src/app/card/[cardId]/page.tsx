@@ -18,6 +18,7 @@ import type { CardView } from "@/lib/cards";
 import { cardArt } from "@/lib/venueArt";
 import { pullSampleCard } from "@/lib/sampleSync";
 import { voucherState, nextMilestone } from "@/lib/vouchers";
+import { lampGlow, lampLevel } from "@/lib/lamp";
 import VisitCard from "@/components/VisitCard";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import { listBranches } from "@/lib/branchesDb";
@@ -147,6 +148,7 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
   const ahead = step ? { gift: (ar && step.gift.titleAr) || step.gift.title, left: step.left } : null;
   const qr = await QRCode.toDataURL(qrMessage(venue.slug, card.code, card.id), { margin: 0, color: { dark: brandColors().bg, light: brandColors().text } });
   const first = memberName.trim().split(/\s+/)[0];
+  const giftReady = vouchers.some((v) => voucherState(v) === "ready");
 
   return (
     <main className="app vp" lang={locale} dir={directionOf(locale)}>
@@ -171,7 +173,8 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
         qr={qr}
         visits={card.visits}
         art={cardArt(venue.slug)}
-        lit={vouchers.some((v) => voucherState(v) === "ready")}
+        lit={giftReady}
+        glow={lampGlow(lampLevel(card.visits, giftReady))}
         labels={{
           show: t("show"),
           aria: t("aria", { venue: venue.name }),
