@@ -168,6 +168,7 @@ async function VisitCardPage({ view, locale, ar }: { view: CardView; locale: str
         art={cardArt(venue.slug)}
         lit={giftReady}
         glow={lampGlow(lampLevel(card.visits, giftReady))}
+        between={appleWalletConfigured() ? <a className="btn wallet vp-wallet" href={`/api/wallet/apple/${card.id}`}>{t("apple")}</a> : null}
         labels={{
           show: t("show"),
           aria: t("aria", { venue: venue.name }),
@@ -188,7 +189,6 @@ async function VisitCardPage({ view, locale, ar }: { view: CardView; locale: str
         </div>
       )}
       <div className="actions after">
-        {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> {t("apple")}</a>}
         {googleWalletConfigured() && (
           <a className="gw-badge" href={`/api/wallet/google/${card.id}`} aria-label="Add to Google Wallet">
             {/* eslint-disable-next-line @next/next/no-img-element -- official Google Wallet button artwork */}

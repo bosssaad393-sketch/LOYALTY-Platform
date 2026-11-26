@@ -161,3 +161,19 @@ describe("Al Roshinah seed (supabase/seeds/roshinah.sql)", () => {
     expect((await q("select kind from auto_messages order by kind")).length).toBe(2);
   });
 });
+
+describe("the welcome on the lock screen", () => {
+  const sanad = { id: "b1", slug: "sanad", name: "Sanad", nameAr: null, kind: "branch", active: true, lat: 26.1452158, lng: 50.5853015, wideReach: false } as never;
+  const asmak = { id: "b2", slug: "asmak", name: "Asmak Al Roshinah", nameAr: null, kind: "partner", active: true, lat: 26.2, lng: 50.58, wideReach: false } as never;
+
+  it("is the venue's own words at its own branch, and a plain line when none are set", () => {
+    expect(passLocations([sanad], "Al Roshinah", { BRAND_ARRIVAL_TEXT: "حياك تنورنا يا غالي" })).toEqual([{ latitude: 26.1452158, longitude: 50.5853015, relevantText: "حياك تنورنا يا غالي" }]);
+    expect(passLocations([sanad], "Al Roshinah", {})[0].relevantText).toBe("Welcome to Al Roshinah, Sanad. Show your card.");
+    expect(passLocations([sanad], "Al Roshinah", { BRAND_ARRIVAL_TEXT: "x".repeat(200) })[0].relevantText).toHaveLength(80);
+  });
+
+  it("a partner counter keeps its own line, so the welcome is never shown at someone else's door", () => {
+    const at = passLocations([sanad, asmak], "Al Roshinah", { BRAND_ARRIVAL_TEXT: "حياك تنورنا يا غالي" });
+    expect(at.map((l) => l.relevantText)).toEqual(["حياك تنورنا يا غالي", "Asmak Al Roshinah is nearby. Your card is ready."]);
+  });
+});

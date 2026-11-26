@@ -69,12 +69,14 @@ export const reachMetres = (points: number) => (RING_RADIUS_M[points] ?? 0) + PA
  * Apple fixes the distance at about 100 m and allows ten points. A place set to the wider area uses the points that
  * are left as a ring around it (4 to 6 points), so its card comes up from about 240 to 270 m instead.
  */
-export function passLocations(branches: Branch[], venueName: string): PassLocation[] {
+export function passLocations(branches: Branch[], venueName: string, env: Record<string, string | undefined> = process.env): PassLocation[] {
   const places = branches
     .filter((b) => b.active && b.lat !== null && b.lng !== null)
     .sort((a, b) => Number(a.kind === "partner") - Number(b.kind === "partner"))
     .slice(0, MAX_PASS_LOCATIONS);
-  const text = (b: Branch) => (b.kind === "partner" ? `${b.name} is nearby. Your card is ready.` : `Welcome to ${venueName}, ${b.name}. Show your card.`);
+  // BRAND_ARRIVAL_TEXT: the venue's own welcome for its own branches (Saad: "حياك تنورنا يا غالي"), up to 80 characters.
+  const own = (env.BRAND_ARRIVAL_TEXT ?? "").trim().slice(0, 80);
+  const text = (b: Branch) => (b.kind === "partner" ? `${b.name} is nearby. Your card is ready.` : own || `Welcome to ${venueName}, ${b.name}. Show your card.`);
   const out: PassLocation[] = places.map((b) => ({ latitude: b.lat!, longitude: b.lng!, relevantText: text(b) }));
   let spare = MAX_PASS_LOCATIONS - out.length;
   for (const b of places.filter((p) => p.wideReach)) {

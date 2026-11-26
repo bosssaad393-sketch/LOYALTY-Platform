@@ -517,3 +517,6 @@ html[style*="--venue-wordmark"] .tb-crest { content: var(--venue-wordmark); widt
 /* ---- Staff: the alerts line (StaffAlerts.tsx) ---- */
 .sa { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-block: 10px 4px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--r-md); font-size: var(--fs-sm); color: var(--muted); }
 .sa-on { color: var(--text); }
+
+/* The Add to Apple Wallet button right under the card picture (Saad: easy to see, on the first screen). */
+.vp-wallet { display: flex; align-items: center; justify-content: center; width: 100%; margin-block-start: 12px; min-height: 56px; font-size: 17px; text-decoration: none; }

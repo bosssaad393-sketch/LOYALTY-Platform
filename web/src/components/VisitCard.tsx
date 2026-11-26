@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import VenueMark from "./VenueMark";
 
 type Labels = { aria: string; code: string; since: string; visits: string; lastVisit: string; noVisit: string; qrAlt: string; show?: string };
@@ -18,6 +18,8 @@ type Props = {
   lit?: boolean;
   /** The lamp (lib/lamp.ts): how much of the lit picture shows, 0 to 1. A gift waiting shows all of it. */
   glow?: number;
+  /** Shown right under the card picture, above the code: the Add to Wallet button, so it is on the first screen. */
+  between?: ReactNode;
 };
 
 const ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
@@ -28,13 +30,14 @@ const ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
  * with the card width (container units) but text never goes under 12px. Same layout as the Wallet pass, so the two
  * read as one object.
  */
-export default function VisitCard({ venueName, venueSlug, markType, memberName, code, qr, visits, labels, art = null, lit = false, glow = 0 }: Props) {
+export default function VisitCard({ venueName, venueSlug, markType, memberName, code, qr, visits, labels, art = null, lit = false, glow = 0, between = null }: Props) {
   const arabic = ARABIC.test(memberName);
   const name = memberName.trim();
   if (art) {
     return (
       <div className="vc-wrap">
         <VisitCardFace venueName={venueName} venueSlug={venueSlug} markType={markType} name={name} since={labels.since} visits={visits} visitsLabel={labels.visits} art={art} lit={lit} glow={glow} aria={labels.aria} />
+        {between}
         <section className="vq" aria-label={labels.code}>
           {/* eslint-disable-next-line @next/next/no-img-element -- data URL QR code */}
           <img className="vq-qr" src={qr} alt={labels.qrAlt} width={148} height={148} />
