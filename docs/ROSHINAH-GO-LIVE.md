@@ -135,3 +135,12 @@ Honest limits:
 - **Card page on the web:** the gift, where to use it, and the code the Asmak till scans.
 - **Asmak's till:** scanning the card shows the gift to redeem; any other branch is refused.
 - **After it is used:** the niche goes dark, the front shows the member code again, and the back lists it under "Used".
+
+## The living card (2026-11-26, night; migration 0033)
+The card is a small picture of the restaurant that changes for each guest, not a counter.
+- **The lamp grows with visits.** Just joined: the niche is dark. First visit: an ember. Third: a low lamp. Sixth: a steady lamp. A gift waiting: fully lit. The Wallet card's picture and the card page both follow it (`web/src/lib/lamp.ts`; pictures in `web/passes/roshinah/lamp/`, made by `node scripts/card-lamp.mjs roshinah` from the dark and lit pictures).
+- **A gift shows its own photo.** Owner > Gifts > "Add photo" on a gift. While that gift waits on a guest's card, the photo is seen through the arch of the niche on the Wallet card, and on the gift's ticket on the card page. No photo: the niche is simply lit. Changing the photo, or swapping one gift for another, changes the picture on guests' phones with no step from them.
+- **Where the niche is** in the picture: `web/passes/roshinah/niche.json`. A venue without that file never gets a photo drawn.
+- **Photos are only ever read from this deployment's own storage** (the `menu` bucket); any other address is ignored.
+- **Tested** on the server (levels, files, the picture with a photo, which addresses are read, whose gift can be changed). **Not tested on a real iPhone.**
+- **Not built yet:** light by time of day, the birthday scene, and the "sealed gift" opening on the card page.

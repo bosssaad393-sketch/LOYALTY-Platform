@@ -33,6 +33,8 @@ export type Voucher = {
   trigger: VoucherTrigger; redeemBranchId: string | null; validDays: number | null; active: boolean;
   /** 'visit_count' only: the visit that unlocks it (2 = the second visit). */
   atVisit: number | null;
+  /** The owner's photo of the gift (0033), or null. */
+  imageUrl: string | null;
 };
 
 type Raw = Record<string, unknown>;
@@ -42,6 +44,7 @@ const toVoucher = (r: Raw): Voucher => ({
   trigger: ((VOUCHER_TRIGGERS as string[]).includes(String(r.trigger)) ? r.trigger : "first_visit") as VoucherTrigger,
   redeemBranchId: text(r.redeem_branch_id), validDays: r.valid_days === null || r.valid_days === undefined ? null : Number(r.valid_days), active: r.active !== false,
   atVisit: r.at_visit === null || r.at_visit === undefined ? null : Number(r.at_visit),
+  imageUrl: text(r.image_url),
 });
 
 const OLD_VOUCHER_COLUMNS = "id, venue_id, title, title_ar, detail, detail_ar, trigger, redeem_branch_id, valid_days, active, created_at";
@@ -49,11 +52,15 @@ const OLD_VOUCHER_COLUMNS = "id, venue_id, title, title_ar, detail, detail_ar, t
 const VOUCHER_COLUMNS = `${OLD_VOUCHER_COLUMNS}, at_visit`;
 const noAtVisit = (e: { message?: string } | null) => Boolean(e?.message?.includes("at_visit"));
 type Got = { data: unknown; error: { message?: string; code?: string } | null };
+/** With migration 0033 (the gift's photo). Only reads ask for it; a database without it is read with VOUCHER_COLUMNS. */
+const PHOTO_COLUMNS = `${VOUCHER_COLUMNS}, image_url`;
+const noPhoto = (e: { message?: string } | null) => Boolean(e?.message?.includes("image_url"));
 
 /** The venue's voucher definitions. Never throws: an older database has none. */
 export async function listVouchers(venueId: string): Promise<Voucher[]> {
   try {
-    let got: Got = await db().from("vouchers").select(VOUCHER_COLUMNS).eq("venue_id", venueId).order("created_at", { ascending: true });
+    let got: Got = await db().from("vouchers").select(PHOTO_COLUMNS).eq("venue_id", venueId).order("created_at", { ascending: true });
+    if (noPhoto(got.error)) got = await db().from("vouchers").select(VOUCHER_COLUMNS).eq("venue_id", venueId).order("created_at", { ascending: true });
     if (noAtVisit(got.error)) got = await db().from("vouchers").select(OLD_VOUCHER_COLUMNS).eq("venue_id", venueId).order("created_at", { ascending: true });
     return got.error ? [] : ((got.data ?? []) as Raw[]).map(toVoucher);
   } catch {
@@ -78,6 +85,7 @@ export async function cardVouchers(cardId: string, venueId: string): Promise<Car
         status: (["issued", "redeemed", "void"].includes(String(r.status)) ? r.status : "void") as CardVoucher["status"],
         issuedAt: String(r.issued_at), expiresAt: text(r.expires_at), redeemedAt: text(r.redeemed_at),
         redeemBranchId: def.redeemBranchId, redeemBranchName: branches.find((b) => b.id === def.redeemBranchId)?.name ?? null,
+        imageUrl: def.imageUrl,
       });
     }
     return sortVouchers(out);
@@ -152,6 +160,19 @@ export async function saveVoucher(staff: Staff, input: VoucherInput): Promise<Vo
   const data = made.data;
   await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "voucher_added", detail: { voucher: (data as { id: string }).id, title: input.title } });
   return toVoucher(data as Raw);
+}
+
+/**
+ * Sets or removes the photo of one gift of the SIGNED-IN person's venue (0033). Answers how many guests are holding
+ * that gift right now (their cards should be refreshed), or "not_found". Audited.
+ */
+export async function setVoucherPhoto(staff: Staff, voucherId: string, imageUrl: string | null): Promise<{ waiting: number } | "not_found"> {
+  const { data, error } = await db().from("vouchers").update({ image_url: imageUrl }).eq("id", voucherId).eq("venue_id", staff.venueId).select("id");
+  if (error) throw error;
+  if (!(data ?? []).length) return "not_found";
+  await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: imageUrl ? "voucher_photo_set" : "voucher_photo_removed", detail: { voucher: voucherId } });
+  const waiting = await countOf(db().from("card_vouchers").select("id", { count: "exact", head: true }).eq("venue_id", staff.venueId).eq("voucher_id", voucherId).eq("status", "issued"));
+  return { waiting };
 }
 
 /**

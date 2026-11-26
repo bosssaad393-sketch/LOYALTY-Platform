@@ -1015,4 +1015,8 @@ export const AR: Record<string, string> = {
   "Switched calling the waiter from the table on or off": "تفعيل أو إيقاف مناداة النادل من الطاولة",
   "This device could not be registered for alerts.": "تعذّر تسجيل هذا الجهاز للتنبيهات.",
   "Nothing to switch off.": "لا شيء لإيقافه.",
+
+  // ---- Gift photo (0033)
+  "This photo shows in the arch of the guest's card while the gift is waiting.": "تظهر هذه الصورة في قوس بطاقة الضيف ما دامت الهدية بانتظاره.",
+  "Add a photo of this gift and it shows in the arch of the guest's card while the gift is waiting.": "أضف صورة لهذه الهدية لتظهر في قوس بطاقة الضيف ما دامت الهدية بانتظاره.",
 };

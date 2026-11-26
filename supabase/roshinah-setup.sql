@@ -1,5 +1,5 @@
 -- Al Roshinah: the whole database in one file.
--- Made by web/scripts/make-roshinah-setup.py, run from the repository root (do not edit by hand): migrations 0001 to 0032 in order, then the two seeds.
+-- Made by web/scripts/make-roshinah-setup.py, run from the repository root (do not edit by hand): migrations 0001 to 0033 in order, then the two seeds.
 -- Run ONCE on Al Roshinah's OWN new, EMPTY Supabase project (SQL editor, or as one migration). Not a second time:
 -- the earliest parts stop with "already exists" on a database that has them.
 -- Checked by web/tests/roshinahSetup.test.ts, which runs this exact file on a real Postgres engine and walks a guest
@@ -1976,6 +1976,19 @@ alter table push_subscriptions enable row level security;
 -- Safe to run twice. Run after 0031, on the client's OWN database, after a backup.
 
 alter table venues add column if not exists pass_updated_at timestamptz;
+
+-- ===================================================================================================
+-- 0033_gift_photo.sql
+-- ===================================================================================================
+-- 0033: a gift can have its own photo.
+--
+-- vouchers.image_url: the owner's photo of the gift (uploaded from Owner > Gifts into the venue's own storage, like a
+-- menu photo). While that gift is waiting on a guest's card, the photo is shown in the opening of the card's picture
+-- (the niche), on the Wallet card and on the card page. Null = no photo: the niche is simply lit.
+-- When the owner later swaps one gift for another, the picture on every guest's card follows.
+-- Safe to run twice. Run after 0032, on the client's OWN database, after a backup.
+
+alter table vouchers add column if not exists image_url text check (image_url is null or length(image_url) <= 600);
 
 -- ===================================================================================================
 -- roshinah.sql

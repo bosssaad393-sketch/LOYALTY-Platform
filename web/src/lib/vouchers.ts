@@ -28,6 +28,8 @@ export type CardVoucher = {
   /** Where it can be used: null = any branch of the venue. */
   redeemBranchId: string | null;
   redeemBranchName: string | null;
+  /** The owner's photo of this gift (migration 0033), shown in the card's niche while the gift waits. */
+  imageUrl?: string | null;
 };
 
 export type VoucherState = "ready" | "used" | "expired" | "cancelled";

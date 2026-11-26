@@ -96,6 +96,9 @@ img.vc-mark { width: auto; height: 15cqw; }
 .gift + .gift { margin-block-start: 12px; }
 .gift::before { content: ""; position: absolute; inset: 6px; border: 1px solid var(--gold); border-radius: 2px; pointer-events: none; }
 .gift > * { position: relative; }
+/* A gift with its own photo: the photo sits at the end of the ticket, under an arch like the niche on the card. */
+.gift.pic { padding-inline-end: 130px; min-height: 164px; }
+.gift > .gift-photo { position: absolute; inset-block-start: 18px; inset-inline-end: 18px; width: 96px; height: 128px; object-fit: cover; border-radius: 48px 48px 4px 4px; box-shadow: 0 0 0 1px var(--gold); }
 .gift-state { font: 600 var(--fs-sm)/1.3 var(--sans); letter-spacing: 0.01em; }
 .gift-title { margin-block-start: 6px; font: 400 25px/1.2 var(--serif); }
 .gift-detail { margin-block-start: 6px; font-size: var(--fs-md); line-height: 1.5; color: color-mix(in srgb, var(--bg) 80%, var(--text)); }
@@ -160,6 +163,9 @@ img.vc-mark { width: auto; height: 15cqw; }
 .ow-counts dd { margin-block-start: 4px; font: 400 26px/1.1 var(--ow-fig); font-variant-numeric: tabular-nums; color: var(--text); }
 .ow-gift-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
 .ow-gift-title { font: 400 22px/1.25 var(--serif); }
+.ow-gift-photo { display: flex; align-items: center; gap: 12px; }
+.ow-gift-photo img { flex: none; width: 60px; height: 80px; object-fit: cover; border-radius: 30px 30px 6px 6px; border: 1px solid var(--line); }
+.ow-gift-photo .ow-note { margin: 0; }
 .ow-facts { display: grid; gap: 4px; color: var(--muted); font-size: var(--fs-base); }
 .ow-say { padding: 14px 16px; border-radius: var(--r-xs); background: var(--deep); color: var(--text); font-size: var(--fs-md); line-height: 1.5; overflow-wrap: anywhere; }
 .ow-say small { display: block; margin-block-end: 4px; color: var(--dim); font-size: var(--fs-xs); }

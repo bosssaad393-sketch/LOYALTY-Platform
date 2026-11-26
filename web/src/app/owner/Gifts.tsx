@@ -8,11 +8,14 @@ import { Loading, LoadError, Msg, PageHead, Sheet, useGet } from "./ui";
 import type { Call, Note } from "./types";
 import { useT } from "@/lib/uiLang";
 import { tx } from "@/lib/uiArabic";
+import { shrinkPhoto } from "./shrinkPhoto";
 
 /** GET /api/owner/vouchers: the venue's gifts with how many were unlocked, used and are still waiting. */
 export type Gift = {
   id: string; title: string; titleAr: string | null; detail: string | null; detailAr: string | null;
   trigger: VoucherTrigger; redeemBranchId: string | null; validDays: number | null; active: boolean; atVisit?: number | null;
+  /** The owner's photo of the gift: shown behind the arch of the guest's card while the gift waits. */
+  imageUrl?: string | null;
   counts: { issued: number; redeemed: number; waiting: number };
 };
 
@@ -41,6 +44,21 @@ export default function Gifts({ call, isOwner }: { call: Call; isOwner: boolean 
   };
   const valid = (d: number | null) => (d ? t("{n} days after it unlocks", { n: d }) : t("No end date"));
 
+  async function photo(id: string, file: File | undefined) {
+    if (!file) return;
+    setNote(null);
+    const image = await shrinkPhoto(file, "tall").catch(() => null);
+    if (!image) { setNote({ kind: "bad", text: t("That file could not be read. Please choose a JPEG, PNG or WebP photo.") }); return; }
+    const r = await call<{ vouchers: Gift[] }>("/api/owner/vouchers/photo", "POST", { id, image });
+    if (r.ok) { gifts.setData(r.data); setNote({ kind: "ok", text: t("Photo saved.") }); } else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
+  }
+
+  async function dropPhoto(id: string) {
+    setNote(null);
+    const r = await call<{ vouchers: Gift[] }>("/api/owner/vouchers/photo", "DELETE", { id });
+    if (r.ok) { gifts.setData(r.data); setNote({ kind: "ok", text: t("Photo removed.") }); } else if (r.status !== 401) setNote({ kind: "bad", text: t(r.error) });
+  }
+
   return (
     <>
       <PageHead eyebrow={t("Programme")} title={t("Gifts")}>{t("A gift appears on the guest's card when it unlocks, and staff can use it once, only where you say.")}</PageHead>
@@ -68,7 +86,21 @@ export default function Gifts({ call, isOwner }: { call: Call; isOwner: boolean 
                 <div><dt>{t("Waiting")}</dt><dd>{n(g.counts.waiting)}</dd></div>
               </dl>
               {g.counts.issued === 0 && <p className="ow-note">{t("No guest has this gift yet.")}</p>}
-              {isOwner && <div className="ow-actions"><button type="button" className="ow-btn small" onClick={() => { setNote(null); setEditing(g); }}>{t("Edit")}</button></div>}
+              <div className="ow-gift-photo">
+                {/* eslint-disable-next-line @next/next/no-img-element -- the owner's own upload, shown small */}
+                {g.imageUrl && <img src={g.imageUrl} alt="" width={60} height={80} loading="lazy" />}
+                <p className="ow-note">{g.imageUrl ? t("This photo shows in the arch of the guest's card while the gift is waiting.") : t("Add a photo of this gift and it shows in the arch of the guest's card while the gift is waiting.")}</p>
+              </div>
+              {isOwner && (
+                <div className="ow-actions">
+                  <button type="button" className="ow-btn small" onClick={() => { setNote(null); setEditing(g); }}>{t("Edit")}</button>
+                  <label className="ow-btn small">
+                    {g.imageUrl ? t("Change photo") : t("Add photo")}
+                    <input className="ow-sr" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { void photo(g.id, e.target.files?.[0]); e.target.value = ""; }} />
+                  </label>
+                  {g.imageUrl && <button className="ow-btn small" type="button" onClick={() => dropPhoto(g.id)}>{t("Remove photo")}</button>}
+                </div>
+              )}
             </section>
           ))}
         </div>

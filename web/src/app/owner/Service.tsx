@@ -9,6 +9,7 @@ import type { Call, Note } from "./types";
 import { filsMoney } from "@/lib/format";
 import { useT } from "@/lib/uiLang";
 import { tx } from "@/lib/uiArabic";
+import { shrinkPhoto } from "./shrinkPhoto";
 
 type Avg = { count: number; avgMinutes: number | null };
 type Report = {
@@ -284,18 +285,6 @@ function MenuEditor({ call }: { call: Call }) {
       </form>
     </div>
   );
-}
-
-/** Square crop from the centre, 640 px, WebP where the browser can make it (JPEG otherwise). Keeps uploads small on venue wifi. */
-async function shrinkPhoto(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  const side = Math.min(bitmap.width, bitmap.height);
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = Math.min(640, side);
-  canvas.getContext("2d")!.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  const webp = canvas.toDataURL("image/webp", 0.8);
-  return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", 0.82);
 }
 
 function Field({ label, name, value, required, dir, inputMode }: { label: string; name: string; value?: string; required?: boolean; dir?: string; inputMode?: "decimal" }) {

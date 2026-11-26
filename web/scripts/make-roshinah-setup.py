@@ -1,8 +1,8 @@
 import os, glob
 files = sorted(glob.glob('supabase/migrations/*.sql'))
-assert len(files) == 32, len(files)
+assert len(files) == 33, len(files)
 parts = ['''-- Al Roshinah: the whole database in one file.
--- Made by web/scripts/make-roshinah-setup.py, run from the repository root (do not edit by hand): migrations 0001 to 0032 in order, then the two seeds.
+-- Made by web/scripts/make-roshinah-setup.py, run from the repository root (do not edit by hand): migrations 0001 to 0033 in order, then the two seeds.
 -- Run ONCE on Al Roshinah's OWN new, EMPTY Supabase project (SQL editor, or as one migration). Not a second time:
 -- the earliest parts stop with "already exists" on a database that has them.
 -- Checked by web/tests/roshinahSetup.test.ts, which runs this exact file on a real Postgres engine and walks a guest

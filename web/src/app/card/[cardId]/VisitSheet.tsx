@@ -41,7 +41,10 @@ export default async function VisitSheet({ vouchers, upcoming, ahead = null, bra
             const title = (ar && v.titleAr) || v.title;
             const detail = (ar && v.detailAr) || v.detail;
             return (
-              <article key={v.id} className={`gift ${state}`}>
+              <article key={v.id} className={`gift ${state}${state === "ready" && v.imageUrl ? " pic" : ""}`}>
+                {/* The gift's own photo (0033), under the same arch as the niche on the card. */}
+                {/* eslint-disable-next-line @next/next/no-img-element -- the venue's own upload, sized by the ticket */}
+                {state === "ready" && v.imageUrl && <img className="gift-photo" src={v.imageUrl} alt="" width={96} height={128} loading="lazy" decoding="async" />}
                 <p className="gift-state">
                   {state === "ready" ? t("giftReady")
                     : state === "used" ? t("giftUsed", { date: v.redeemedAt ? day(v.redeemedAt, ar) : "" })

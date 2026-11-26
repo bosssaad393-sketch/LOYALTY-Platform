@@ -18,6 +18,7 @@ import { passVoucher, voucherState } from "./vouchers";
 import { noticeForCard } from "./autoMessagesDb";
 import { qrMessage } from "./cardQr";
 import { lampLevel, type LampLevel } from "./lamp";
+import { giftStripImages } from "./giftPhoto";
 
 /**
  * The Arabic side of a stamp card (Apple's ar.lproj): iPhones set to Arabic show the Arabic strip, the Arabic logo
@@ -256,6 +257,8 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   if (ladderStrip) Object.assign(images, ladderStrip);
   // Visit card: the lamp in the niche burns brighter with every few visits, and fully while a gift is waiting.
   if (visitMode && !preview) Object.assign(images, lampStripImages(venue.slug, lampLevel(card.visits, Boolean(gift))));
+  // A waiting gift with its own photo (0033): the niche becomes a window onto it. No photo, or it cannot be read: the lit niche stays.
+  if (visitMode && !preview && gift?.imageUrl) Object.assign(images, await giftStripImages(venue.slug, gift.imageUrl));
   const pass = new PKPass(
     images,
     appleCertificates(),
