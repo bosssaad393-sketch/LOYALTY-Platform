@@ -20,6 +20,7 @@ import Branches from "./Branches";
 import Gifts from "./Gifts";
 import AutoMessages from "./AutoMessages";
 import Activity from "./Activity";
+import Bookings from "./Bookings";
 import VenueMark from "@/components/VenueMark";
 import type { Call, Me, Tab } from "./types";
 import { LangToggle, UiLangProvider, useT, type UiLang } from "@/lib/uiLang";
@@ -33,6 +34,7 @@ import { tx } from "@/lib/uiArabic";
 const TABS: { id: Tab; label: string; ownerOnly?: boolean; pointsOnly?: boolean; visitOnly?: boolean; notVisit?: boolean }[] = [
   { id: "overview", label: tx("Overview") },
   { id: "service", label: tx("Tables and menu"), pointsOnly: true },
+  { id: "bookings", label: tx("Bookings"), visitOnly: true },
   { id: "guests", label: tx("Guests") },
   { id: "feedback", label: tx("Feedback") },
   { id: "rules", label: tx("Rules") },
@@ -184,6 +186,7 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null,
               {current === "gifts" && visitVenue && <Gifts call={call} isOwner={isOwner} />}
               {current === "messages" && visitVenue && <AutoMessages call={call} isOwner={isOwner} />}
               {current === "activity" && isOwner && <Activity call={call} />}
+              {current === "bookings" && visitVenue && <Bookings call={call} isOwner={isOwner} />}
             </>
           )}
           <p className="ow-end">{t("Signed in as {name}", { name: me.name })}{brand.poweredBy ? ` · ${brand.poweredBy}` : ""}</p>

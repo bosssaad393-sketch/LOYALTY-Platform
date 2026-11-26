@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { cookies } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import LanguageSwitch from "@/components/LanguageSwitch";
+import { bookingsOn } from "@/lib/bookingsDb";
 import VenueMark from "@/components/VenueMark";
 import { VisitCardFace } from "@/components/VisitCard";
 import { directionOf } from "@/i18n/locale";
@@ -29,6 +30,7 @@ const IC = {
   pin: "M12 21s7-6 7-11.5a7 7 0 0 0-14 0C5 15 12 21 12 21zm0-8.8a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4z",
   star: "M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8L12 3.6z",
   wifi: "M2.5 9.5a14 14 0 0 1 19 0M5.5 13a9.5 9.5 0 0 1 13 0M8.6 16.4a5 5 0 0 1 6.8 0M12 19.6h.01",
+  book: "M7 3v3M17 3v3M4.5 9.5h15M6 5h12a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 18 20H6a1.5 1.5 0 0 1-1.5-1.5v-12A1.5 1.5 0 0 1 6 5zM9 14l2 2 4-4",
   call: "M6.6 3.5h2.3a1 1 0 0 1 1 .8l.7 3.2a1 1 0 0 1-.5 1.1l-1.6.9a11.5 11.5 0 0 0 5.5 5.5l.9-1.6a1 1 0 0 1 1.1-.5l3.2.7a1 1 0 0 1 .8 1v2.3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z",
   insta: "M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm5 5.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zM17.3 6.7h.01",
 };
@@ -94,7 +96,9 @@ export default async function VisitHub({ venue, branchSlug, tableLabel }: { venu
   const art = cardArt(venue.slug);
   const first = mine?.memberName.trim().split(/\s+/)[0] ?? "";
 
+  const canBook = await bookingsOn(venue.id);
   const rows: ReactNode[] = [];
+  if (canBook) rows.push(<Row key="book" href={`/book/${encodeURIComponent(venue.slug)}`} icon={IC.book} title={t("book")} sub={t("bookSub")} />);
   if (here?.phone) rows.push(<Row key="call" href={`tel:${digits(here.phone)}`} icon={IC.call} title={t("call")} sub={pretty(here.phone)} />);
   if (here?.mapsUrl) rows.push(<Row key="map" href={here.mapsUrl} external icon={IC.pin} title={t("directions")} sub={here.address ?? (own.length > 1 ? here.name : null)} />);
   if (review) rows.push(<Row key="review" href={review} external icon={IC.star} title={t("review")} sub={t("reviewSub")} />);

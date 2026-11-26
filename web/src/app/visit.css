@@ -478,3 +478,22 @@ html[style*="--venue-wordmark"] .hub-intro-mark::before { display: none; }
 .iv .btn { justify-self: start; }
 .iv-note { min-height: 1.4em; margin: 0; }
 .jn-invited { margin-block: 4px 14px; color: var(--muted); }
+
+/* ---- Guest: ask for a table (app/book). One pane, the same fields as the join page. ---- */
+.bk-form { display: grid; gap: 14px; }
+.bk-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bk-err { min-height: 1.4em; margin: 0; color: var(--bad); font-size: var(--fs-base); }
+.bk-mine { display: grid; gap: 14px; }
+.bk-state { font: 500 20px/1.3 var(--serif); margin: 0; }
+.bk-mine.is-declined .bk-state, .bk-mine.is-cancelled .bk-state { color: var(--muted); }
+.bk-facts { display: grid; gap: 10px; margin: 0; }
+.bk-facts div { display: grid; gap: 2px; }
+.bk-facts dt { font-size: var(--fs-sm); color: var(--dim); }
+.bk-facts dd { margin: 0; }
+@media (max-width: 380px) { .bk-two { grid-template-columns: 1fr; } }
+
+/* ---- Owner: table requests (Bookings.tsx) ---- */
+.bo-item { align-items: flex-start; padding-inline: 20px; }
+.bo-item .ow-item-main a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.bo-act { flex: 1 1 260px; display: grid; gap: 8px; }
+.bk-form .in { color-scheme: dark; }

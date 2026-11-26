@@ -22,9 +22,9 @@ describe("owner sections by venue kind", () => {
   });
   it("a visit-card venue keeps tables and menu, drops the points assistant, and gets branches, gifts, messages and activity", () => {
     const v = visibleTabs(true, false, true).map((t) => t.id);
-    expect(v).toEqual(["overview", "service", "guests", "feedback", "rules", "offers", "branches", "gifts", "messages", "team", "activity", "privacy"]);
+    expect(v).toEqual(["overview", "service", "bookings", "guests", "feedback", "rules", "offers", "branches", "gifts", "messages", "team", "activity", "privacy"]);
     // a manager sees branches, gifts and messages (read only) but not the owner-only activity log
-    expect(visibleTabs(false, false, true).map((t) => t.id)).toEqual(["overview", "service", "guests", "feedback", "rules", "offers", "branches", "gifts", "messages"]);
+    expect(visibleTabs(false, false, true).map((t) => t.id)).toEqual(["overview", "service", "bookings", "guests", "feedback", "rules", "offers", "branches", "gifts", "messages"]);
     // points and stamp venues never see the visit sections
     for (const stamps of [true, false]) expect(ids(true, stamps)).not.toContain("branches");
   });

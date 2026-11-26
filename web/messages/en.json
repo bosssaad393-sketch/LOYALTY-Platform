@@ -278,6 +278,36 @@
     "titlePre": "Welcome to",
     "helloPre": "Welcome back,",
     "call": "Call us",
-    "table": "Table {label}"
+    "table": "Table {label}",
+    "book": "Book a table",
+    "bookSub": "Ask for a day and a time. We answer here."
+  },
+  "book": {
+    "title": "Book a table",
+    "lead": "Tell us when and how many. {venue} answers here, on this page.",
+    "day": "Day",
+    "time": "Time",
+    "party": "How many people",
+    "name": "Your name",
+    "phone": "Mobile number",
+    "note": "Anything we should know (optional)",
+    "notePh": "A birthday, a high chair, outside if possible",
+    "branch": "Which branch",
+    "send": "Send the request",
+    "sending": "Sending…",
+    "sentTitle": "Your request",
+    "sentLead": "We have your request. The answer will show here, and we may call you.",
+    "when": "When",
+    "people": "People",
+    "pending": "Waiting for our answer",
+    "confirmed": "Confirmed. We look forward to seeing you.",
+    "declined": "Sorry, we cannot take this booking.",
+    "cancelled": "Cancelled.",
+    "past": "This booking has passed.",
+    "reply": "From us",
+    "cancel": "Cancel my request",
+    "another": "Make another request",
+    "failed": "That did not go through. Please try again, or call us.",
+    "call": "Call us"
   }
 }

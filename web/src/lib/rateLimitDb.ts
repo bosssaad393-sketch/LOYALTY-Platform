@@ -50,6 +50,10 @@ export const LIMITS = {
   feedbackPerCard: (cardId: string): Limit => ({ bucket: `feedback:${cardId}`, max: 3, windowSeconds: 24 * 60 * 60 }),
   /** Card lookups by one signed-in till person (typed codes and scans). */
   cardLookupPerStaff: (staffId: string): Limit => ({ bucket: `lookup:${staffId}`, max: 240, windowSeconds: 10 * 60 }),
+  /** Table requests from one address: a person books a table or two, not a list. */
+  bookPerCaller: (headers: Headers): Limit => ({ bucket: `book:${callerBucket(headers)}`, max: 4, windowSeconds: 30 * 60 }),
+  /** All table requests at one venue. */
+  bookPerVenue: (venueId: string): Limit => ({ bucket: `book:venue:${venueId}`, max: 120, windowSeconds: 60 * 60 }),
   /** Feedback from one address, across cards. */
   feedbackPerCaller: (headers: Headers): Limit => ({ bucket: `feedback:${callerBucket(headers)}`, max: 10, windowSeconds: 60 * 60 }),
 } as const;

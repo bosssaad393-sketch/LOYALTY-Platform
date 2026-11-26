@@ -1,5 +1,6 @@
 import "server-only";
 import { birthdayGifts } from "./vouchersDb";
+import { purgeOldBookings } from "./bookingsDb";
 import { z } from "zod";
 import { db } from "./supabase";
 import type { Staff } from "./staffAuth";
@@ -81,6 +82,7 @@ export async function runDailyMessages(now: number = Date.now()): Promise<DailyR
   const result: DailyResult = { venues: 0, birthday: 0, winback: 0, gifts: 0 };
   const { data: venues, error } = await db().from("venues").select("id").eq("active", true);
   if (error) throw error;
+  await purgeOldBookings(now);
   for (const v of (venues ?? []) as { id: string }[]) {
     result.venues++;
     // This year's birthday gift (0025), once per guest and year, whether or not the greeting below is switched on.
