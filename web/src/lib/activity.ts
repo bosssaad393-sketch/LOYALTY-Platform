@@ -29,6 +29,7 @@ export const ACTIVITY_TEXT: Record<string, string> = {
   auto_message_changed: "Changed an automatic message",
   links_changed: "Changed the venue's links",
   bookings_switch: "Switched table requests on or off",
+  table_orders_switch: "Switched ordering from the table on or off",
   booking_confirmed: "Confirmed a table request",
   booking_declined: "Declined a table request",
   stamp: "Added a stamp",

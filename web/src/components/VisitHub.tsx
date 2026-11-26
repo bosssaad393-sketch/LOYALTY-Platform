@@ -63,7 +63,7 @@ const shortDate = (iso: string, ar: boolean) =>
 // Runs before the first paint: a guest who has already seen the opening in this visit to the site gets the page at once.
 const OPENING = `try{var s=sessionStorage,d=document.documentElement;if(s.getItem("hubSeen"))d.setAttribute("data-hub-seen","");else{s.setItem("hubSeen","1");setTimeout(function(){d.setAttribute("data-hub-seen","")},3200)}}catch(e){}`;
 
-export default async function VisitHub({ venue, branchSlug, tableLabel }: { venue: Venue; branchSlug?: string; /** Opened from a table's QR code: the table is named at the top. */ tableLabel?: string }) {
+export default async function VisitHub({ venue, branchSlug, tableLabel, orderHref }: { venue: Venue; branchSlug?: string; /** Opened from a table's QR code: the table is named at the top. */ tableLabel?: string; /** The table's own ordering page, when the venue lets guests order from the table (0030). */ orderHref?: string }) {
   const locale = await getLocale();
   const ar = locale === "ar";
   const t = await getTranslations("hub");
@@ -166,10 +166,17 @@ export default async function VisitHub({ venue, branchSlug, tableLabel }: { venu
             {mine ? t("openCard") : t("getCard")}
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </a>
+          {orderHref ? (
+            <a className="btn hub-menu" href={orderHref}>
+              <Icon d={IC.menu} />
+              {t("order")}
+            </a>
+          ) : (
           <a className="btn hub-menu" href={menu} {...(outside ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
             <Icon d={IC.menu} />
             {t("menu")}
           </a>
+          )}
         </div>
         <p className="hub-note">{mine ? t("myCardSub") : giftAhead ? t("getCardGift") : t("getCardFree")}</p>
       </div>

@@ -13,7 +13,7 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 **A. Demo (no database, nothing real).** A Vercel project with `ORBYN_DEMO=1`, `SAMPLE_CARD_MODE=visits`, `SAMPLE_BRANCHES=Sanad,Zallaq Springs`, `SAMPLE_PARTNER=Asmak Al Roshinah`, `LOGIN_MODE=pin`, a random `STAFF_SESSION_SECRET` and the `BRAND_*` lines. Invented guests, data is lost on restart, no Wallet updates. Good for showing the owner.
 
 **B. Live (the real thing).**
-1. New Supabase project for Al Roshinah only. Run migrations 0001 to 0024 in order, then `supabase/seeds/roshinah.sql` and `supabase/seeds/roshinah-menu.sql`.
+1. New Supabase project for Al Roshinah only. Run migrations 0001 to 0030 in order, then `supabase/seeds/roshinah.sql` and `supabase/seeds/roshinah-menu.sql`.
 2. New Vercel project from this repo, root `web`, with:
    `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `PUBLIC_BASE_URL`, `LOGIN_MODE=pin`, `CRON_SECRET`,
    `BRAND_NAME=Al Roshinah`, `BRAND_DEFAULT_VENUE=roshinah`, `BRAND_BG=#013220`, `BRAND_TEXT=#faf8f3`, `BRAND_ACCENT=#c9a96e`, `BRAND_LANGUAGES=en,ar`, `BRAND_OFFERS_BOX=unticked` (Saad, 2026-11-25: the offers box starts empty on the Roshinah join page),
@@ -46,7 +46,7 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 - Vercel project `roshinah` (team LOYALTY), root `web`, Node 22, built from branch `agent/roshinah` of `bosssaad393-sketch/LOYALTY-Platform`. Address: **https://roshinah.orbyn.co** (also `roshinah-loyalty-0c1d.vercel.app`).
 - It runs on SAMPLE data (`ORBYN_DEMO=1`): invented guests, kept in memory, lost on restart, no Wallet card, no automatic notices. For showing the owner only. Sample PINs are on the sign-in screens.
 - The project's production branch is still `main` in Vercel's settings: a push to `main` would deploy `main`'s older code here. Deploy this project from `agent/roshinah` until the branch is merged.
-- To go live with real guests, in this order: (1) a Supabase project for Al Roshinah, migrations 0001 to 0024, then the two seeds; (2) in Vercel: remove `ORBYN_DEMO` and the three `SAMPLE_*` settings, add `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `CRON_SECRET` and the five `APPLE_*` settings (Saad pastes these himself); (3) redeploy; (4) developer login, owner PIN, till PINs with their branch. `PUBLIC_BASE_URL` is already `https://roshinah.orbyn.co`: keep it, Wallet cards call this address for life.
+- To go live with real guests, in this order: (1) a Supabase project for Al Roshinah, migrations 0001 to 0030, then the two seeds; (2) in Vercel: remove `ORBYN_DEMO` and the three `SAMPLE_*` settings, add `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `CRON_SECRET` and the five `APPLE_*` settings (Saad pastes these himself); (3) redeploy; (4) developer login, owner PIN, till PINs with their branch. `PUBLIC_BASE_URL` is already `https://roshinah.orbyn.co`: keep it, Wallet cards call this address for life.
 
 ## Glass look (2026-11-25)
 - `BRAND_FINISH=glass`: frosted glass panels, a round-key passcode screen and glass dashboards over a background picture (`web/src/app/glass.css`). The matte finish's quiet rules stay underneath.
@@ -60,3 +60,25 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 - **Card on the lock screen:** Apple shows a loyalty card within about 100 m of a pinned place and a pass cannot ask for more (their words: "on the order of a hundred meters", "an implementation detail"). It is passive: the card appears on the lock screen, the phone does not ring. New per branch: **Wider area**, which spends the pass's spare location points (Apple allows ten) on a ring of 4 to 6 points around the branch, so the card comes up from about 240 to 270 m. Not tested on a real iPhone yet: check it in the first on-site test, standing 200 m away with the screen woken.
 - **Map pin:** the owner pastes the branch's Google Maps link and saves; the server reads the pin from the link (short share links are followed, to Google's own maps addresses only). The two numbers can still be typed when that fails. Not tried with a real share link from the owner yet.
 - **Owner screens for a visit card:** no points wording left (data export, erase texts, the offer example); "Tables and menu" opens on the menu and leaves out the wait-and-sales report, which would stay empty; the activity log names "The till"; the sample's top guests are in the right order.
+
+## Eight additions (2026-11-26, afternoon)
+Built one at a time, each with tests, each on the hosted sample. Every one is the owner's choice: nothing below changes how the restaurant works until it is switched on or a gift is added.
+
+| # | What | Where the owner finds it | Migration | Starts |
+|---|---|---|---|---|
+| 1 | **Gift rules**: a gift on a chosen visit (the 5th, the 10th: a ladder, and the guest's card says how many visits are left) and a birthday gift every year | Gifts > Add a gift > When it unlocks | 0025 | when a gift is added |
+| 2 | **What members order**: bills, total and average over 30 days, dishes ordered most, biggest spenders over 90 days and which of them went quiet | Overview (appears once there is a bill) | none (reads 0024) | with the first bill |
+| 3 | **Offers to one group**: guests not seen for 30 days, regulars (5 visits or more), new members (joined in the last 30 days) | Offers > Who gets it | 0026 | per offer |
+| 4 | **Bring a friend**: a member shares their own link; when the friend's first visit is recorded the member gets the gift, once per friend | Gifts > Bring a friend; the link is on the guest's card | 0027 | when such a gift is added |
+| 5 | **Table requests**: the guest asks for a day, a time and a party size; the venue confirms or declines; the guest sees the answer on the same page | Bookings tab; "Book a table" on the guest page | 0028 | owner's switch (off) |
+| 6 | **Trusted tills**: a staff PIN signs in only on a device the owner added | Team > Trusted tills | 0029 | owner's switch (off) |
+| 7 | **Google Wallet card** for the visit card: visits, the gift, menu / directions / review links | automatic once a Google issuer account is set up | none | needs `GOOGLE_WALLET_*` settings |
+| 8 | **Ordering from the table**: the table's code offers the menu to order from; rounds go to the staff's table board; each order is kept under the guest's card | Tables and menu (top of the page) | 0030 | owner's switch (off) |
+
+Honest limits:
+- 5: the guest gets no message when the venue answers; they see it when they open the page again (the venue can phone, the number is on the request). There is no table plan: it is a request list, not a seating system.
+- 6: a device is added by signing in as the owner ON that device. A staff member already signed in elsewhere stays in until their session ends.
+- 7: written and checked for shape only. Not tried against Google: there is no issuer account yet.
+- 8: paying by card from the phone needs a Tap account for Al Roshinah; without one the bill is paid at the counter. The ordering page was checked on the sample in Roshinah's look, not walked through a full service.
+- On the hosted sample, table requests are switched on so the page can be seen; a real venue starts with them off.
+- The sample has no gift of kinds 1 and 4 seeded (inventing offers for the client is not ours to do): add one in Gifts to see them work.

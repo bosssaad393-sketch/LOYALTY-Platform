@@ -988,4 +988,14 @@ export const AR: Record<string, string> = {
   "Add at least one till first, or no staff member could sign in.": "أضف جهازاً واحداً على الأقل أولاً، وإلا لن يستطيع أي موظف الدخول.",
   "That till is not in the list any more.": "هذا الجهاز لم يعد في القائمة.",
   "Give the till a name, for example “Sanad counter”.": "أعطِ الجهاز اسماً، مثلاً «كاونتر سند».",
+
+  // ---- Ordering from the table for a visit-card venue (0030)
+  "Ordering from the table is on": "الطلب من الطاولة مفعّل",
+  "Ordering from the table is off": "الطلب من الطاولة متوقف",
+  "A guest who scans a table's code can order from the menu. Each round shows on the staff's table board, and every order is kept under the guest's card (Guests, then Orders).": "الضيف الذي يمسح رمز الطاولة يستطيع الطلب من القائمة. يظهر كل طلب على لوحة الطاولات لدى الموظفين، ويُحفظ كل طلب تحت بطاقة الضيف (الضيوف ثم الطلبات).",
+  "A table's code opens your guest page and the menu to read. Your waiters take the order as they do now.": "رمز الطاولة يفتح صفحة الضيوف والقائمة للقراءة. يأخذ النُدُل الطلب كما يفعلون الآن.",
+  "Guests can also pay by card from their phone.": "يستطيع الضيوف أيضاً الدفع بالبطاقة من هواتفهم.",
+  "The bill is paid at the counter. Paying by card from the phone needs a payment account set up by Orbyn.": "تُدفع الفاتورة عند الكاونتر. الدفع بالبطاقة من الهاتف يحتاج إلى حساب دفع تجهّزه Orbyn.",
+  "Switch it on only when someone watches the table board during service: an order nobody sees is a guest left waiting.": "فعّله فقط عندما يتابع أحدٌ لوحة الطاولات أثناء الخدمة: الطلب الذي لا يراه أحد يعني ضيفاً ينتظر.",
+  "Switched ordering from the table on or off": "تفعيل أو إيقاف الطلب من الطاولة",
 };

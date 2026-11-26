@@ -135,6 +135,8 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
       visit_cap_per_staff: 250,
       // Sample: table requests are switched on for a visit-card sample, so the page and the owner's list can be seen.
       bookings_on: VISITS,
+      // Sample: ordering from the table stays off, as for a restaurant whose waiters take the order. The owner can switch it on.
+      table_orders_on: false,
       active: true,
     },
   ],

@@ -16,6 +16,7 @@ import { SENT_COOKIE, sentOrdersFrom } from "@/lib/table/sentOrders";
 import TableApp from "./TableApp";
 import VisitHub from "@/components/VisitHub";
 import { getVenue } from "@/lib/supabase";
+import { tableOrdersOn } from "@/lib/tableOrders";
 
 // Live data on every request: allow this page to block instead of prerendering.
 export const instant = false;
@@ -41,13 +42,20 @@ export default async function TablePage({ params, searchParams }: PageProps<"/t/
 
   // A visit venue (a restaurant with a card): the table's code opens its guest page, with the table named on it.
   const venue = await getVenue(table.venueSlug).catch(() => null);
-  if (venue?.card_mode === "visits") {
-    return <NextIntlClientProvider><VisitHub venue={venue} tableLabel={table.label} /></NextIntlClientProvider>;
+  const q = await searchParams;
+  const visitCard = venue?.card_mode === "visits";
+  if (venue && visitCard) {
+    // With the owner's switch on (0030) the guest page also offers ordering; a guest who is ordering or paying goes
+    // straight back to the table. Otherwise the code only opens the guest page.
+    const ordering = await tableOrdersOn(venue.id);
+    const midOrder = Boolean(q.view || q.pay || q.tap_id) || sentOrders.size > 0;
+    if (!ordering || !midOrder) {
+      return <NextIntlClientProvider><VisitHub venue={venue} tableLabel={table.label} orderHref={ordering ? `/t/${encodeURIComponent(token)}?view=menu` : undefined} /></NextIntlClientProvider>;
+    }
   }
 
   // A fresh scan opens the door: logo and three buttons. A guest who is ordering or paying goes straight back to the table.
-  const q = await searchParams;
-  if (!q.view && !q.pay && !q.tap_id && sentOrders.size === 0) {
+  if (!visitCard && !q.view && !q.pay && !q.tap_id && sentOrders.size === 0) {
     const t = await getTranslations("door");
     const card = cardId ? await venueCard(table.venueId, cardId) : null;
     const slug = encodeURIComponent(table.venueSlug);
@@ -77,7 +85,7 @@ export default async function TablePage({ params, searchParams }: PageProps<"/t/
     <NextIntlClientProvider>
       <main className="app tb" lang={locale} dir={directionOf(locale)}>
         <LanguageSwitch languages={brandLanguages()} />
-        <TableApp token={token} label={table.label} venueName={table.venueName} venueSlug={table.venueSlug} menu={menu} cardHref={cardHref} initialTab={tab} poweredBy={poweredBy()} />
+        <TableApp token={token} label={table.label} venueName={table.venueName} venueSlug={table.venueSlug} menu={menu} cardHref={cardHref} initialTab={tab} poweredBy={poweredBy()} plain={visitCard} />
       </main>
     </NextIntlClientProvider>
   );

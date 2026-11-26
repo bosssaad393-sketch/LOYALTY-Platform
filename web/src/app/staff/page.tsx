@@ -5,6 +5,7 @@ import { brandName, brandProps } from "@/lib/brand";
 import { appIcons } from "@/lib/appIcons";
 import { getLocale } from "next-intl/server";
 import { isStampVenue, isVisitVenue } from "@/lib/venueKind";
+import { tableOrdersOn } from "@/lib/tableOrders";
 import StaffApp from "./StaffApp";
 
 export function generateMetadata(): Metadata {
@@ -20,5 +21,5 @@ export default async function StaffPage({ searchParams }: PageProps<"/staff">) {
   const staff = await currentStaff("staff");
   const lang = (await getLocale()) === "ar" ? "ar" : "en";
   const [stampVenue, visitVenue] = await Promise.all([isStampVenue(brandProps().slug), isVisitVenue(brandProps().slug)]);
-  return <StaffApp lang={lang} stampVenue={stampVenue} visitVenue={visitVenue} brand={brandProps()} look={loginLook("staff", look)} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} />;
+  return <StaffApp lang={lang} stampVenue={stampVenue} visitVenue={visitVenue} tableBoard={!stampVenue && (!visitVenue || (staff ? await tableOrdersOn(staff.venueId) : false))} brand={brandProps()} look={loginLook("staff", look)} initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} />;
 }

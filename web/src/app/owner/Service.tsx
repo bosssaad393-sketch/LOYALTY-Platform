@@ -28,13 +28,35 @@ const MEASURES: [WaitMeasure, string][] = [["accept", tx("Round accepted")], ["r
  * menuOnly: a venue whose guests do not order from the table code (a visit-card venue: the table code opens the
  * guest page). Its owner gets the menu and the table codes; the wait and sales report would stay empty, so it is left out.
  */
-export default function Service({ call, menuOnly = false }: { call: Call; menuOnly?: boolean }) {
-  const [view, setView] = useState<View>(menuOnly ? "menu" : "report");
+export default function Service({ call, menuOnly: visitVenue = false, isOwner = false }: { call: Call; menuOnly?: boolean; isOwner?: boolean }) {
+  const [view, setView] = useState<View>(visitVenue ? "menu" : "report");
   const t = useT();
+  // A visit-card venue chooses whether guests order from the table (0030). Until it does, there is nothing to report.
+  const ordering = useGet<{ on: boolean; payOnline: boolean }>(call, "/api/owner/ordering");
+  const [busy, setBusy] = useState(false);
+  const menuOnly = visitVenue && !ordering.data?.on;
   const views = ([["report", tx("Wait times and sales")], ["menu", tx("Menu")], ["tables", tx("Tables")]] as [View, string][]).filter(([v]) => !(menuOnly && v === "report"));
+  async function flip() {
+    if (!ordering.data) return;
+    setBusy(true);
+    await call("/api/owner/ordering", "POST", { on: !ordering.data.on });
+    setBusy(false);
+    ordering.reload();
+  }
   return (
     <>
       <PageHead eyebrow={t("Table service")} title={t("Tables and menu")}>{menuOnly ? t("Your menu as guests see it, and the QR code for each table.") : t("How long each table waited, what sold, your menu, and the QR code for each table.")}</PageHead>
+      {visitVenue && ordering.data && (
+        <section className="ow-panel" aria-labelledby="ow-h-ord" style={{ marginBlockEnd: 16 }}>
+          <h2 className="ow-h" id="ow-h-ord">{ordering.data.on ? t("Ordering from the table is on") : t("Ordering from the table is off")}</h2>
+          <p className="ow-note">{ordering.data.on
+            ? t("A guest who scans a table's code can order from the menu. Each round shows on the staff's table board, and every order is kept under the guest's card (Guests, then Orders).")
+            : t("A table's code opens your guest page and the menu to read. Your waiters take the order as they do now.")}</p>
+          <p className="ow-note">{ordering.data.payOnline ? t("Guests can also pay by card from their phone.") : t("The bill is paid at the counter. Paying by card from the phone needs a payment account set up by Orbyn.")}</p>
+          <p className="ow-note">{t("Switch it on only when someone watches the table board during service: an order nobody sees is a guest left waiting.")}</p>
+          {isOwner && <div className="ow-actions"><button type="button" className="ow-btn" disabled={busy} onClick={flip}>{ordering.data.on ? t("Switch off") : t("Switch on")}</button></div>}
+        </section>
+      )}
       <div className="ow-actions" role="group" aria-label={t("Table service sections")} style={{ marginBottom: 16 }}>
         {views.map(([v, label]) => (
           <button key={v} type="button" className={`ow-btn small${view === v ? " primary" : ""}`} aria-pressed={view === v} onClick={() => setView(v)}>{t(label)}</button>

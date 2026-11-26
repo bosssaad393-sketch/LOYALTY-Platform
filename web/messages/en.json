@@ -280,7 +280,8 @@
     "call": "Call us",
     "table": "Table {label}",
     "book": "Book a table",
-    "bookSub": "Ask for a day and a time. We answer here."
+    "bookSub": "Ask for a day and a time. We answer here.",
+    "order": "Order from your table"
   },
   "book": {
     "title": "Book a table",

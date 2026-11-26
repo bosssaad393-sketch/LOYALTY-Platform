@@ -71,14 +71,14 @@ const stamp = () => Date.now();
 /** 1250 -> "1,250.000": three decimals like the receipt, with thousands marked so a typo stands out. */
 const bhdFull = bhdNumber;
 
-type StaffProps = { initialMe: Me | null; look?: SignInLook; brand: BrandProps; lang?: UiLang; stampVenue?: boolean; visitVenue?: boolean };
+type StaffProps = { initialMe: Me | null; look?: SignInLook; brand: BrandProps; lang?: UiLang; stampVenue?: boolean; visitVenue?: boolean; /** Guests order from the table here, so the table board is offered. */ tableBoard?: boolean };
 
 /** The staff screen in the venue's language (Arabic or English). */
 export default function StaffApp({ lang = "en", ...props }: StaffProps) {
   return <UiLangProvider lang={lang}><StaffScreen {...props} /></UiLangProvider>;
 }
 
-function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false }: StaffProps) {
+function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false, tableBoard }: StaffProps) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(initialMe);
   const [tab, setTab] = useState<Tab>("guest");
@@ -255,7 +255,7 @@ function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false 
           <img className="st-crest" src={`/venues/${brand.slug}/crest.png`} alt={`${me.venue}, ${t("staff")}`} width={96} height={96} />
         )}
         <div className="st-actions">
-          {!stampVenue && !visitVenue && <a className="chip" href="/staff/board">{t("Table board")}</a>}
+          {(tableBoard ?? (!stampVenue && !visitVenue)) && <a className="chip" href="/staff/board">{t("Table board")}</a>}
           <LangToggle />
           <button className="chip" type="button" onClick={lock}>{t("Lock")}</button>
         </div>

@@ -497,3 +497,6 @@ html[style*="--venue-wordmark"] .hub-intro-mark::before { display: none; }
 .bo-item .ow-item-main a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .bo-act { flex: 1 1 260px; display: grid; gap: 8px; }
 .bk-form .in { color-scheme: dark; }
+
+/* ---- Ordering from the table at a venue with its own wordmark: the wordmark stands where the old crest stood. ---- */
+html[style*="--venue-wordmark"] .tb-crest { content: var(--venue-wordmark); width: calc(38px * var(--venue-wordmark-ratio)); height: 38px; }

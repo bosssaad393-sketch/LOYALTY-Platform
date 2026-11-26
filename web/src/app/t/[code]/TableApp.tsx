@@ -15,11 +15,11 @@ type Reward = { points: number; goal: number; text: string; ready: boolean };
 type Tab = { rounds: Round[]; totalFils: number; paidFils: number; balanceFils: number; pay: PayState; points?: Points; reward?: Reward | null; calls: string[] };
 /** After coming back from Tap: what the payment turned out to be. */
 type PayResult = "checking" | "captured" | "failed" | "review" | "initiated" | null;
-type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string; cardHref: string };
+type Props = { token: string; label: string; venueName: string; venueSlug: string; menu: MenuView; initialTab: Tab; poweredBy: string; cardHref: string; /** A visit-card venue: no points and no points reward on this page. */ plain?: boolean };
 
 const POLL_MS = 5000;
 
-export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy, cardHref }: Props) {
+export default function TableApp({ token, label, venueName, venueSlug, menu: initialMenu, initialTab, poweredBy, cardHref, plain = false }: Props) {
   const t = useTranslations("table");
   const locale = useLocale();
   const ar = locale === "ar";
@@ -247,12 +247,12 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
         <button type="button" className={`tb-call${billAsked ? " on" : ""}`} aria-pressed={billAsked} disabled={billAsked || tab.totalFils <= 0} onClick={() => call("bill")}>
           {t("calls.bill")}{billAsked && <small>{t("calls.onTheWay")}</small>}
         </button>
-        <button type="button" className={`tb-call${rewardAsked ? " on" : ""}`} aria-expanded={rewardOpen || rewardAsked} onClick={() => setRewardOpen((v) => !v)}>
+        <button type="button" hidden={plain} className={`tb-call${rewardAsked ? " on" : ""}`} aria-expanded={rewardOpen || rewardAsked} onClick={() => setRewardOpen((v) => !v)}>
           {t("calls.redeem")}{rewardAsked && <small>{t("calls.onTheWay")}</small>}
         </button>
       </section>
 
-      {(rewardOpen || rewardAsked) && (
+      {!plain && (rewardOpen || rewardAsked) && (
         <section className="tb-reward" aria-live="polite">
           {rewardAsked ? (
             <>
@@ -330,7 +330,7 @@ export default function TableApp({ token, label, venueName, venueSlug, menu: ini
               ? <p className="tb-cashon" role="status">{t("pay.cashOnTheWay")}</p>
               : <button type="button" className="btn primary tb-paybtn" onClick={() => { setError(null); setPayOpen(true); }}>{t("pay.button", { amount: filsText(tab.balanceFils) })}</button>
           )}
-          {tab.points?.card === "mine" ? (
+          {plain ? null : tab.points?.card === "mine" ? (
             <p className="tb-card on" role="status">
               <b>{tab.points.estimate > 0 ? t("points.mine", { points: tab.points.estimate }) : t("points.mineSome")}</b>
               <small>{t("points.mineSub")}</small>

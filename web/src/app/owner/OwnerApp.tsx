@@ -174,7 +174,7 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null,
           ) : (
             <>
               {current === "overview" && <Overview call={call} isOwner={isOwner} stampVenue={stampVenue} visitVenue={visitVenue} onOpen={(x) => { setCompose(0); setTab(x); }} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
-              {current === "service" && !stampVenue && <Service call={call} menuOnly={visitVenue} />}
+              {current === "service" && !stampVenue && <Service call={call} menuOnly={visitVenue} isOwner={isOwner} />}
               {current === "guests" && <Guests call={call} isOwner={isOwner} visitVenue={visitVenue} />}
               {current === "feedback" && <Feedback call={call} stampVenue={stampVenue} />}
               {current === "rules" && <Rules call={call} isOwner={isOwner} visitVenue={visitVenue} />}
