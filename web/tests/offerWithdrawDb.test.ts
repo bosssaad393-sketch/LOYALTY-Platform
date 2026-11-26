@@ -345,12 +345,13 @@ describe("GET /api/owner/offers", () => {
       id: OFFER_B,
       message: "50% off everything today",
       audience: "all",
+      segment: "all",
       sentAt: ago(1 * HOUR),
       recipients: 2,
       withdrawnAt: new Date(NOW).toISOString(),
     });
     expect(view.offers[1].withdrawnAt).toBeNull();
-    for (const o of view.offers) expect(Object.keys(o).sort()).toEqual(["audience", "id", "message", "recipients", "sentAt", "withdrawnAt"]);
+    for (const o of view.offers) expect(Object.keys(o).sort()).toEqual(["audience", "id", "message", "recipients", "segment", "sentAt", "withdrawnAt"]);
   });
 
   it("eligible and total are unchanged by a withdrawal", async () => {
@@ -388,5 +389,50 @@ describe("sending after a withdrawal", () => {
     const again = await send("Brand new text");
     expect(again.id).toBe(first.id);
     expect(rows("offers")).toHaveLength(before);
+  });
+});
+
+// Migration 0026: an offer for one group of guests.
+describe("an offer for one group", () => {
+  beforeEach(() => {
+    h.apple.configured = true;
+    h.google.configured = false;
+    h.state.tables.offers = [];
+    const now = Date.now();
+    // c1: a regular seen yesterday. c2: came twice, not for 40 days. c3 did not agree, c4 is erased.
+    Object.assign(h.state.tables.cards[0], { visits: 9, last_visit: new Date(now - DAY).toISOString(), created_at: new Date(now - 200 * DAY).toISOString() });
+    Object.assign(h.state.tables.cards[1], { visits: 2, last_visit: new Date(now - 40 * DAY).toISOString(), created_at: new Date(now - 90 * DAY).toISOString() });
+    Object.assign(h.state.tables.cards[2], { visits: 1, last_visit: new Date(now - 60 * DAY).toISOString(), created_at: new Date(now - 90 * DAY).toISOString() });
+    Object.assign(h.state.tables.cards[3], { visits: 1, last_visit: new Date(now - 60 * DAY).toISOString(), created_at: new Date(now - 90 * DAY).toISOString() });
+  });
+
+  it("counts each group among the guests who agreed", async () => {
+    expect((await offersOverview(VENUE)).segments).toEqual({ all: 2, quiet: 1, regulars: 1, new: 0 });
+  });
+
+  it("goes only to the quiet guests who agreed: their phones, their cards, nobody else's", async () => {
+    const r = await sendOffer(staffOf("owner"), { message: "We have missed you. A dessert is on us this week.", audience: "all", segment: "quiet" });
+    expect(r.recipients).toBe(1);
+    expect(h.apple.pushes.at(-1)).toEqual(["t3"]);
+    const row = h.state.tables.offers[0];
+    expect(row).toMatchObject({ segment: "quiet", target_cards: ["c2"] });
+    expect(await offerStateForCard("c2", VENUE)).toEqual({ message: "We have missed you. A dessert is on us this week.", alert: true });
+    expect(await offerStateForCard("c1", VENUE)).toEqual({ message: null, alert: false });
+    const [item] = (await offersOverview(VENUE)).offers;
+    expect(item.segment).toBe("quiet");
+    expect(JSON.stringify(item)).not.toContain("c2");
+  });
+
+  it("a guest outside the group keeps seeing the offer that went to everyone", async () => {
+    await sendOffer(staffOf("owner"), { message: "Open late this Thursday.", audience: "all" });
+    h.state.tables.offers[0].sent_at = new Date(Date.now() - HOUR).toISOString();
+    await sendOffer(staffOf("owner"), { message: "For our regulars: a table is held for you on Friday.", audience: "all", segment: "regulars" });
+    expect((await offerStateForCard("c1", VENUE))?.message).toBe("For our regulars: a table is held for you on Friday.");
+    expect((await offerStateForCard("c2", VENUE))?.message).toBe("Open late this Thursday.");
+  });
+
+  it("an empty group sends nothing", async () => {
+    await expect(sendOffer(staffOf("owner"), { message: "Welcome to the family.", audience: "all", segment: "new" })).rejects.toThrow(/in that group/);
+    expect(h.state.tables.offers).toHaveLength(0);
   });
 });

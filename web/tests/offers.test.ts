@@ -26,7 +26,7 @@ const DAY = 86_400_000;
 describe("OfferInput (validation)", () => {
   it("accepts a normal message and defaults the audience to all", () => {
     const r = OfferInput.safeParse({ message: "Double points this Friday, from 7 pm." });
-    expect(r.success && r.data).toEqual({ message: "Double points this Friday, from 7 pm.", audience: "all" });
+    expect(r.success && r.data).toEqual({ message: "Double points this Friday, from 7 pm.", audience: "all", segment: "all" });
   });
   it("trims and turns line breaks into spaces", () => {
     const r = OfferInput.safeParse({ message: "  Free\n\ncoffee\tthis   week \r\n", audience: "apple" });
@@ -187,6 +187,7 @@ describe("offerView (API shape)", () => {
       id: "1",
       message: "Hi",
       audience: "apple",
+      segment: "all",
       sentAt: "2026-10-15T18:02:11.123Z",
       recipients: 212,
     });

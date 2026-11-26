@@ -11,6 +11,28 @@ export const DUPLICATE_WINDOW_MS = 2 * 60_000;
 /** Shown on the back of a card that agreed to offers but has none right now. */
 export const NO_OFFER_TEXT = "No offer right now.";
 
+/**
+ * Who among the guests that agreed (migration 0026): everyone, guests gone quiet, regulars, or new members.
+ * The numbers are fixed here so the owner's screen, the count and the send always agree.
+ */
+export const OFFER_SEGMENTS = ["all", "quiet", "regulars", "new"] as const;
+export type OfferSegment = (typeof OFFER_SEGMENTS)[number];
+export const QUIET_AFTER_DAYS = 30;
+export const REGULAR_VISITS = 5;
+export const NEW_WITHIN_DAYS = 30;
+export type SegmentCard = { visits: number; lastVisit: string | null; joined: string | null };
+
+export function inSegment(c: SegmentCard, segment: OfferSegment, now: number = Date.now()): boolean {
+  const day = 86_400_000;
+  if (segment === "quiet") return c.visits > 0 && c.lastVisit !== null && Date.parse(c.lastVisit) < now - QUIET_AFTER_DAYS * day;
+  if (segment === "regulars") return c.visits >= REGULAR_VISITS;
+  if (segment === "new") return c.joined !== null && Date.parse(c.joined) >= now - NEW_WITHIN_DAYS * day;
+  return true;
+}
+
+/** Is this offer meant for this card? An offer with no list is for everyone who agreed. */
+export const offerIsFor = (o: { target_cards?: string[] | null }, cardId: string): boolean => !Array.isArray(o.target_cards) || o.target_cards.includes(cardId);
+
 export const OFFER_AUDIENCES = ["all", "apple", "google"] as const;
 export type OfferAudience = (typeof OFFER_AUDIENCES)[number];
 export type Platform = "apple" | "google";
@@ -28,6 +50,7 @@ export function cleanMessage(raw: string): string {
 export const OfferInput = z.object({
   message: z.string().max(2000).transform(cleanMessage).pipe(z.string().min(1).max(OFFER_MAX_CHARS)),
   audience: z.enum(OFFER_AUDIENCES).default("all"),
+  segment: z.enum(OFFER_SEGMENTS).default("all"),
 });
 export type OfferInputValue = z.infer<typeof OfferInput>;
 
@@ -193,14 +216,15 @@ export function appleOfferSelection<T extends Timed>(offers: T[], now: number = 
 
 // ---- API shape -----------------------------------------------------------------------------
 
-export type OfferView = { id: string; message: string; audience: OfferAudience; sentAt: string; recipients: number };
+export type OfferView = { id: string; message: string; audience: OfferAudience; segment: OfferSegment; sentAt: string; recipients: number };
 
-export function offerView(row: { id: string; message: string; audience: string; sent_at: string; recipients?: number | null }): OfferView {
+export function offerView(row: { id: string; message: string; audience: string; sent_at: string; recipients?: number | null; segment?: string | null }): OfferView {
   const at = Date.parse(row.sent_at);
   return {
     id: row.id,
     message: row.message,
     audience: (OFFER_AUDIENCES as readonly string[]).includes(row.audience) ? (row.audience as OfferAudience) : "all",
+    segment: (OFFER_SEGMENTS as readonly string[]).includes(row.segment ?? "") ? (row.segment as OfferSegment) : "all",
     sentAt: Number.isFinite(at) ? new Date(at).toISOString() : row.sent_at,
     recipients: row.recipients ?? 0,
   };

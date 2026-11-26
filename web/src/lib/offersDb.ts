@@ -10,11 +10,16 @@ import {
   applePlan,
   countCards,
   eligibleCardIds,
+  agreedToNews,
+  inSegment,
+  OFFER_SEGMENTS,
   findRecentDuplicate,
   inWindow,
   normaliseMember,
   offerListItem,
   type CardConsentRow,
+  type OfferSegment,
+  type SegmentCard,
   type OfferInputValue,
   type OfferListItem,
 } from "./offers";
@@ -29,36 +34,46 @@ export class OfferError extends Error {
 const PAGE = 1000;
 const IN_CHUNK = 100;
 
-/** Every card at the venue with whether its guest agreed to offers (names and contacts are never read). */
-async function consentRows(venueId: string): Promise<CardConsentRow[]> {
-  const rows: CardConsentRow[] = [];
+type ConsentRow = CardConsentRow & SegmentCard;
+
+/** Every card at the venue with whether its guest agreed to offers, and what decides its group (names and contacts are never read). */
+async function consentRows(venueId: string): Promise<ConsentRow[]> {
+  const rows: ConsentRow[] = [];
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await db()
       .from("cards")
-      .select("id, members(consent_news, deleted_at)")
+      .select("id, visits, last_visit, created_at, members(consent_news, deleted_at)")
       .eq("venue_id", venueId)
       .order("id")
       .range(from, from + PAGE - 1);
     if (error) throw error;
-    for (const c of data ?? []) rows.push({ id: c.id, members: normaliseMember(c.members) });
+    for (const c of (data ?? []) as { id: string; visits?: number | null; last_visit?: string | null; created_at?: string | null; members: unknown }[]) {
+      rows.push({ id: c.id, members: normaliseMember(c.members), visits: Number(c.visits ?? 0), lastVisit: c.last_visit ?? null, joined: c.created_at ?? null });
+    }
     if ((data ?? []).length < PAGE) break;
   }
   return rows;
 }
 
-export async function offersOverview(venueId: string): Promise<{ eligible: number; total: number; offers: OfferListItem[] }> {
+/** How many guests who agreed are in each group right now. */
+function segmentCounts(rows: ConsentRow[], now = Date.now()): Record<OfferSegment, number> {
+  const agreed = rows.filter((r) => agreedToNews(r.members));
+  return Object.fromEntries(OFFER_SEGMENTS.map((s) => [s, agreed.filter((r) => inSegment(r, s, now)).length])) as Record<OfferSegment, number>;
+}
+
+export async function offersOverview(venueId: string): Promise<{ eligible: number; total: number; segments: Record<OfferSegment, number>; offers: OfferListItem[] }> {
   const [rows, offers] = await Promise.all([
     consentRows(venueId),
     db()
       .from("offers")
-      .select("id, message, audience, sent_at, recipients, withdrawn_at")
+      .select("*")
       .eq("venue_id", venueId)
       .order("sent_at", { ascending: false })
       .limit(20),
   ]);
   if (offers.error) throw offers.error;
-  // Withdrawn offers stay in the list as history.
-  return { ...countCards(rows), offers: (offers.data ?? []).map(offerListItem) };
+  // Withdrawn offers stay in the list as history. The list of guests an offer went to never leaves the server.
+  return { ...countCards(rows), segments: segmentCounts(rows), offers: (offers.data ?? []).map(offerListItem) };
 }
 
 async function appleRegistrations(cardIds: string[]): Promise<{ card_id: string; push_token: string }[]> {
@@ -78,25 +93,29 @@ async function appleRegistrations(cardIds: string[]): Promise<{ card_id: string;
  * - Google: adds a message to each saved card.
  * Returns the offer id and how many guests it was addressed to.
  */
-export async function sendOffer(staff: Staff, input: OfferInputValue): Promise<{ id: string; recipients: number }> {
+export async function sendOffer(staff: Staff, input: Omit<OfferInputValue, "segment"> & { segment?: OfferSegment }): Promise<{ id: string; recipients: number }> {
   const { message, audience } = input;
+  const segment: OfferSegment = input.segment ?? "all";
   const wantsApple = appliesTo(audience, "apple");
   const wantsGoogle = appliesTo(audience, "google");
 
-  const eligible = eligibleCardIds(await consentRows(staff.venueId));
-  if (eligible.length === 0) throw new OfferError("Nobody has agreed to notifications yet.");
+  const rows = await consentRows(staff.venueId);
+  if (eligibleCardIds(rows).length === 0) throw new OfferError("Nobody has agreed to notifications yet.");
+  // The group is fixed now: these guests, and only these, will see the offer on their card.
+  const eligible = eligibleCardIds(rows.filter((r) => inSegment(r, segment)));
+  if (eligible.length === 0) throw new OfferError("No guest who agreed to notifications is in that group right now.");
 
   // A double tap sends the same offer once. A withdrawn offer is not a double tap: sending its text again is a new send.
   const recent = await db()
     .from("offers")
-    .select("id, message, audience, sent_at, recipients, withdrawn_at")
+    .select("*")
     .eq("venue_id", staff.venueId)
     .is("withdrawn_at", null)
     .gte("sent_at", new Date(Date.now() - 5 * 60_000).toISOString())
     .order("sent_at", { ascending: false })
     .limit(10);
   if (recent.error) throw recent.error;
-  const dup = findRecentDuplicate(recent.data ?? [], message, audience);
+  const dup = findRecentDuplicate(((recent.data ?? []) as { id: string; message: string; audience: string; sent_at: string; recipients: number | null; segment?: string }[]).filter((o) => (o.segment ?? "all") === segment), message, audience);
   if (dup) return { id: dup.id, recipients: dup.recipients ?? 0 };
 
   if (audience === "apple" && !appleWalletConfigured()) throw new OfferError("Apple Wallet is not set up yet.");
@@ -110,12 +129,12 @@ export async function sendOffer(staff: Staff, input: OfferInputValue): Promise<{
   const recipients = audience === "all" ? eligible.length : audience === "apple" ? apple.cards : 0;
 
   // Store first: a card fetched right after the push must already see the offer.
-  const { data: row, error } = await db()
-    .from("offers")
-    .insert({ venue_id: staff.venueId, message, audience, sent_by: staff.id, recipients })
-    .select("id")
-    .single();
-  if (error) throw error;
+  const plain: Record<string, unknown> = { venue_id: staff.venueId, message, audience, sent_by: staff.id, recipients };
+  const made = await db().from("offers").insert(segment === "all" ? plain : { ...plain, segment, target_cards: eligible }).select("id").single();
+  // A database without migration 0026 has no place to keep the group, so the offer is not sent at all (never to everyone).
+  if (made.error && segment !== "all" && /segment|target_cards/.test(made.error.message ?? "")) throw new OfferError("Sending to one group needs a database update first. Ask Orbyn.");
+  if (made.error) throw made.error;
+  const row = made.data as { id: string };
 
   let finalRecipients = recipients;
   if (wantsApple && apple.tokens.length) {
@@ -134,7 +153,7 @@ export async function sendOffer(staff: Staff, input: OfferInputValue): Promise<{
     }
   }
 
-  await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "offer_sent", detail: { offer: row.id, audience, recipients: finalRecipients } });
+  await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "offer_sent", detail: { offer: row.id, audience, segment, recipients: finalRecipients } });
   return { id: row.id, recipients: finalRecipients };
 }
 

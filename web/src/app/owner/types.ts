@@ -33,9 +33,11 @@ export type Member = { id: string; name: string; role: string; active: boolean; 
 
 export type Audience = "all" | "apple" | "google";
 // withdrawnAt is set once the owner has withdrawn the message from the cards (round 3).
-export type Offer = { id: string; message: string; audience: Audience; sentAt: string; recipients: number; withdrawnAt: string | null };
+/** Who among the guests that agreed: everyone, guests gone quiet, regulars, new members (lib/offers.ts). */
+export type Segment = "all" | "quiet" | "regulars" | "new";
+export type Offer = { id: string; message: string; audience: Audience; segment?: Segment; sentAt: string; recipients: number; withdrawnAt: string | null };
 // eligibleApple / eligibleGoogle are NOT in the contract yet. The screen shows them if the back end ever adds them.
-export type Offers = { eligible: number; total: number; offers: Offer[]; eligibleApple?: number; eligibleGoogle?: number };
+export type Offers = { eligible: number; total: number; offers: Offer[]; eligibleApple?: number; eligibleGoogle?: number; segments?: Record<Segment, number> };
 
 export type DeletionRequest = { id: string; cardId: string; label: string; requestedAt: string; status: "pending" | "erased" };
 export type Terms = { text: string; updatedAt: string | null; isDefault: boolean };

@@ -901,4 +901,26 @@ export const AR: Record<string, string> = {
   "Which visit unlocks it": "أي زيارة تفتحها",
   "Unlocked a birthday gift": "فُتحت هدية عيد ميلاد",
   "Say which visit unlocks this gift: a number from 2 to 1000.": "حدّد الزيارة التي تفتح هذه الهدية: رقم من 2 إلى 1000.",
+
+  // ---- Spending picture on the Overview
+  "What members order": "ماذا يطلب الأعضاء",
+  "From the bills your till sent with a guest's card code. Guests without a card are not in these figures.": "من الفواتير التي أرسلها الكاشير مع رمز بطاقة الضيف. الضيوف بلا بطاقة ليسوا ضمن هذه الأرقام.",
+  "Bills, {days} days": "الفواتير، {days} يوماً",
+  "Total": "الإجمالي",
+  "Average bill": "متوسط الفاتورة",
+  "Ordered most, {days} days": "الأكثر طلباً، {days} يوماً",
+  "Spent most, {days} days": "الأكثر إنفاقاً، {days} يوماً",
+  "Bills: {n}": "الفواتير: {n}",
+  "Good spenders not seen for {days} days": "منفقون جيدون لم يزوروا منذ {days} يوماً",
+  "An offer to guests not seen lately reaches them: Offers, then choose who gets it.": "عرض للضيوف الذين لم يزوروا مؤخراً يصلهم: العروض، ثم اختر من يستلمه.",
+  "Counted over the latest 10,000 bills, so these figures are a little low.": "حُسبت على آخر 10,000 فاتورة، لذا هذه الأرقام أقل قليلاً.",
+
+  // ---- Offers to one group (0026)
+  "Everyone who agreed": "كل من وافق",
+  "Regulars: 5 visits or more": "الضيوف الدائمون: 5 زيارات أو أكثر",
+  "New: joined in the last 30 days": "الجدد: انضموا خلال آخر 30 يوماً",
+  "Who gets it": "من يستلمه",
+  "Only these guests see it on their card. The group is fixed when you send: a guest who visits tomorrow keeps the message.": "هؤلاء الضيوف فقط يرونه على بطاقتهم. تُحدَّد المجموعة عند الإرسال: الضيف الذي يزور غداً يحتفظ بالرسالة.",
+  "No guest who agreed to notifications is in that group right now.": "لا يوجد حالياً ضيف وافق على الإشعارات ضمن هذه المجموعة.",
+  "Sending to one group needs a database update first. Ask Orbyn.": "الإرسال إلى مجموعة واحدة يحتاج إلى تحديث قاعدة البيانات أولاً. تواصل مع Orbyn.",
 };

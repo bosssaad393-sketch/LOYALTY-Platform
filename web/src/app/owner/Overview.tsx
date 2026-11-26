@@ -5,6 +5,7 @@ import { spotMove } from "@/components/spotlight";
 import VisitsChart from "./Chart";
 import { greeting, longDate, n } from "./format";
 import PointsSummary from "./PointsSummary";
+import SpendingPanel from "./SpendingPanel";
 import { RewardFields, RewardState, useRewardEditor } from "./RewardForm";
 import { Arrow, Count, Loading, LoadError, PageHead, Sheet, useGet } from "./ui";
 import { BUSY_WINDOW_DAYS, WEEKDAYS } from "@/lib/ownerInsights";
@@ -149,6 +150,8 @@ export default function Overview({ call, isOwner, onSendUpdate, stampVenue = fal
           {!ins.complete && <p className="ow-note">{t("Counted over the first 20,000 records, so these figures are a little low.")}</p>}
         </section>
       )}
+
+      {!fresh && <SpendingPanel call={call} />}
 
       {sheet === "points" && <PointsSummary call={call} stampVenue={stampVenue} onClose={() => setSheet(null)} />}
       {sheet === "reward" && isOwner && <RewardSheet call={call} onSaved={rules.reload} onClose={() => setSheet(null)} />}

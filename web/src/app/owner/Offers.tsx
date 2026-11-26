@@ -5,7 +5,8 @@ import { AUDIENCE_LABEL, n, stamp } from "./format";
 import { OFFER_TEMPLATES, fillTemplate, type OfferField, type OfferTemplate } from "./offerTemplates";
 import { MESSAGE_LIMIT, WITHDRAW_DAYS, canWithdraw, checkResend, withdrawEffect } from "./offerRules";
 import { Arrow, Confirm, Loading, LoadError, Msg, PageHead, useGet } from "./ui";
-import type { Audience, Call, Note, Offer, Offers as OffersData } from "./types";
+import type { Audience, Call, Note, Offer, Offers as OffersData, Segment } from "./types";
+import { tx } from "@/lib/uiArabic";
 import { localTemplate } from "./offerTemplatesAr";
 import { useT, type T } from "@/lib/uiLang";
 
@@ -14,6 +15,16 @@ const LIMIT = MESSAGE_LIMIT;
 const MAIN_ID = "todays-update";
 
 const withdrawPath = (id: string) => `/api/owner/offers/${encodeURIComponent(id)}/withdraw`;
+
+/** The groups an offer can go to. The numbers behind them are fixed in lib/offers.ts. */
+const SEGMENTS: Segment[] = ["all", "quiet", "regulars", "new"];
+const SEGMENT_LABEL: Record<Segment, string> = {
+  all: tx("Everyone who agreed"),
+  quiet: tx("Not seen for 30 days or more"),
+  regulars: tx("Regulars: 5 visits or more"),
+  new: tx("New: joined in the last 30 days"),
+};
+const segmentText = (s: Segment, o: OffersData, t: T) => (o.segments ? `${t(SEGMENT_LABEL[s])} (${n(o.segments[s])})` : t(SEGMENT_LABEL[s]));
 
 function audienceText(a: Audience, o: OffersData, t: T): string {
   const count = a === "all" ? o.eligible : a === "apple" ? o.eligibleApple : o.eligibleGoogle;
@@ -44,6 +55,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0, visitV
   const [typed, setTyped] = useState<Record<string, Record<string, string>>>({});
   const values = typed[template.id] ?? startValues(template, venue);
   const [audience, setAudience] = useState<Audience>("all");
+  const [segment, setSegment] = useState<Segment>("all");
   const [review, setReview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
@@ -142,7 +154,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0, visitV
 
   async function send() {
     setBusy(true);
-    const r = await call<{ id: string; recipients: number }>("/api/owner/offers", "POST", { message, audience });
+    const r = await call<{ id: string; recipients: number }>("/api/owner/offers", "POST", { message, audience, segment });
     if (!r.ok) {
       setBusy(false);
       setReview(false);
@@ -291,6 +303,13 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0, visitV
                 )}
 
                 <div className="ow-field">
+                  <label className="ow-lbl" htmlFor={`${ids.audience}-who`}>{t("Who gets it")}</label>
+                  <select className="ow-in ow-select" id={`${ids.audience}-who`} value={segment} onChange={(e) => setSegment(e.target.value as Segment)}>
+                    {SEGMENTS.map((s) => <option key={s} value={s}>{segmentText(s, o, t)}</option>)}
+                  </select>
+                  {segment !== "all" && <p className="ow-note">{t("Only these guests see it on their card. The group is fixed when you send: a guest who visits tomorrow keeps the message.")}</p>}
+                </div>
+                <div className="ow-field">
                   <label className="ow-lbl" htmlFor={ids.audience}>{t("Send to")}</label>
                   <select className="ow-in ow-select" id={ids.audience} value={audience} onChange={(e) => setAudience(e.target.value as Audience)}>
                     {(["all", "apple", "google"] as const).map((a) => <option key={a} value={a}>{audienceText(a, o, t)}</option>)}
@@ -336,7 +355,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0, visitV
                   const mid = `${ids.row}-msg-${x.id}`;
                   return (
                     <li key={x.id} id={`${ids.row}-${x.id}`} tabIndex={-1} className={`ow-item ow-offer${gone ? " ow-done" : ""}`}>
-                      <span className="ow-item-main"><b className="ow-wrap" dir="auto" id={mid}>{x.message}</b><small>{stamp(x.sentAt)} · {t(AUDIENCE_LABEL[x.audience])}</small></span>
+                      <span className="ow-item-main"><b className="ow-wrap" dir="auto" id={mid}>{x.message}</b><small>{stamp(x.sentAt)} · {t(AUDIENCE_LABEL[x.audience])}{x.segment && x.segment !== "all" ? ` · ${t(SEGMENT_LABEL[x.segment])}` : ""}</small></span>
                       <span className="ow-item-side ow-fig">{t("{n} cards", { n: n(x.recipients) })}</span>
                       {x.withdrawnAt ? (
                         <span className="ow-item-acts ow-item-state"><em className="ow-tag quiet">{t("Withdrawn")}</em><small>{stamp(x.withdrawnAt)}</small></span>
@@ -356,7 +375,7 @@ export default function Offers({ call, isOwner, venue, composeSignal = 0, visitV
         </>
       )}
       {review && o && (
-        <Confirm title={audience === "all" ? t("Send to {n} guests?", { n: n(o.eligible) }) : t("Send to {who}?", { who: t(AUDIENCE_LABEL[audience]) })} confirmLabel={busy ? t("Sending…") : t("Send now")} cancelLabel={t("Not yet")} busy={busy} onConfirm={send} onClose={() => setReview(false)}>
+        <Confirm title={audience === "all" ? t("Send to {n} guests?", { n: n(o.segments?.[segment] ?? o.eligible) }) : t("Send to {who}?", { who: t(AUDIENCE_LABEL[audience]) })} confirmLabel={busy ? t("Sending…") : t("Send now")} cancelLabel={t("Not yet")} busy={busy} onConfirm={send} onClose={() => setReview(false)}>
           <Notification venue={venue} text={message} />
           <p className="ow-note ow-dialog-text">{t("Guests are alerted as soon as it is sent. You can withdraw the message later, but an alert that has already appeared cannot be recalled.")}</p>
           {live && <p className="ow-note ow-dialog-text">{dropping ? t(withdrawEffect(live.audience).original) : t("The original message stays on the cards until you withdraw it.")}</p>}

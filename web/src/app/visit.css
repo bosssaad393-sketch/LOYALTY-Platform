@@ -465,3 +465,9 @@ html[style*="--venue-wordmark"] .hub-intro-mark::before { display: none; }
 .go-qty { color: var(--muted); font-variant-numeric: tabular-nums; }
 .go-name { overflow-wrap: anywhere; }
 .go-price { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Owner Overview: what members order (SpendingPanel.tsx) ---- */
+.sp-counts { margin-block: 12px 4px; }
+.sp-counts dd { font-size: 20px; }
+.sp-h { margin-block-start: 18px; }
+@media (max-width: 480px) { .sp-counts { grid-template-columns: 1fr; } .sp-counts div + div { padding-inline-start: 0; border-inline-start: 0; border-block-start: 1px solid var(--ow-rule); } }

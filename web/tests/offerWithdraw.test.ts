@@ -180,7 +180,7 @@ describe("GET /api/owner/offers item shape", () => {
   it("a live offer has withdrawnAt null and keeps every other field of the old shape", () => {
     const item = offerListItem({ ...row, withdrawn_at: null });
     expect(item).toEqual({ ...offerView(row), withdrawnAt: null });
-    expect(item).toEqual({ id: "1", message: "Hi", audience: "apple", sentAt: "2026-10-15T18:02:11.123Z", recipients: 212, withdrawnAt: null });
+    expect(item).toEqual({ id: "1", message: "Hi", audience: "apple", segment: "all", sentAt: "2026-10-15T18:02:11.123Z", recipients: 212, withdrawnAt: null });
   });
   it("a row from before the migration (no column) is also null", () => {
     expect(offerListItem(row).withdrawnAt).toBeNull();
