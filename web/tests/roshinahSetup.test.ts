@@ -30,7 +30,7 @@ beforeAll(async () => {
 describe("the setup file", () => {
   it("is built from every migration and both seeds, in order", () => {
     const names = readdirSync(join(root, "migrations")).filter((f) => f.endsWith(".sql")).sort();
-    expect(names).toHaveLength(31);
+    expect(names).toHaveLength(32);
     let at = 0;
     for (const n of [...names, "roshinah.sql", "roshinah-menu.sql"]) {
       const found = setup.indexOf(`-- ${n}\n`, at);

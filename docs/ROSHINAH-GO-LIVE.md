@@ -120,3 +120,18 @@ Honest limits:
 1. Supabase > Authentication > Users > Add user: the developer login (Saad's own email and a password he chooses). Then link it as the venue's developer, set the owner's passcode, and one passcode per till with its branch (`docs/NEW-CLIENT.md`).
 2. First test on real phones, before any guest: join, add to Apple Wallet, a staff scan, the gift appears, use it at the Asmak till, a second use is refused; stand near the branch for the lock screen; switch alerts on and call the waiter from a table.
 3. Still from the owner: the map link and Google review link for Sanad, the voucher terms, the menu prices check, the vector logo.
+
+## Changing the Wallet card design after guests have saved it (2026-11-26, night; migration 0032)
+- **Guests never redo anything.** A saved Apple Wallet card is rebuilt on this server each time the phone asks for it: picture, colours, labels, wording, the back of the card. The phone asks when it is woken and the card is newer than its copy.
+- **How to send a new design:** replace the pictures in `web/passes/roshinah/` (same file names and sizes; `lit/` is the gift-ready version) or the `BRAND_*` colours, deploy, add a fresh card to your own phone to check it, then sign in at `/dev` > **Wallet cards** > "Send the latest design to every phone". It shows how many cards and phones are saved and when a design was last sent.
+- **What the button does:** sets `venues.pass_updated_at` to now (so every card of the business counts as newer) and wakes every phone that holds one. A phone that is off gets it when it is back; every card also refreshes at the guest's next visit.
+- **What must never change,** or saved cards stop updating: the pass type (`pass.co.orbyn.roshinah`), each card's id, and `PUBLIC_BASE_URL` (`https://roshinah.orbyn.co`). Renew the certificate before 25 December 2027 under the same pass type.
+- **Tested:** which phones are woken, that only this business's cards are marked, what a woken phone is told and handed (`web/tests/cardDesign.test.ts`). **Not tested:** on a real iPhone. Google Wallet is not set up, so there are no Google cards to update.
+
+## Where a guest reads about the 50% gift
+- **Before the first visit:** only on their card page on the web (it names the gift the first visit unlocks). The Wallet card says nothing about it yet, and neither does the join page.
+- **When the first visit is recorded:** the lock screen shows "Your gift is ready: 50% off at Asmak Al Roshinah", the niche on the card lights up, and the front shows YOUR GIFT with its name.
+- **Back of the Wallet card:** "Your gift" with its name, the line "A thank-you for joining. One visit, one bill.", "Use it at Asmak Al Roshinah." and its last day if it has one.
+- **Card page on the web:** the gift, where to use it, and the code the Asmak till scans.
+- **Asmak's till:** scanning the card shows the gift to redeem; any other branch is refused.
+- **After it is used:** the niche goes dark, the front shows the member code again, and the back lists it under "Used".

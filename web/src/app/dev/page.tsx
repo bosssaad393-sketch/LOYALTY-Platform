@@ -17,7 +17,7 @@ export default async function DevPage(props: PageProps<"/dev">) {
   const look = loginLook("owner", q.look);
   const brand = brandProps();
   // ?section=screens opens a section directly (handy for review links). Unknown values fall back to the overview.
-  const SECTIONS: Section[] = ["overview", "screens", "till", "requests", "calabos", "access"];
+  const SECTIONS: Section[] = ["overview", "screens", "till", "requests", "calabos", "wallet", "access"];
   const initialSection = SECTIONS.find((s) => s === q.section) ?? "overview";
   const staff = await currentStaff("dev");
   return <DevApp initialMe={staff ? { name: staff.name, role: staff.role, venue: staff.venueName } : null} look={look} brand={brand} initialSection={initialSection} sample={sampleNote()} />;

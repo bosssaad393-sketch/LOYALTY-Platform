@@ -1,5 +1,5 @@
 -- Al Roshinah: the whole database in one file.
--- Made by web/scripts/make-roshinah-setup.py, run from the repository root (do not edit by hand): migrations 0001 to 0031 in order, then the two seeds.
+-- Made by web/scripts/make-roshinah-setup.py, run from the repository root (do not edit by hand): migrations 0001 to 0032 in order, then the two seeds.
 -- Run ONCE on Al Roshinah's OWN new, EMPTY Supabase project (SQL editor, or as one migration). Not a second time:
 -- the earliest parts stop with "already exists" on a database that has them.
 -- Checked by web/tests/roshinahSetup.test.ts, which runs this exact file on a real Postgres engine and walks a guest
@@ -1962,6 +1962,20 @@ create table if not exists push_subscriptions (
 );
 create index if not exists push_subscriptions_venue_idx on push_subscriptions (venue_id);
 alter table push_subscriptions enable row level security;
+
+-- ===================================================================================================
+-- 0032_card_design_refresh.sql
+-- ===================================================================================================
+-- 0032: send a new Wallet card design to the cards guests already saved.
+--
+-- A saved Apple Wallet card fetches a newer version of itself from this server when it is told to look. Until now
+-- "newer" for a design change was a date written in the code. venues.pass_updated_at is that date kept per business:
+-- the developer screen sets it to now and wakes every phone that holds a card, and each phone then fetches the card
+-- with the new picture, colours and wording. Nobody joins again and nobody adds the card again.
+-- Null = no design has been sent out since the cards were made.
+-- Safe to run twice. Run after 0031, on the client's OWN database, after a backup.
+
+alter table venues add column if not exists pass_updated_at timestamptz;
 
 -- ===================================================================================================
 -- roshinah.sql

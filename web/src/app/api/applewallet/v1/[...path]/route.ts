@@ -6,6 +6,7 @@ import { agreedToNews, normaliseMember } from "@/lib/offers";
 import { offerStampsByVenue } from "@/lib/passOffer";
 import { voucherStamps } from "@/lib/vouchersDb";
 import { noticeStamps } from "@/lib/autoMessagesDb";
+import { passDesignStamps } from "@/lib/cardDesign";
 
 /**
  * Apple Wallet web service (the protocol Wallet uses to register a card and fetch updates).
@@ -31,7 +32,8 @@ async function authorised(request: Request, serial: string): Promise<boolean> {
 }
 
 /**
- * Bump this when the card layout or artwork changes, so every saved card refreshes.
+ * The last layout change made in code. A design change is now sent from the developer screen instead (Wallet cards >
+ * Send the latest design: lib/cardDesign.ts), which needs no edit here.
  * 2026-10-15: the back of the card of guests who agreed to offers gained an "offer" field.
  * Set this to the moment of the deploy when merging (a time before the deploy can be older than what some phones
  * already hold, and those phones then keep the old layout until their next points change).
@@ -46,10 +48,12 @@ async function lastChanged(cardIds: string[]): Promise<Map<string, number>> {
   const out = new Map<string, number>();
   if (cardIds.length === 0) return out;
   const { data: cards } = await db().from("cards").select("id, created_at, venue_id, members(consent_news, deleted_at)").in("id", cardIds);
-  const offerStamps = await offerStampsByVenue([...new Set((cards ?? []).map((c) => c.venue_id as string))]);
+  const venueIds = [...new Set((cards ?? []).map((c) => c.venue_id as string))];
+  // A new card design sent from the developer screen (migration 0032) makes every card of that business newer.
+  const [offerStamps, designStamps] = await Promise.all([offerStampsByVenue(venueIds), passDesignStamps(venueIds).catch(() => new Map<string, number>())]);
   for (const c of cards ?? []) {
     const offerAt = agreedToNews(normaliseMember(c.members)) ? (offerStamps.get(c.venue_id) ?? 0) : 0;
-    out.set(c.id, Math.max(new Date(c.created_at).getTime(), LAYOUT_UPDATED_AT, offerAt));
+    out.set(c.id, Math.max(new Date(c.created_at).getTime(), LAYOUT_UPDATED_AT, offerAt, designStamps.get(c.venue_id) ?? 0));
   }
   const { data: entries } = await db().from("ledger").select("card_id, created_at").in("card_id", cardIds).order("created_at", { ascending: false });
   for (const e of entries ?? []) {
