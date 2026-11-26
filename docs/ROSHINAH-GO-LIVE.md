@@ -13,7 +13,7 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 **A. Demo (no database, nothing real).** A Vercel project with `ORBYN_DEMO=1`, `SAMPLE_CARD_MODE=visits`, `SAMPLE_BRANCHES=Sanad,Zallaq Springs`, `SAMPLE_PARTNER=Asmak Al Roshinah`, `LOGIN_MODE=pin`, a random `STAFF_SESSION_SECRET` and the `BRAND_*` lines. Invented guests, data is lost on restart, no Wallet updates. Good for showing the owner.
 
 **B. Live (the real thing).**
-1. New Supabase project for Al Roshinah only. Run migrations 0001 to 0030 in order, then `supabase/seeds/roshinah.sql` and `supabase/seeds/roshinah-menu.sql`.
+1. New Supabase project for Al Roshinah only. Run migrations 0001 to 0031 in order, then `supabase/seeds/roshinah.sql` and `supabase/seeds/roshinah-menu.sql`.
 2. New Vercel project from this repo, root `web`, with:
    `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `PUBLIC_BASE_URL`, `LOGIN_MODE=pin`, `CRON_SECRET`,
    `BRAND_NAME=Al Roshinah`, `BRAND_DEFAULT_VENUE=roshinah`, `BRAND_BG=#013220`, `BRAND_TEXT=#faf8f3`, `BRAND_ACCENT=#c9a96e`, `BRAND_LANGUAGES=en,ar`, `BRAND_OFFERS_BOX=unticked` (Saad, 2026-11-25: the offers box starts empty on the Roshinah join page),
@@ -46,7 +46,7 @@ Branch `agent/roshinah`. One business (`roshinah`), branches Sanad (live first),
 - Vercel project `roshinah` (team LOYALTY), root `web`, Node 22, built from branch `agent/roshinah` of `bosssaad393-sketch/LOYALTY-Platform`. Address: **https://roshinah.orbyn.co** (also `roshinah-loyalty-0c1d.vercel.app`).
 - It runs on SAMPLE data (`ORBYN_DEMO=1`): invented guests, kept in memory, lost on restart, no Wallet card, no automatic notices. For showing the owner only. Sample PINs are on the sign-in screens.
 - The project's production branch is still `main` in Vercel's settings: a push to `main` would deploy `main`'s older code here. Deploy this project from `agent/roshinah` until the branch is merged.
-- To go live with real guests, in this order: (1) a Supabase project for Al Roshinah, migrations 0001 to 0030, then the two seeds; (2) in Vercel: remove `ORBYN_DEMO` and the three `SAMPLE_*` settings, add `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `CRON_SECRET` and the five `APPLE_*` settings (Saad pastes these himself); (3) redeploy; (4) developer login, owner PIN, till PINs with their branch. `PUBLIC_BASE_URL` is already `https://roshinah.orbyn.co`: keep it, Wallet cards call this address for life.
+- To go live with real guests, in this order: (1) a Supabase project for Al Roshinah, migrations 0001 to 0031, then the two seeds; (2) in Vercel: remove `ORBYN_DEMO` and the three `SAMPLE_*` settings, add `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STAFF_SESSION_SECRET`, `CRON_SECRET` and the five `APPLE_*` settings (Saad pastes these himself); (3) redeploy; (4) developer login, owner PIN, till PINs with their branch. `PUBLIC_BASE_URL` is already `https://roshinah.orbyn.co`: keep it, Wallet cards call this address for life.
 
 ## Glass look (2026-11-25)
 - `BRAND_FINISH=glass`: frosted glass panels, a round-key passcode screen and glass dashboards over a background picture (`web/src/app/glass.css`). The matte finish's quiet rules stay underneath.
@@ -82,3 +82,13 @@ Honest limits:
 - 8: paying by card from the phone needs a Tap account for Al Roshinah; without one the bill is paid at the counter. The ordering page was checked on the sample in Roshinah's look, not walked through a full service.
 - On the hosted sample, table requests are switched on so the page can be seen; a real venue starts with them off.
 - The sample has no gift of kinds 1 and 4 seeded (inventing offers for the client is not ours to do): add one in Gifts to see them work.
+
+## Staff alerts and calling the waiter (2026-11-26, evening; migration 0031)
+- **What it does.** A guest presses "Call the waiter" or "Ask for the bill" on the table's page; the call shows on the staff's table board and the staff's phones buzz. A watch paired with a phone (Apple Watch, Samsung, Wear OS) shows the same alert, because it mirrors the phone. The same alert fires for a new order from a table and for a new table request.
+- **Owner's switch:** Tables and menu > "Calling the waiter from the table" (off by default). With it off, a table's page has no call buttons and a call sent anyway is refused.
+- **Each waiter, once:** open `/staff` on their phone, sign in, press "Switch alerts on" and allow notifications. On an iPhone the staff page must first be added to the Home Screen (Share > Add to Home Screen) and opened from there: that is Apple's rule for web alerts.
+- **Privacy.** The alert that travels through Google's or Apple's push service carries no text at all. It wakes the phone, and the phone asks this server what is waiting with the waiter's own sign-in. A phone that is no longer signed in shows "Something needs you. Open the table board."
+- **Settings.** None needed: the signing key pair is made and kept in the database the first time. `PUSH_VAPID_PUBLIC` / `PUSH_VAPID_PRIVATE` override it when set.
+- **Not tested on a real phone or watch.** The server side is tested (signing, which addresses are accepted, cleaning up dead devices, the wording). Delivery through Google and Apple has not been seen working.
+- **Cannot be tried on the hosted sample:** the sample keeps its data in memory per server process, so a phone's registration and the signing key do not survive between requests. It needs the real database. On this PC it can be tried in Chrome at `http://localhost:3031/staff` while the sample is running.
+- **Limits:** alerts go to every phone of the venue that switched them on, not only the waiter of that table or branch. The alert is in English. Radio pager watches (table buttons with wrist pagers) are a separate thing and are not connected.

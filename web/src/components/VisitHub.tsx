@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import LanguageSwitch from "@/components/LanguageSwitch";
 import { bookingsOn } from "@/lib/bookingsDb";
+import TableCalls from "./TableCalls";
 import VenueMark from "@/components/VenueMark";
 import { VisitCardFace } from "@/components/VisitCard";
 import { directionOf } from "@/i18n/locale";
@@ -63,7 +64,7 @@ const shortDate = (iso: string, ar: boolean) =>
 // Runs before the first paint: a guest who has already seen the opening in this visit to the site gets the page at once.
 const OPENING = `try{var s=sessionStorage,d=document.documentElement;if(s.getItem("hubSeen"))d.setAttribute("data-hub-seen","");else{s.setItem("hubSeen","1");setTimeout(function(){d.setAttribute("data-hub-seen","")},3200)}}catch(e){}`;
 
-export default async function VisitHub({ venue, branchSlug, tableLabel, orderHref }: { venue: Venue; branchSlug?: string; /** Opened from a table's QR code: the table is named at the top. */ tableLabel?: string; /** The table's own ordering page, when the venue lets guests order from the table (0030). */ orderHref?: string }) {
+export default async function VisitHub({ venue, branchSlug, tableLabel, orderHref, callsToken }: { venue: Venue; branchSlug?: string; /** Opened from a table's QR code: the table is named at the top. */ tableLabel?: string; /** The table's code, when the venue lets guests call the waiter from the table (0031). */ callsToken?: string; /** The table's own ordering page, when the venue lets guests order from the table (0030). */ orderHref?: string }) {
   const locale = await getLocale();
   const ar = locale === "ar";
   const t = await getTranslations("hub");
@@ -178,6 +179,7 @@ export default async function VisitHub({ venue, branchSlug, tableLabel, orderHre
           </a>
           )}
         </div>
+        {callsToken && <TableCalls token={callsToken} words={{ waiter: t("callWaiter"), bill: t("askBill"), sent: t("callSent"), failed: t("callFailed") }} />}
         <p className="hub-note">{mine ? t("myCardSub") : giftAhead ? t("getCardGift") : t("getCardFree")}</p>
       </div>
 

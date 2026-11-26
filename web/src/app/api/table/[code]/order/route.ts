@@ -1,3 +1,4 @@
+import { notifyStaff } from "@/lib/staffPush";
 import { clientKey, createRateLimiter } from "@/lib/rateLimit";
 import { fail } from "@/lib/staffApi";
 import { guestCardFrom } from "@/lib/table/points";
@@ -19,6 +20,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/table/[code
   if (!parsed.success) return fail("bad_order");
   const r = await placeOrder(table, parsed.data, { source: "guest" });
   if (!r.ok) return Response.json({ error: "unavailable", unavailable: r.unavailable }, { status: 409 });
+  await notifyStaff(table.venueId);
   const cookie = request.headers.get("cookie");
   const remember = rememberSentOrder(cookie, r.orderId);
   const sent = remember ? sentOrdersFrom(cookie).add(r.orderId) : new Set<string>();

@@ -998,4 +998,21 @@ export const AR: Record<string, string> = {
   "The bill is paid at the counter. Paying by card from the phone needs a payment account set up by Orbyn.": "تُدفع الفاتورة عند الكاونتر. الدفع بالبطاقة من الهاتف يحتاج إلى حساب دفع تجهّزه Orbyn.",
   "Switch it on only when someone watches the table board during service: an order nobody sees is a guest left waiting.": "فعّله فقط عندما يتابع أحدٌ لوحة الطاولات أثناء الخدمة: الطلب الذي لا يراه أحد يعني ضيفاً ينتظر.",
   "Switched ordering from the table on or off": "تفعيل أو إيقاف الطلب من الطاولة",
+
+  // ---- Staff alerts and table calls (0031)
+  "Alerts on this phone": "التنبيهات على هذا الهاتف",
+  "Alerts are on for this phone and the watch paired with it.": "التنبيهات مفعّلة لهذا الهاتف وللساعة المقترنة به.",
+  "Switch alerts off": "أوقف التنبيهات",
+  "Get a buzz when a guest calls, orders or asks for a table.": "يهتز هاتفك عندما ينادي ضيف أو يطلب أو يطلب طاولة.",
+  "Switch alerts on": "فعّل التنبيهات",
+  "Alerts are blocked for this page in the phone's settings. Allow notifications there, then come back.": "التنبيهات محظورة لهذه الصفحة في إعدادات الهاتف. اسمح بالإشعارات هناك ثم عُد.",
+  "For alerts on an iPhone: tap Share, then Add to Home Screen, and open this page from there. On other phones use Chrome.": "للتنبيهات على الآيفون: اضغط مشاركة ثم إضافة إلى الشاشة الرئيسية، وافتح الصفحة من هناك. على الهواتف الأخرى استخدم Chrome.",
+  "Calling the waiter from the table is on": "مناداة النادل من الطاولة مفعّلة",
+  "Calling the waiter from the table is off": "مناداة النادل من الطاولة متوقفة",
+  "A table's page shows “Call the waiter” and “Ask for the bill”. Each call shows on the staff's table board and buzzes the phones that switched alerts on.": "تعرض صفحة الطاولة «اطلب النادل» و«اطلب الفاتورة». يظهر كل نداء على لوحة الطاولات لدى الموظفين ويهز الهواتف التي فعّلت التنبيهات.",
+  "A table's page has no call buttons. Switch this on to let a guest call the waiter or ask for the bill from their phone.": "صفحة الطاولة بلا أزرار نداء. فعّل هذا ليستطيع الضيف مناداة النادل أو طلب الفاتورة من هاتفه.",
+  "For the buzz: each waiter opens the staff page on their phone, signs in and presses “Switch alerts on”. A watch paired with that phone buzzes too. An iPhone needs the staff page added to its Home Screen first.": "للاهتزاز: يفتح كل نادل صفحة الموظفين على هاتفه ويدخل ويضغط «فعّل التنبيهات». الساعة المقترنة بالهاتف تهتز أيضاً. الآيفون يحتاج أولاً إلى إضافة صفحة الموظفين إلى الشاشة الرئيسية.",
+  "Switched calling the waiter from the table on or off": "تفعيل أو إيقاف مناداة النادل من الطاولة",
+  "This device could not be registered for alerts.": "تعذّر تسجيل هذا الجهاز للتنبيهات.",
+  "Nothing to switch off.": "لا شيء لإيقافه.",
 };

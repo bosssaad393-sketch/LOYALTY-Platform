@@ -32,10 +32,17 @@ export default function Service({ call, menuOnly: visitVenue = false, isOwner = 
   const [view, setView] = useState<View>(visitVenue ? "menu" : "report");
   const t = useT();
   // A visit-card venue chooses whether guests order from the table (0030). Until it does, there is nothing to report.
-  const ordering = useGet<{ on: boolean; payOnline: boolean }>(call, "/api/owner/ordering");
+  const ordering = useGet<{ on: boolean; calls: boolean; payOnline: boolean }>(call, "/api/owner/ordering");
   const [busy, setBusy] = useState(false);
   const menuOnly = visitVenue && !ordering.data?.on;
   const views = ([["report", tx("Wait times and sales")], ["menu", tx("Menu")], ["tables", tx("Tables")]] as [View, string][]).filter(([v]) => !(menuOnly && v === "report"));
+  async function flipCalls() {
+    if (!ordering.data) return;
+    setBusy(true);
+    await call("/api/owner/ordering", "POST", { calls: !ordering.data.calls });
+    setBusy(false);
+    ordering.reload();
+  }
   async function flip() {
     if (!ordering.data) return;
     setBusy(true);
@@ -55,6 +62,16 @@ export default function Service({ call, menuOnly: visitVenue = false, isOwner = 
           <p className="ow-note">{ordering.data.payOnline ? t("Guests can also pay by card from their phone.") : t("The bill is paid at the counter. Paying by card from the phone needs a payment account set up by Orbyn.")}</p>
           <p className="ow-note">{t("Switch it on only when someone watches the table board during service: an order nobody sees is a guest left waiting.")}</p>
           {isOwner && <div className="ow-actions"><button type="button" className="ow-btn" disabled={busy} onClick={flip}>{ordering.data.on ? t("Switch off") : t("Switch on")}</button></div>}
+        </section>
+      )}
+      {visitVenue && ordering.data && (
+        <section className="ow-panel" aria-labelledby="ow-h-calls" style={{ marginBlockEnd: 16 }}>
+          <h2 className="ow-h" id="ow-h-calls">{ordering.data.calls ? t("Calling the waiter from the table is on") : t("Calling the waiter from the table is off")}</h2>
+          <p className="ow-note">{ordering.data.calls
+            ? t("A table's page shows “Call the waiter” and “Ask for the bill”. Each call shows on the staff's table board and buzzes the phones that switched alerts on.")
+            : t("A table's page has no call buttons. Switch this on to let a guest call the waiter or ask for the bill from their phone.")}</p>
+          <p className="ow-note">{t("For the buzz: each waiter opens the staff page on their phone, signs in and presses “Switch alerts on”. A watch paired with that phone buzzes too. An iPhone needs the staff page added to its Home Screen first.")}</p>
+          {isOwner && <div className="ow-actions"><button type="button" className="ow-btn" disabled={busy} onClick={flipCalls}>{ordering.data.calls ? t("Switch off") : t("Switch on")}</button></div>}
         </section>
       )}
       <div className="ow-actions" role="group" aria-label={t("Table service sections")} style={{ marginBottom: 16 }}>

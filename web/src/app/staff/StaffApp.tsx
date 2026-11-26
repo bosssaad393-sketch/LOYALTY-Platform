@@ -11,6 +11,7 @@ import { LARGE_BILL_BHD, MAX_BILL_BHD, pointsFor, readBill } from "@/lib/tillRul
 import { bahrainTime, bhd as bhdNumber, bhdText } from "@/lib/format";
 import { LangToggle, UiLangProvider, useT, type UiLang } from "@/lib/uiLang";
 import { tx } from "@/lib/uiArabic";
+import StaffAlerts from "@/components/StaffAlerts";
 import VenueMark from "@/components/VenueMark";
 import type { CardVoucher } from "@/lib/vouchers";
 import { BranchPicker, newVouchers, VisitResult, VisitSheet, type StaffBranch } from "./VisitGuest";
@@ -260,6 +261,7 @@ function StaffScreen({ initialMe, brand, stampVenue = false, visitVenue = false,
           <button className="chip" type="button" onClick={lock}>{t("Lock")}</button>
         </div>
       </header>
+      {(tableBoard ?? (!stampVenue && !visitVenue)) && <StaffAlerts />}
 
       {tab !== "end" && (
         <div className="st-today" aria-label={t("Your day so far")}>

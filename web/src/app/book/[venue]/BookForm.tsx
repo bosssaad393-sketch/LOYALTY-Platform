@@ -31,8 +31,15 @@ export default function BookForm({ venue, locale, days, maxParty, name, branches
   // Coming back to the page: this phone's own request, if it sent one.
   useEffect(() => {
     const saved = window.localStorage.getItem(KEY(venue));
-    if (saved) void load(saved);
-  }, [venue, load]);
+    if (!saved) return;
+    let live = true;
+    fetch(`/api/book/${saved}`).then(async (r) => {
+      if (!live) return;
+      if (r.ok) { setMine((await r.json()) as MyBooking); setToken(saved); }
+      else window.localStorage.removeItem(KEY(venue));
+    }).catch(() => undefined);
+    return () => { live = false; };
+  }, [venue]);
 
   async function send(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -16,7 +16,7 @@ import { SENT_COOKIE, sentOrdersFrom } from "@/lib/table/sentOrders";
 import TableApp from "./TableApp";
 import VisitHub from "@/components/VisitHub";
 import { getVenue } from "@/lib/supabase";
-import { tableOrdersOn } from "@/lib/tableOrders";
+import { tableCallsOn, tableOrdersOn } from "@/lib/tableOrders";
 
 // Live data on every request: allow this page to block instead of prerendering.
 export const instant = false;
@@ -50,7 +50,9 @@ export default async function TablePage({ params, searchParams }: PageProps<"/t/
     const ordering = await tableOrdersOn(venue.id);
     const midOrder = Boolean(q.view || q.pay || q.tap_id) || sentOrders.size > 0;
     if (!ordering || !midOrder) {
-      return <NextIntlClientProvider><VisitHub venue={venue} tableLabel={table.label} orderHref={ordering ? `/t/${encodeURIComponent(token)}?view=menu` : undefined} /></NextIntlClientProvider>;
+      // Calling the waiter from this page is its own switch (0031); the ordering page has its own call buttons.
+      const calls = !ordering && (await tableCallsOn(venue.id));
+      return <NextIntlClientProvider><VisitHub venue={venue} tableLabel={table.label} callsToken={calls ? token : undefined} orderHref={ordering ? `/t/${encodeURIComponent(token)}?view=menu` : undefined} /></NextIntlClientProvider>;
     }
   }
 

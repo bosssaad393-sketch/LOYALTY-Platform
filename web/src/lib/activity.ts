@@ -30,6 +30,7 @@ export const ACTIVITY_TEXT: Record<string, string> = {
   links_changed: "Changed the venue's links",
   bookings_switch: "Switched table requests on or off",
   table_orders_switch: "Switched ordering from the table on or off",
+  table_calls_switch: "Switched calling the waiter from the table on or off",
   booking_confirmed: "Confirmed a table request",
   booking_declined: "Declined a table request",
   stamp: "Added a stamp",

@@ -3,6 +3,7 @@ import { getVenue } from "@/lib/supabase";
 import { allowed, LIMITS } from "@/lib/rateLimitDb";
 import { BookingInput, bookingMoment, bookingWindow } from "@/lib/bookings";
 import { bookingsOn, createBooking } from "@/lib/bookingsDb";
+import { notifyStaff } from "@/lib/staffPush";
 import { GUEST_CARD_COOKIE, guestCardFrom, venueCard } from "@/lib/table/points";
 
 /** A guest asks for a table. No sign-in. The answer is the key to their own request, kept on their phone. */
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
     const cardId = held ? guestCardFrom(`${GUEST_CARD_COOKIE}=${held}`) : null;
     const card = cardId ? await venueCard(venue.id, cardId).catch(() => null) : null;
     const token = await createBooking(venue.id, input, at, card?.id ?? null);
+    await notifyStaff(venue.id);
     return Response.json({ token }, { headers: { "cache-control": "no-store" } });
   } catch (err) {
     console.error("booking failed", err instanceof Error ? err.message : err);

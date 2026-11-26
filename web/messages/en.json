@@ -281,7 +281,11 @@
     "table": "Table {label}",
     "book": "Book a table",
     "bookSub": "Ask for a day and a time. We answer here.",
-    "order": "Order from your table"
+    "order": "Order from your table",
+    "callWaiter": "Call the waiter",
+    "askBill": "Ask for the bill",
+    "callSent": "We have been told. Someone is on the way.",
+    "callFailed": "That did not go through. Please wave to a member of staff."
   },
   "book": {
     "title": "Book a table",

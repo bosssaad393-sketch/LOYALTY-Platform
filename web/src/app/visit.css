@@ -500,3 +500,13 @@ html[style*="--venue-wordmark"] .hub-intro-mark::before { display: none; }
 
 /* ---- Ordering from the table at a venue with its own wordmark: the wordmark stands where the old crest stood. ---- */
 html[style*="--venue-wordmark"] .tb-crest { content: var(--venue-wordmark); width: calc(38px * var(--venue-wordmark-ratio)); height: 38px; }
+
+/* ---- Guest table page: call the waiter, ask for the bill (TableCalls.tsx). Two quiet buttons under the main two. ---- */
+.hub-calls { margin-block-start: 10px; }
+.hub-calls-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hub-call { min-height: 50px; font-size: var(--fs-md); }
+.hub-call.on { border-color: var(--sand, var(--gold2)); color: var(--sand-soft, var(--gold2)); opacity: 1; }
+.hub-calls-note { min-height: 1.4em; margin: 8px 0 0; text-align: center; }
+/* ---- Staff: the alerts line (StaffAlerts.tsx) ---- */
+.sa { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-block: 10px 4px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--r-md); font-size: var(--fs-sm); color: var(--muted); }
+.sa-on { color: var(--text); }
