@@ -92,3 +92,27 @@ Honest limits:
 - **Not tested on a real phone or watch.** The server side is tested (signing, which addresses are accepted, cleaning up dead devices, the wording). Delivery through Google and Apple has not been seen working.
 - **Cannot be tried on the hosted sample:** the sample keeps its data in memory per server process, so a phone's registration and the signing key do not survive between requests. It needs the real database. On this PC it can be tried in Chrome at `http://localhost:3031/staff` while the sample is running.
 - **Limits:** alerts go to every phone of the venue that switched them on, not only the waiter of that table or branch. The alert is in English. Radio pager watches (table buttons with wrist pagers) are a separate thing and are not connected.
+
+## Going live: where it stands (2026-11-26, evening)
+
+**Done**
+- The whole database is one file: `supabase/roshinah-setup.sql` (migrations 0001 to 0031, then both seeds). Rebuild it with `python web/scripts/make-roshinah-setup.py` from the repository root after any new migration.
+- That exact file is run on a real Postgres engine by `web/tests/roshinahSetup.test.ts`: the business, three places, the gift and the 90-dish menu come out right; every table is locked (nothing readable with the public key); a guest is walked through a till bill, the gift at Asmak, later gifts, a table request and erasure.
+- The file runs ONCE on a new, empty project. The two seeds alone are safe to run again.
+- Apple Wallet: the pass certificate for `pass.co.orbyn.roshinah` (team `BT22978JVQ`) is valid until 25 December 2027 and matches its private key. On Vercel: `APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT` and `APPLE_WWDR_CERT` are set (identifiers and public certificates only).
+
+**Not done, and why**
+- The Supabase project for Al Roshinah does not exist yet. Creating it from the assistant was blocked by the app's safety check; the quoted cost was 0 a month. Saad creates it (Supabase > New project, name `roshinah`, region Frankfurt `eu-central-1`, organization `loyalty-platform`), then the setup file is run on it.
+
+**Left, in order**
+1. Create the Supabase project (above).
+2. Run `supabase/roshinah-setup.sql` on it (SQL editor: paste and Run; or the assistant applies it once the project exists).
+3. On Vercel, project `roshinah`, add by hand (they are secrets and are never put in a chat or a file in the repository):
+   - `SUPABASE_URL`: the project's address (not a secret; the assistant can add it).
+   - `SUPABASE_SERVICE_ROLE_KEY`: Supabase > Project settings > API keys > service role.
+   - `STAFF_SESSION_SECRET` and `CRON_SECRET`: two different long random values.
+   - `APPLE_PASS_KEY`: the contents of `roshinah-pass.key` in the private Apple folder on Saad's PC.
+4. On Vercel, remove the sample settings: `ORBYN_DEMO`, `SAMPLE_CARD_MODE`, `SAMPLE_BRANCHES`, `SAMPLE_PARTNER`, `SAMPLE_MENU`, `SAMPLE_MENU_URL`, `SAMPLE_PHONE`, `SAMPLE_INSTAGRAM_URL`, `SAMPLE_ADDRESS`, `TAP_FAKE`. Then redeploy from branch `agent/roshinah`. From that moment the site shows real, empty data.
+5. Supabase > Authentication > Users > Add user: the developer login (Saad's own email and a password he chooses). Then link it as the venue's developer, set the owner's passcode, and one passcode per till with its branch (`docs/NEW-CLIENT.md`).
+6. First test on real phones, before any guest: join, add to Apple Wallet, a staff scan, the gift appears, use it at the Asmak till, a second use is refused; stand near the branch for the lock screen; switch alerts on and call the waiter from a table.
+7. Still from the owner: the map link and Google review link for Sanad, the voucher terms, the menu prices check, the vector logo.
