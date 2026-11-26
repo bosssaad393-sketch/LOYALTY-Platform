@@ -413,7 +413,7 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
     row.branch_id = args.p_branch ?? null;
     let issued = 0;
     const held = (store.card_vouchers ??= []);
-    for (const v of (store.vouchers ??= []).filter((x) => x.venue_id === card.venue_id && x.active && (x.trigger === "every_visit" || (x.trigger === "first_visit" && first)))) {
+    for (const v of (store.vouchers ??= []).filter((x) => x.venue_id === card.venue_id && x.active && (x.trigger === "every_visit" || (x.trigger === "first_visit" && first) || (x.trigger === "visit_count" && Number(x.at_visit) === Number(card.visits))))) {
       if (held.some((h) => h.card_id === card.id && h.voucher_id === v.id)) continue;
       held.push({ id: uuid(), card_id: card.id, venue_id: card.venue_id, voucher_id: v.id, status: "issued", issued_at: new Date().toISOString(), issued_by: args.p_staff, issued_branch: args.p_branch ?? null, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
       issued++;
@@ -453,7 +453,7 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
       Object.assign(row, { note: "visit", branch_id: branch.id, staff_id: null, source: "pos", external_ref: args.p_receipt });
       counted = true;
       const held = (store.card_vouchers ??= []);
-      for (const v of (store.vouchers ??= []).filter((x) => x.venue_id === card.venue_id && x.active && (x.trigger === "every_visit" || (x.trigger === "first_visit" && first)))) {
+      for (const v of (store.vouchers ??= []).filter((x) => x.venue_id === card.venue_id && x.active && (x.trigger === "every_visit" || (x.trigger === "first_visit" && first) || (x.trigger === "visit_count" && Number(x.at_visit) === Number(card.visits))))) {
         if (held.some((h) => h.card_id === card.id && h.voucher_id === v.id)) continue;
         held.push({ id: uuid(), card_id: card.id, venue_id: card.venue_id, voucher_id: v.id, status: "issued", issued_at: new Date().toISOString(), issued_by: null, issued_branch: branch.id, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
         issued++;
@@ -461,6 +461,26 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
       (store.audit_log ??= []).push({ id: uuid(), venue_id: card.venue_id, actor: "pos", action: "visit", detail: { card: card.id, ledger: row.id, vouchers_issued: issued, receipt: args.p_receipt }, branch_id: branch.id, created_at: new Date().toISOString() });
     }
     return { data: [{ receipt_id: id, guest_card: card.id, duplicate: false, visit_counted: counted, visits: card.visits, vouchers_issued: issued }], error: null };
+  }
+  // Migration 0025: this year's birthday gift for every guest of the venue born on the given day.
+  if (fn === "birthday_gifts") {
+    const gifts = (store.vouchers ??= []).filter((v) => v.venue_id === args.p_venue && v.active && v.trigger === "birthday");
+    const held = (store.card_vouchers ??= []);
+    const out: Row[] = [];
+    for (const c of store.cards.filter((k) => k.venue_id === args.p_venue)) {
+      const m = store.members.find((x) => x.id === c.member_id);
+      if (!m || m.deleted_at) continue;
+      const today = (m.birth_month === args.p_month && m.birth_day === args.p_day) || (args.p_feb29 === true && m.birth_month === 2 && m.birth_day === 29);
+      if (!today) continue;
+      let any = false;
+      for (const v of gifts) {
+        if (held.some((h) => h.card_id === c.id && h.voucher_id === v.id && Number(h.cycle ?? 0) === Number(args.p_year))) continue;
+        held.push({ id: uuid(), card_id: c.id, venue_id: c.venue_id, voucher_id: v.id, cycle: args.p_year, status: "issued", issued_at: new Date().toISOString(), issued_by: null, issued_branch: null, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
+        any = true;
+      }
+      if (any) out.push({ gift_card: c.id });
+    }
+    return { data: out, error: null };
   }
   if (fn === "pos_receipt_refund") {
     const old = (store.receipts ??= []).find((r) => r.venue_id === args.p_venue && r.receipt === args.p_receipt);

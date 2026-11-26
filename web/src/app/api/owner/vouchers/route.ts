@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     const saved = await saveVoucher(staff, parsed.data);
     if (saved === "not_found") return fail("Voucher not found.", 404);
     if (saved === "bad_branch") return fail("That branch is not one of yours.");
+    if (saved === "no_visit_number") return fail("Say which visit unlocks this gift: a number from 2 to 1000.");
     return Response.json({ voucher: saved });
   }, true);
 }

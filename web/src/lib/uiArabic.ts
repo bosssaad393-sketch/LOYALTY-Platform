@@ -888,4 +888,17 @@ export const AR: Record<string, string> = {
   "Erasing removes the guest’s details, card, visits and gifts for good. The request itself stays on record, without personal details.": "الحذف يزيل بيانات الضيف وبطاقته وزياراته وهداياه نهائياً. يبقى الطلب نفسه مسجلاً بدون بيانات شخصية.",
   "A spreadsheet of your guests with their phone, email and visits. Every download is logged.": "جدول بضيوفك مع الهاتف والبريد والزيارات. كل تحميل يُسجَّل.",
   "Your menu as guests see it, and the QR code for each table.": "قائمتك كما يراها الضيوف، ورمز QR لكل طاولة.",
+
+  // ---- Gift rules: a chosen visit, birthday (0025)
+  "A chosen visit": "زيارة محددة",
+  "Any visit": "أي زيارة",
+  "Unlocks once per guest, when their first visit is recorded.": "تُفتح مرة واحدة لكل ضيف عند تسجيل زيارته الأولى.",
+  "Unlocks once per guest, on the visit you choose: the 5th, the 10th. Add several to make a ladder; the guest's card shows how many visits are left.": "تُفتح مرة واحدة لكل ضيف في الزيارة التي تختارها: الخامسة أو العاشرة. أضف عدة هدايا لتصنع سلّماً، وتُظهر بطاقة الضيف عدد الزيارات المتبقية.",
+  "Unlocks every year on the guest's birthday, for guests who gave their date of birth when joining. Give it an end date, for example 14 days.": "تُفتح كل سنة في عيد ميلاد الضيف، لمن أدخل تاريخ ميلاده عند الانضمام. حدّد لها مدة صلاحية، مثلاً 14 يوماً.",
+  "Unlocks once per guest, at their next recorded visit, including guests who joined before you added it.": "تُفتح مرة واحدة لكل ضيف عند زيارته المسجلة القادمة، بمن فيهم من انضم قبل إضافتها.",
+  "Visit number {n}": "الزيارة رقم {n}",
+  "No gifts yet. Add one and choose when it unlocks: on a guest's first visit, on a visit you choose, on their birthday, or only when a team member gives it. The numbers used and waiting appear here once guests have it.": "لا توجد هدايا بعد. أضف هدية واختر متى تُفتح: في الزيارة الأولى، أو في زيارة تختارها، أو في عيد الميلاد، أو فقط عندما يمنحها أحد أفراد الفريق. تظهر أعداد المستخدمة والمنتظرة هنا عندما يحصل عليها الضيوف.",
+  "Which visit unlocks it": "أي زيارة تفتحها",
+  "Unlocked a birthday gift": "فُتحت هدية عيد ميلاد",
+  "Say which visit unlocks this gift: a number from 2 to 1000.": "حدّد الزيارة التي تفتح هذه الهدية: رقم من 2 إلى 1000.",
 };

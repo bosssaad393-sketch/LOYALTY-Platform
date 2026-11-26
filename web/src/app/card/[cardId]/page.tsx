@@ -17,7 +17,7 @@ import { connection } from "next/server";
 import type { CardView } from "@/lib/cards";
 import { cardArt } from "@/lib/venueArt";
 import { pullSampleCard } from "@/lib/sampleSync";
-import { voucherState } from "@/lib/vouchers";
+import { voucherState, nextMilestone } from "@/lib/vouchers";
 import VisitCard from "@/components/VisitCard";
 import { cardVouchers, listVouchers } from "@/lib/vouchersDb";
 import { listBranches } from "@/lib/branchesDb";
@@ -138,6 +138,9 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
   // Before the first visit: name the gift the first visit unlocks, if the venue has one switched on.
   const next = !vouchers.length ? defs.find((d) => d.active && d.trigger === "first_visit") : undefined;
   const upcoming = next ? (ar && next.titleAr) || next.title : null;
+  // The ladder: the nearest gift tied to a visit number that is still ahead.
+  const step = nextMilestone(defs, card.visits, vouchers.map((v) => v.voucherId));
+  const ahead = step ? { gift: (ar && step.gift.titleAr) || step.gift.title, left: step.left } : null;
   const qr = await QRCode.toDataURL(qrMessage(venue.slug, card.code, card.id), { margin: 0, color: { dark: brandColors().bg, light: brandColors().text } });
   const first = memberName.trim().split(/\s+/)[0];
 
@@ -177,7 +180,7 @@ async function VisitCardPage({ view, locale, ar, welcome }: { view: CardView; lo
         }}
       />
       <div className="rv" style={{ "--i": 2 } as CSSProperties}>
-        <VisitSheet vouchers={vouchers} upcoming={upcoming} branches={branches} ar={ar} ownMenu={hasMenu ? `/menu/${encodeURIComponent(venue.slug)}` : null} />
+        <VisitSheet vouchers={vouchers} upcoming={upcoming} ahead={ahead} branches={branches} ar={ar} ownMenu={hasMenu ? `/menu/${encodeURIComponent(venue.slug)}` : null} />
       </div>
       <div className="actions after">
         {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> {t("apple")}</a>}

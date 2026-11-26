@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "./supabase";
 import type { Staff } from "./staffAuth";
 import { listBranches } from "./branchesDb";
-import { sortVouchers, type CardVoucher, type VoucherTrigger } from "./vouchers";
+import { sortVouchers, VOUCHER_TRIGGERS, type CardVoucher, type VoucherTrigger } from "./vouchers";
 
 // Vouchers (migration 0022). The rules (once per guest, redeemed once, right branch, expiry) live in the database
 // functions ledger_visit, voucher_redeem and voucher_void; this file only calls them and reads the results.
@@ -31,23 +31,31 @@ export const voidVoucher = (cardVoucherId: string, staffId: string) =>
 export type Voucher = {
   id: string; title: string; titleAr: string | null; detail: string | null; detailAr: string | null;
   trigger: VoucherTrigger; redeemBranchId: string | null; validDays: number | null; active: boolean;
+  /** 'visit_count' only: the visit that unlocks it (2 = the second visit). */
+  atVisit: number | null;
 };
 
 type Raw = Record<string, unknown>;
 const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 const toVoucher = (r: Raw): Voucher => ({
   id: String(r.id), title: String(r.title), titleAr: text(r.title_ar), detail: text(r.detail), detailAr: text(r.detail_ar),
-  trigger: (["first_visit", "every_visit", "manual"].includes(String(r.trigger)) ? r.trigger : "first_visit") as VoucherTrigger,
+  trigger: ((VOUCHER_TRIGGERS as string[]).includes(String(r.trigger)) ? r.trigger : "first_visit") as VoucherTrigger,
   redeemBranchId: text(r.redeem_branch_id), validDays: r.valid_days === null || r.valid_days === undefined ? null : Number(r.valid_days), active: r.active !== false,
+  atVisit: r.at_visit === null || r.at_visit === undefined ? null : Number(r.at_visit),
 });
 
-const VOUCHER_COLUMNS = "id, venue_id, title, title_ar, detail, detail_ar, trigger, redeem_branch_id, valid_days, active, created_at";
+const OLD_VOUCHER_COLUMNS = "id, venue_id, title, title_ar, detail, detail_ar, trigger, redeem_branch_id, valid_days, active, created_at";
+/** With migration 0025 (the visit number). A database without it is read and written with OLD_VOUCHER_COLUMNS. */
+const VOUCHER_COLUMNS = `${OLD_VOUCHER_COLUMNS}, at_visit`;
+const noAtVisit = (e: { message?: string } | null) => Boolean(e?.message?.includes("at_visit"));
+type Got = { data: unknown; error: { message?: string; code?: string } | null };
 
 /** The venue's voucher definitions. Never throws: an older database has none. */
 export async function listVouchers(venueId: string): Promise<Voucher[]> {
   try {
-    const { data, error } = await db().from("vouchers").select(VOUCHER_COLUMNS).eq("venue_id", venueId).order("created_at", { ascending: true });
-    return error ? [] : (data ?? []).map((r) => toVoucher(r as Raw));
+    let got: Got = await db().from("vouchers").select(VOUCHER_COLUMNS).eq("venue_id", venueId).order("created_at", { ascending: true });
+    if (noAtVisit(got.error)) got = await db().from("vouchers").select(OLD_VOUCHER_COLUMNS).eq("venue_id", venueId).order("created_at", { ascending: true });
+    return got.error ? [] : ((got.data ?? []) as Raw[]).map(toVoucher);
   } catch {
     return [];
   }
@@ -100,30 +108,48 @@ export const VoucherInput = z.object({
   titleAr: blank(80).optional().default(null),
   detail: blank(300).optional().default(null),
   detailAr: blank(300).optional().default(null),
-  trigger: z.enum(["first_visit", "every_visit", "manual"]).default("first_visit"),
+  trigger: z.enum(["first_visit", "every_visit", "manual", "visit_count", "birthday"]).default("first_visit"),
+  atVisit: z.number().int().min(2).max(1000).nullable().optional().default(null),
   redeemBranchId: z.uuid().nullable().optional().default(null),
   validDays: z.number().int().min(1).max(730).nullable().optional().default(null),
   active: z.boolean().default(true),
 });
 export type VoucherInput = z.infer<typeof VoucherInput>;
 
+/** The gifts the daily job unlocked today (0025): the cards that got this year's birthday gift. Never throws. */
+export async function birthdayGifts(venueId: string, day: { day: number; month: number; year: number }): Promise<string[]> {
+  try {
+    const leap = new Date(Date.UTC(day.year, 1, 29)).getUTCMonth() === 1;
+    const { data, error } = await db().rpc("birthday_gifts", { p_venue: venueId, p_month: day.month, p_day: day.day, p_year: day.year, p_feb29: !leap && day.month === 2 && day.day === 28 });
+    if (error) return [];
+    return ((data ?? []) as { gift_card: string }[]).map((r) => String(r.gift_card));
+  } catch {
+    return [];
+  }
+}
+
 /** Adds or changes a voucher of the SIGNED-IN person's venue. The branch must be one of that venue's. Audited. */
-export async function saveVoucher(staff: Staff, input: VoucherInput): Promise<Voucher | "not_found" | "bad_branch"> {
+export async function saveVoucher(staff: Staff, input: VoucherInput): Promise<Voucher | "not_found" | "bad_branch" | "no_visit_number"> {
+  if (input.trigger === "visit_count" && input.atVisit === null) return "no_visit_number";
   if (input.redeemBranchId && !(await listBranches(staff.venueId, { includeInactive: true })).some((b) => b.id === input.redeemBranchId)) return "bad_branch";
-  const row = {
+  const old = {
     title: input.title, title_ar: input.titleAr, detail: input.detail, detail_ar: input.detailAr, trigger: input.trigger,
     redeem_branch_id: input.redeemBranchId, valid_days: input.validDays, active: input.active,
   };
+  const row = { ...old, at_visit: input.trigger === "visit_count" ? input.atVisit : null };
   if (input.id) {
-    const { data, error } = await db().from("vouchers").update(row).eq("id", input.id).eq("venue_id", staff.venueId).select(VOUCHER_COLUMNS);
-    if (error) throw error;
-    const saved = (data ?? [])[0];
+    let got: Got = await db().from("vouchers").update(row).eq("id", input.id).eq("venue_id", staff.venueId).select(VOUCHER_COLUMNS);
+    if (noAtVisit(got.error)) got = await db().from("vouchers").update(old).eq("id", input.id).eq("venue_id", staff.venueId).select(OLD_VOUCHER_COLUMNS);
+    if (got.error) throw got.error;
+    const saved = ((got.data ?? []) as Raw[])[0];
     if (!saved) return "not_found";
     await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "voucher_changed", detail: { voucher: input.id, title: input.title, active: input.active } });
     return toVoucher(saved as Raw);
   }
-  const { data, error } = await db().from("vouchers").insert({ ...row, venue_id: staff.venueId }).select(VOUCHER_COLUMNS).single();
-  if (error) throw error;
+  let made: Got = await db().from("vouchers").insert({ ...row, venue_id: staff.venueId }).select(VOUCHER_COLUMNS).single();
+  if (noAtVisit(made.error)) made = await db().from("vouchers").insert({ ...old, venue_id: staff.venueId }).select(OLD_VOUCHER_COLUMNS).single();
+  if (made.error) throw made.error;
+  const data = made.data;
   await db().from("audit_log").insert({ venue_id: staff.venueId, actor: staff.id, action: "voucher_added", detail: { voucher: (data as { id: string }).id, title: input.title } });
   return toVoucher(data as Raw);
 }
@@ -166,8 +192,9 @@ export async function giveVoucher(staff: Staff, cardId: string, voucherId: strin
   if (!card) return "no_card";
   const gift = (await listVouchers(staff.venueId)).find((v) => v.id === voucherId && v.active);
   if (!gift) return "no_gift";
-  const { data: held } = await db().from("card_vouchers").select("id").eq("card_id", cardId).eq("voucher_id", voucherId).maybeSingle();
-  if (held) return "has_it";
+  // Any copy counts (a birthday gift has one per year): a gift is given by hand once.
+  const { data: held } = await db().from("card_vouchers").select("id").eq("card_id", cardId).eq("voucher_id", voucherId).limit(1);
+  if (((held ?? []) as unknown[]).length) return "has_it";
   const now = Date.now();
   const { error: e2 } = await db().from("card_vouchers").insert({
     card_id: cardId, venue_id: staff.venueId, voucher_id: voucherId, status: "issued", issued_at: new Date(now).toISOString(), issued_by: staff.id,

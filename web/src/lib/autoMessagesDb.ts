@@ -1,9 +1,10 @@
 import "server-only";
+import { birthdayGifts } from "./vouchersDb";
 import { z } from "zod";
 import { db } from "./supabase";
 import type { Staff } from "./staffAuth";
 import { notifyAppleDevices } from "./apns";
-import { DEFAULT_MESSAGES, dueBirthdays, dueWinbacks, liveNotice, type AutoGuest, type AutoKind, type AutoSetting, type DueMessage } from "./autoMessages";
+import { DEFAULT_MESSAGES, dueBirthdays, dueWinbacks, liveNotice, type AutoGuest, type AutoKind, type AutoSetting, type DueMessage, bahrainDate } from "./autoMessages";
 
 // Automatic notices (migration 0022). The daily job (api/cron/daily) writes one message_log row per guest who is due,
 // then wakes their Wallet card, which shows the notice on its back and announces it once.
@@ -70,18 +71,23 @@ async function guestsOf(venueId: string): Promise<AutoGuest[]> {
   });
 }
 
-export type DailyResult = { venues: number; birthday: number; winback: number };
+export type DailyResult = { venues: number; birthday: number; winback: number; gifts: number };
 
 /**
  * The daily job: for every active venue, who is due a birthday or a "we miss you" notice today.
  * Safe to run more than once a day: message_log allows one row per guest, kind and period.
  */
 export async function runDailyMessages(now: number = Date.now()): Promise<DailyResult> {
-  const result: DailyResult = { venues: 0, birthday: 0, winback: 0 };
+  const result: DailyResult = { venues: 0, birthday: 0, winback: 0, gifts: 0 };
   const { data: venues, error } = await db().from("venues").select("id").eq("active", true);
   if (error) throw error;
   for (const v of (venues ?? []) as { id: string }[]) {
     result.venues++;
+    // This year's birthday gift (0025), once per guest and year, whether or not the greeting below is switched on.
+    for (const cardId of await birthdayGifts(v.id, bahrainDate(now))) {
+      result.gifts++;
+      await notifyAppleDevices(cardId);
+    }
     const settings = await readAutoMessages(v.id);
     if (!settings.birthday.enabled && !settings.winback.enabled) continue;
     const guests = await guestsOf(v.id);

@@ -10,6 +10,8 @@ type Props = {
   vouchers: CardVoucher[];
   /** The gift the first visit will unlock, when the guest has none yet (title in the guest's language). */
   upcoming: string | null;
+  /** The next gift tied to a visit number, and how many visits are left to it. */
+  ahead?: { gift: string; left: number } | null;
   branches: Branch[];
   ar: boolean;
   /** The venue's own menu page in Orbyn, when it has dishes: the first branch opens it instead of an outside link. */
@@ -20,7 +22,7 @@ type Props = {
  * Under the visit card: the gift (ready / used / expired) as a paper ticket, or one calm line before the first visit;
  * then each branch with its menu, directions, phone and a Google review link for every guest (never tied to a reward).
  */
-export default async function VisitSheet({ vouchers, upcoming, branches, ar, ownMenu = null }: Props) {
+export default async function VisitSheet({ vouchers, upcoming, ahead = null, branches, ar, ownMenu = null }: Props) {
   const t = await getTranslations("visitCard");
   const shown = vouchers.filter((v) => voucherState(v) !== "cancelled");
   const places = branches.filter((b) => b.kind === "branch" && b.active);
@@ -28,7 +30,7 @@ export default async function VisitSheet({ vouchers, upcoming, branches, ar, own
 
   return (
     <>
-      {(shown.length > 0 || upcoming) && (
+      {(shown.length > 0 || upcoming || ahead) && (
         <section className="gs" aria-labelledby="gs-h">
           <h2 className="gs-h" id="gs-h">{t("giftTitle")}</h2>
           {shown.length === 0 && upcoming && <p className="gs-wait" dir="auto">{t("giftLocked", { gift: upcoming })}</p>}
@@ -61,6 +63,7 @@ export default async function VisitSheet({ vouchers, upcoming, branches, ar, own
               </article>
             );
           })}
+        {ahead && <p className="gs-wait gs-next" dir="auto">{t("giftNext", { count: ahead.left, gift: ahead.gift })}</p>}
         </section>
       )}
 

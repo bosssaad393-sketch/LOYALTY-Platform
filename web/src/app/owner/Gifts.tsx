@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { Branch } from "@/lib/branches";
-import type { VoucherTrigger } from "@/lib/vouchers";
+import { VOUCHER_TRIGGERS, type VoucherTrigger } from "@/lib/vouchers";
 import { n } from "./format";
 import { Loading, LoadError, Msg, PageHead, Sheet, useGet } from "./ui";
 import type { Call, Note } from "./types";
@@ -12,14 +12,16 @@ import { tx } from "@/lib/uiArabic";
 /** GET /api/owner/vouchers: the venue's gifts with how many were unlocked, used and are still waiting. */
 export type Gift = {
   id: string; title: string; titleAr: string | null; detail: string | null; detailAr: string | null;
-  trigger: VoucherTrigger; redeemBranchId: string | null; validDays: number | null; active: boolean;
+  trigger: VoucherTrigger; redeemBranchId: string | null; validDays: number | null; active: boolean; atVisit?: number | null;
   counts: { issued: number; redeemed: number; waiting: number };
 };
 
-const TRIGGER: Record<VoucherTrigger, string> = { first_visit: tx("First visit"), every_visit: tx("Every visit"), manual: tx("Given by hand") };
+const TRIGGER: Record<VoucherTrigger, string> = { first_visit: tx("First visit"), visit_count: tx("A chosen visit"), birthday: tx("Birthday"), every_visit: tx("Any visit"), manual: tx("Given by hand") };
 const TRIGGER_NOTE: Record<VoucherTrigger, string> = {
-  first_visit: tx("Unlocks once per guest, when staff record their first visit."),
-  every_visit: tx("Unlocks each time staff record a visit."),
+  first_visit: tx("Unlocks once per guest, when their first visit is recorded."),
+  visit_count: tx("Unlocks once per guest, on the visit you choose: the 5th, the 10th. Add several to make a ladder; the guest's card shows how many visits are left."),
+  birthday: tx("Unlocks every year on the guest's birthday, for guests who gave their date of birth when joining. Give it an end date, for example 14 days."),
+  every_visit: tx("Unlocks once per guest, at their next recorded visit, including guests who joined before you added it."),
   manual: tx("Never unlocks by itself. Only a team member can give it."),
 };
 
@@ -44,7 +46,7 @@ export default function Gifts({ call, isOwner }: { call: Call; isOwner: boolean 
       <Msg note={note} />
       {gifts.error ? <LoadError text={gifts.error} onRetry={gifts.reload} /> : !gifts.data ? <Loading /> : gifts.data.vouchers.length === 0 ? (
         <section className="ow-panel">
-          <p className="ow-note">{t("No gifts yet. Add one and choose when it unlocks: on a guest's first visit, on every visit, or only when a team member gives it. The numbers used and waiting appear here once guests have it.")}</p>
+          <p className="ow-note">{t("No gifts yet. Add one and choose when it unlocks: on a guest's first visit, on a visit you choose, on their birthday, or only when a team member gives it. The numbers used and waiting appear here once guests have it.")}</p>
         </section>
       ) : (
         <div className="ow-grid">
@@ -55,7 +57,7 @@ export default function Gifts({ call, isOwner }: { call: Call; isOwner: boolean 
                 <span className={`ow-tag${g.active ? "" : " quiet"}`}>{g.active ? t("On") : t("Off")}</span>
               </div>
               <div className="ow-facts">
-                <span>{t("Unlocks: {when}", { when: t(TRIGGER[g.trigger]) })}</span>
+                <span>{t("Unlocks: {when}", { when: g.trigger === "visit_count" && g.atVisit ? t("Visit number {n}", { n: g.atVisit }) : t(TRIGGER[g.trigger]) })}</span>
                 <span>{t("Used at: {place}", { place: where(g.redeemBranchId) })}</span>
                 <span>{t("Valid: {how}", { how: valid(g.validDays) })}</span>
               </div>
@@ -96,6 +98,7 @@ function GiftSheet({ call, gift, branches, onClose, onSaved }: { call: Call; gif
     const r = await call<{ voucher: { title: string } }>("/api/owner/vouchers", "POST", {
       ...(gift ? { id: gift.id } : {}),
       title: text("title"), titleAr: text("titleAr"), detail: text("detail"), detailAr: text("detailAr"), trigger,
+      atVisit: trigger === "visit_count" && text("atVisit") ? Number(text("atVisit")) : null,
       redeemBranchId: text("where") || null, validDays: days ? Number(days) : null, active: f.get("active") === "on",
     });
     setBusy(false);
@@ -128,12 +131,18 @@ function GiftSheet({ call, gift, branches, onClose, onSaved }: { call: Call; gif
           <div className="ow-field" role="group" aria-labelledby="ow-trig-l">
             <span className="ow-lbl" id="ow-trig-l">{t("When it unlocks")}</span>
             <div className="ow-kind">
-              {(Object.keys(TRIGGER) as VoucherTrigger[]).map((k) => (
+              {VOUCHER_TRIGGERS.map((k) => (
                 <button key={k} type="button" className="ow-pill" aria-pressed={trigger === k} onClick={() => setTrigger(k)}>{t(TRIGGER[k])}</button>
               ))}
             </div>
             <p className="ow-note">{t(TRIGGER_NOTE[trigger])}</p>
           </div>
+          {trigger === "visit_count" && (
+            <label className="ow-field">
+              <span className="ow-lbl">{t("Which visit unlocks it")}</span>
+              <input className="ow-in" name="atVisit" type="number" inputMode="numeric" min={2} max={1000} required defaultValue={gift?.atVisit ?? ""} placeholder="5" />
+            </label>
+          )}
           <label className="ow-field">
             <span className="ow-lbl">{t("Where it can be used")}</span>
             <select className="ow-in ow-select" name="where" defaultValue={gift?.redeemBranchId ?? ""}>

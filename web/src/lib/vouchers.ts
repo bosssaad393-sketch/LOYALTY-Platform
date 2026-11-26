@@ -1,7 +1,18 @@
 // Vouchers (migration 0022): a voucher a venue defines is unlocked on a guest's card once and redeemed once.
 // Pure rules shared by the staff screen, the guest card and the Wallet pass. The database enforces them (voucher_redeem).
 
-export type VoucherTrigger = "first_visit" | "every_visit" | "manual";
+/** 0025 adds 'visit_count' (one chosen visit, see atVisit) and 'birthday' (every year, from the daily job). */
+export type VoucherTrigger = "first_visit" | "every_visit" | "manual" | "visit_count" | "birthday";
+export const VOUCHER_TRIGGERS: VoucherTrigger[] = ["first_visit", "visit_count", "birthday", "every_visit", "manual"];
+
+/**
+ * The next gift on the ladder: the nearest 'visit_count' gift still ahead of this guest, with how many visits are left.
+ * A gift the guest already holds (given by hand, say) is skipped.
+ */
+export function nextMilestone<T extends { id: string; trigger: VoucherTrigger; atVisit: number | null; active: boolean }>(defs: T[], visits: number, heldIds: string[]): { gift: T; left: number } | null {
+  const ahead = defs.filter((d) => d.active && d.trigger === "visit_count" && d.atVisit !== null && d.atVisit > visits && !heldIds.includes(d.id)).sort((a, b) => a.atVisit! - b.atVisit!);
+  return ahead.length ? { gift: ahead[0], left: ahead[0].atVisit! - visits } : null;
+}
 
 export type CardVoucher = {
   id: string;

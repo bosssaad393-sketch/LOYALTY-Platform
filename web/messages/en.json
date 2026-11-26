@@ -232,6 +232,7 @@
     "giftNoEnd": "No end date",
     "giftOnce": "One use only. Show this card to the staff.",
     "giftLocked": "A gift unlocks on this card at your first visit: {gift}.",
+    "giftNext": "{count, plural, one {One more visit} other {# more visits}} and this unlocks: {gift}.",
     "placesTitle": "Visit us",
     "menu": "Menu",
     "directions": "Directions",

@@ -198,3 +198,55 @@ describe("the pin inside a Google Maps link", () => {
     for (const bad of ["http://maps.app.goo.gl/x", "https://maps.app.goo.gl.evil.example/x", "https://evil.example/?u=https://google.com", "https://169.254.169.254/", "not a link"]) expect(mapsHostOk(bad)).toBe(false);
   });
 });
+
+// Migration 0025: a gift on a chosen visit, and a birthday gift every year.
+describe("gift rules", () => {
+  const FIFTH = "aaaaaaaa-0000-4000-8000-0000000000e5";
+  const BDAY = "aaaaaaaa-0000-4000-8000-0000000000e6";
+  const STAFF = "aaaaaaaa-0000-4000-8000-0000000000a2";
+  const gifts = (c: string) => rows<{ voucher_id: string; cycle: number }>("select voucher_id, cycle from card_vouchers where card_id=$1 order by issued_at, cycle", [c]);
+  // A visit, then the clock moved back so the next one is a new sitting.
+  const visitThenWait = async (c: string) => {
+    const r = await rows<{ visits: number; vouchers_issued: number }>("select * from ledger_visit($1,$2,$3)", [c, STAFF, SANAD]);
+    await db.exec(`update ledger set created_at = created_at - interval '1 day' where card_id='${c}'`);
+    return r[0];
+  };
+
+  it("a gift tied to visit 3 unlocks on the third visit only, whether staff scan or the till sends the bill", async () => {
+    await db.exec(`insert into vouchers (id, venue_id, title, trigger, at_visit) values ('${FIFTH}','${V}','A dessert on us','visit_count',3)`);
+    expect((await visitThenWait(card(5)))).toMatchObject({ visits: 1, vouchers_issued: 1 });
+    expect((await visitThenWait(card(5)))).toMatchObject({ visits: 2, vouchers_issued: 0 });
+    const [third] = await bill("1005", "INV-30");
+    expect(third).toMatchObject({ visit_counted: true, visits: 3, vouchers_issued: 1 });
+    await db.exec(`update ledger set created_at = created_at - interval '1 day' where card_id='${card(5)}'`);
+    expect((await visitThenWait(card(5)))).toMatchObject({ visits: 4, vouchers_issued: 0 });
+    expect((await gifts(card(5))).map((g) => g.voucher_id)).toEqual([VOUCHER, FIFTH]);
+  });
+
+  it("a gift tied to a visit needs its number", async () => {
+    await expect(db.exec(`insert into vouchers (venue_id, title, trigger) values ('${V}','No number','visit_count')`)).rejects.toThrow(/vouchers_at_visit_needed/);
+    await expect(db.exec(`insert into vouchers (venue_id, title, trigger, at_visit) values ('${V}','Visit one','visit_count',1)`)).rejects.toThrow();
+  });
+
+  it("the birthday gift unlocks once a year, for guests born that day, and again the next year", async () => {
+    await db.exec(`insert into vouchers (id, venue_id, title, trigger, valid_days) values ('${BDAY}','${V}','A birthday cake','birthday',14);
+                   update members set birth_day = 12, birth_month = 3 where id = '${member(5)}';
+                   update members set birth_day = 29, birth_month = 2 where id = '${member(6)}';`);
+    const run = (m: number, d: number, y: number, feb29 = false) => rows<{ gift_card: string }>("select * from birthday_gifts($1,$2,$3,$4,$5)", [V, m, d, y, feb29]);
+    expect((await run(3, 12, 2027)).map((r) => r.gift_card)).toEqual([card(5)]);
+    expect(await run(3, 12, 2027)).toEqual([]);
+    expect(await run(3, 13, 2027)).toEqual([]);
+    expect((await run(3, 12, 2028)).map((r) => r.gift_card)).toEqual([card(5)]);
+    expect((await gifts(card(5))).filter((g) => g.voucher_id === BDAY).map((g) => g.cycle)).toEqual([2027, 2028]);
+    expect((await run(2, 28, 2027, true)).map((r) => r.gift_card)).toEqual([card(6)]);
+    expect(await run(2, 28, 2027, false)).toEqual([]);
+    expect((await rows("select 1 from audit_log where action='birthday_gift'"))).toHaveLength(3);
+  });
+
+  it("a guest who erased their data gets no birthday gift, and a switched-off gift is not given", async () => {
+    await db.exec(`update members set deleted_at = now() where id = '${member(5)}'`);
+    expect(await rows("select * from birthday_gifts($1,3,12,2029,false)", [V])).toEqual([]);
+    await db.exec(`update members set deleted_at = null where id = '${member(5)}'; update vouchers set active = false where id = '${BDAY}'`);
+    expect(await rows("select * from birthday_gifts($1,3,12,2029,false)", [V])).toEqual([]);
+  });
+});
