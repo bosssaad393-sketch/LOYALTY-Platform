@@ -92,38 +92,6 @@
 .look-glass .hm-steps { display: grid; gap: 12px; }
 .look-glass .vm { border-color: rgb(255 255 255 / 0.55); background: rgb(255 255 255 / 0.06); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-radius: 6px; }
 
-/* ---- Passcode: round glass keys over the picture ---- */
-.look-glass .pp-orb { display: none; }
-.look-glass .pp-card { padding: 34px 26px 26px; border-color: var(--g-line); }
-.look-glass .pp-keys { gap: 14px 18px; justify-items: center; max-width: 300px; margin-inline: auto; }
-.look-glass .pp-key {
-  width: 76px; height: 76px; border-radius: 50%;
-  border: 1px solid var(--g-line); background: linear-gradient(160deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.05));
-  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 8px 20px rgb(0 0 0 / 0.2);
-  font: 400 28px/1 var(--serif); color: var(--text);
-}
-.look-glass .pp-key:hover { border-color: rgb(255 255 255 / 0.36); }
-.look-glass .pp-key:active { background: rgb(255 255 255 / 0.3); transform: scale(0.95); }
-.look-glass .pp-key.pp-fn { background: transparent; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; font: 600 12px/1 var(--sans); color: var(--muted); }
-.look-glass .pp-dots i { border-color: rgb(255 255 255 / 0.6); }
-.look-glass .pp-dots i.on { background: var(--text); border-color: var(--text); }
-.look-glass .pp-go { border-radius: 999px; background: var(--text); border-color: var(--text); color: var(--bg); }
-.look-glass .pp-note { color: var(--text); opacity: 0.85; }
-@media (max-width: 360px) { .look-glass .pp-key { width: 66px; height: 66px; } .look-glass .pp-keys { gap: 12px; } }
-/* A phone: the picture is the subject and the keypad is a glass sheet that rises from the bottom. */
-@media (max-width: 700px) {
-  .look-glass .pp .pp-card { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0; padding: 0; }
-  .look-glass .pp .pp-sheet {
-    margin: 0 10px max(10px, env(safe-area-inset-bottom)); padding: 22px 18px 18px; border-radius: var(--r-xl);
-    background: var(--g-sheen), var(--g-tint); border: 1px solid var(--g-line);
-    -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); box-shadow: var(--g-shadow);
-  }
-  .look-glass .pp .pp-key { width: 72px; height: 72px; }
-  .look-glass .pp-title { text-shadow: 0 1px 18px rgb(0 0 0 / 0.4); }
-}
-@media (min-width: 701px) { .look-glass .pp .pp-sheet { background: none; } }
-
 /* ---- Developer sign-in (email and password) ---- */
 .look-glass .si-col { justify-content: center; }
 .look-glass .si-body { padding: 26px 24px; border: 1px solid var(--g-line); border-radius: var(--r-xl); background: var(--g-sheen), var(--g-tint); -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur); box-shadow: var(--g-shadow); }
@@ -246,8 +214,81 @@
 .look-glass .mn-dlg-tx .mn-price { color: var(--sand-soft); }
 .look-glass .pane .check input:checked { background: var(--sand); border-color: var(--sand); }
 .look-glass .pane .check input:checked::after { border-color: var(--bg); }
-.look-glass .pp-go, .look-glass .si .si-go { background: var(--sand); border-color: var(--sand); color: var(--coal); }
+.look-glass .si .si-go { background: var(--sand); border-color: var(--sand); color: var(--coal); }
 .look-glass .pane .check input:checked::after { border-color: var(--coal); }
 .look-glass :is(.hub-sheet, .mn-list, .pane, .vq) { border-color: color-mix(in srgb, var(--gold) 26%, rgb(255 255 255 / 0.14)); }
 .look-glass .mn-dlg::backdrop { background: rgb(14 12 9 / 0.66); }
 .look-glass .mn-dlg { background: color-mix(in srgb, var(--bg) 82%, var(--coal)); }
+
+/* ---- Owner and staff sign-in: the Orbyn sign-in first made for a lounge client (a dark ground, the drifting web,
+   spheres at the edges, the mark, a raised keypad sheet with square keys and one wide button), in this client's own
+   materials: its ground colour, its accent as hairlines and spheres, the champagne cut for the one filled button.
+   The wall picture is covered here on purpose: the sign-in is a door, not a guest page. ---- */
+html.look-glass .pp {
+  --net: block;
+  background:
+    radial-gradient(84% 44% at 50% 24%, rgb(var(--gold-rgb) / 0.14), transparent 72%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 84%, #000) 0%, color-mix(in srgb, var(--bg) 50%, #000) 100%);
+}
+html.look-glass .pp-orb {
+  display: block;
+  background: radial-gradient(circle at 32% 26%, var(--gold-hi) 0%, var(--gold2) 24%, var(--gold) 50%, var(--gold-dim) 80%, color-mix(in srgb, var(--bg) 55%, #000) 100%);
+  box-shadow: 0 18px 44px rgb(0 0 0 / 0.5);
+}
+html.look-glass .pp-card {
+  padding: 30px 24px 24px; border-radius: var(--r-xl); border: 1px solid rgb(var(--gold-rgb) / 0.5);
+  background: linear-gradient(145deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02)), color-mix(in srgb, var(--bg) 62%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2); backdrop-filter: blur(22px) saturate(1.2);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+html.look-glass .pp .pp-sheet { background: none; }
+html.look-glass .pp .vm.pp-mark { margin: 0 auto 22px; font-size: 19px; }
+html.look-glass .pp-title { font-size: 30px; letter-spacing: 0.12em; }
+html.look-glass .pp-sub { color: color-mix(in srgb, var(--text) 74%, transparent); }
+html.look-glass .pp-dots i { border-color: rgb(var(--gold-rgb) / 0.7); }
+html.look-glass .pp-dots i.on { background: var(--sand); border-color: var(--sand); }
+html.look-glass .pp-keys { gap: 10px; }
+html.look-glass .pp-key {
+  height: 62px; border-radius: var(--r-md); border: 1px solid rgb(var(--gold-rgb) / 0.3);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.075), rgb(255 255 255 / 0.035));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  font: 500 25px/1 var(--serif); color: var(--text);
+}
+@media (hover: hover) { html.look-glass .pp-key:hover { border-color: rgb(var(--gold-rgb) / 0.7); } }
+html.look-glass .pp-key:active { background: rgb(var(--gold-rgb) / 0.22); transform: scale(0.97); }
+html.look-glass .pp-key.pp-fn { font: 700 12px/1 var(--sans); letter-spacing: 0.16em; color: color-mix(in srgb, var(--text) 66%, transparent); background: transparent; box-shadow: none; }
+html.look-glass .pp .pp-go, html.look-glass .pp-go {
+  height: 58px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--gold-hi), var(--sand)); border-color: var(--sand); color: var(--coal);
+  font: 700 14px/1 var(--sans); letter-spacing: 0.18em;
+}
+html.look-glass .pp-go[disabled] { opacity: 0.45; }
+html.look-glass .pp-help { color: color-mix(in srgb, var(--text) 62%, transparent); }
+html.look-glass .pp-note { color: var(--sand-soft); opacity: 1; }
+html.look-glass .pp-pw { color: color-mix(in srgb, var(--text) 46%, transparent); }
+/* A phone: the mark and the role stand on the ground, the keypad is a sheet that rises from the bottom edge. */
+@media (max-width: 700px) {
+  html.look-glass .pp .pp-card { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0; padding: 0; }
+  html.look-glass .pp .pp-sheet {
+    margin: 0; padding: 22px 20px max(16px, env(safe-area-inset-bottom)); border-radius: var(--r-xl) var(--r-xl) 0 0;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.085), rgb(255 255 255 / 0.03)), color-mix(in srgb, var(--bg) 78%, #0a0a0a);
+    border: 0; border-block-start: 1px solid rgb(var(--gold-rgb) / 0.45);
+    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 -18px 44px rgb(0 0 0 / 0.34);
+  }
+  html.look-glass .pp .pp-key { height: 58px; }
+  html.look-glass .pp .vm.pp-mark { font-size: 21px; margin-block-end: 26px; }
+}
+@media (max-width: 700px) and (max-height: 700px) {
+  html.look-glass .pp .pp-key { height: 50px; }
+  html.look-glass .pp .vm.pp-mark { font-size: 16px; margin-block-end: 14px; }
+  html.look-glass .pp .pp-subject { padding-block: max(14px, env(safe-area-inset-top)) 12px; }
+}
+html.look-glass .pp > .netbg { display: block; }
+/* Spheres on a phone: two above the sheet and one resting on its edge, none behind the keys. */
+@media (max-width: 700px) {
+  html.look-glass .pp-orb.o1 { left: -52px; top: 11%; width: 124px; height: 124px; }
+  html.look-glass .pp-orb.o2 { right: -30px; top: -36px; width: 118px; height: 118px; }
+  html.look-glass .pp-orb.o3 { right: -40px; top: 27%; bottom: auto; width: 84px; height: 84px; }
+  html.look-glass .pp-orb.o4 { display: none; }
+}
+html.look-glass .pp[lang="ar"] :is(.pp-title, .pp-go, .pp-fn, .pp-pw) { letter-spacing: 0; }
+html.look-glass .pp[lang="ar"] .pp-go { font-size: 16px; }
