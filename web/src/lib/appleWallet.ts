@@ -7,6 +7,7 @@ import { db, type Card, type Venue } from "./supabase";
 import { appleOfferField } from "./offers";
 import { offerStateForCard } from "./passOffer";
 import { qrStripImages } from "./qrStrip";
+import { ARRIVAL_RADIUS_M, arrivalLocations } from "./arrival";
 import { walletColors } from "./brand";
 import { parseTiers, stampState } from "./stamps";
 import { ladderRows, rgb, stampCardStyle, stampStripImages, type StampCardStyle } from "./stampStrip";
@@ -189,7 +190,10 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   // Arabic iPhones get their own strip, logo and words (Apple's ar.lproj), from the Arabic reward names when given.
   const arStrip = look && st && ladderStrip ? await stampStripImages(venue.slug, ladderRows(st, st.tiers.map((t) => t.ar || t.text)), look, "ar") : null;
   const colors = walletColors();
+  // The welcome on the lock screen near the venue (lib/arrival.ts). No place set: nothing changes.
+  const near = preview ? [] : arrivalLocations(venue.name);
   const props = {
+    ...(near.length ? { maxDistance: ARRIVAL_RADIUS_M } : {}),
     ...live,
     passTypeIdentifier: process.env.APPLE_PASS_TYPE_ID,
     teamIdentifier: process.env.APPLE_TEAM_ID,
@@ -213,6 +217,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     appleCertificates(),
     props,
   );
+  if (near.length) pass.setLocations(...near);
   const goal = st ? st.cost : venue.reward_goal;
   const rewardText = st ? st.reward : venue.reward_text;
   const ready = card.points >= goal;

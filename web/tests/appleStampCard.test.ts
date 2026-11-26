@@ -62,6 +62,18 @@ describe("Spaloon stamp card on Apple Wallet", () => {
     expect(files.has("stamp-mark.png")).toBe(false);
   }, 30000);
 
+  it("comes up on the lock screen near the salon with the salon's own welcome, and only when a place is set", async () => {
+    expect((await pass(1)).json.locations).toBeUndefined();
+    expect((await pass(1)).json.maxDistance).toBeUndefined();
+    vi.stubEnv("BRAND_PIN", "26.2338508,50.5965259");
+    vi.stubEnv("BRAND_ARRIVAL_TEXT", "حياك تنورنا يا غالي");
+    const { json } = await pass(1);
+    expect(json.locations).toEqual([{ latitude: 26.2338508, longitude: 50.5965259, relevantText: "حياك تنورنا يا غالي" }]);
+    expect(json.maxDistance).toBe(100);
+    vi.stubEnv("BRAND_PIN", "");
+    vi.stubEnv("BRAND_ARRIVAL_TEXT", "");
+  });
+
   it("carries an Arabic side for iPhones set to Arabic", async () => {
     const { files } = await pass(1, 1);
     expect(pngSize(files.get("ar.lproj/strip@3x.png")!)).toEqual({ width: 1125, height: 369 });
