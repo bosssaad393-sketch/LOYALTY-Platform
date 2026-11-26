@@ -8,6 +8,7 @@ import type { Call, Member, Note } from "./types";
 import { useT } from "@/lib/uiLang";
 import { tx } from "@/lib/uiArabic";
 import type { Branch } from "@/lib/branches";
+import TrustedTills from "./TrustedTills";
 
 type Shown = { who: string; pin: string; what: "new" | "reset" };
 type Perk = { id: string; staffId: string; staffName: string; title: string; note: string | null; validUntil: string | null; status: string; createdAt: string; claimedAt: string | null };
@@ -157,6 +158,8 @@ export default function Team({ call }: { call: Call }) {
         </form>
         </div>
       </div>
+
+      <div style={{ marginBlockEnd: 16 }}><TrustedTills call={call} /></div>
 
       <section className="ow-panel" aria-labelledby="ow-h-thanks">
         <h2 className="ow-h" id="ow-h-thanks">{t("Thank your team")}</h2>

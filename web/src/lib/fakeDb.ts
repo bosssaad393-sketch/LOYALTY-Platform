@@ -160,6 +160,7 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
   auto_messages: [],
   message_log: [],
   bookings: [],
+  trusted_devices: [],
   ...sampleReceipts(),
   venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `orbyn-table-code-${n}`, active: true })),
   menu_categories: OWN_MENU
