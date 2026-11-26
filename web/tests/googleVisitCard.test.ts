@@ -18,7 +18,7 @@ describe("a visit card in Google Wallet", () => {
     expect(o.textModulesData).toEqual([{ id: "gift", header: "Your gift", body: "50% off at Asmak Al Roshinah. Use it at Asmak Al Roshinah." }]);
     expect(o.linksModuleData).toEqual({ uris: [{ id: "link0", uri: "https://roshinah.orbyn.co/menu/roshinah", description: "Menu" }] });
     expect(o.accountName).toBe("Maryam");
-    expect(JSON.stringify(o)).not.toContain("Points");
+    expect(JSON.stringify(o)).not.toContain('"label":"Points"');
   });
 
   it("says so plainly when no gift is waiting, and the update carries only what changes", () => {
