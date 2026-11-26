@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { Branch } from "@/lib/branches";
+import { reachMetres, ringPoints, type Branch } from "@/lib/branches";
+import { n } from "./format";
 import { Loading, LoadError, Msg, PageHead, Sheet, useGet } from "./ui";
 import type { Call, Note } from "./types";
 import { useT } from "@/lib/uiLang";
@@ -33,11 +34,24 @@ export default function Branches({ call, isOwner }: { call: Call; isOwner: boole
 
   const label = (k: string) => (k === "menu" ? t("no menu link") : k === "review" ? t("no review link") : t("no location"));
   const branches = list.data?.branches ?? [];
+  const rings = ringPoints(branches);
+  /** One line on what a guest's phone does near this place. */
+  const nearby = (b: Branch) =>
+    !b.active ? null
+      : b.lat === null ? t("Card on the lock screen: off, add the location")
+      : rings.has(b.id) ? t("Card on the lock screen: on, wider area, about {m} m", { m: n(reachMetres(rings.get(b.id)!)) })
+      : b.wideReach ? t("Card on the lock screen: on, about 100 m (no points left for the wider area)")
+      : t("Card on the lock screen: on, about 100 m");
 
   return (
     <>
       <PageHead eyebrow={t("Your places")} title={t("Branches")}>{t("A branch records visits. A partner counter, such as a sister restaurant, only takes gifts.")}</PageHead>
       <Msg note={note} />
+      <section className="ow-panel" aria-labelledby="ow-h-near" style={{ marginBlockEnd: 16 }}>
+        <h2 className="ow-h" id="ow-h-near">{t("Card on the lock screen")}</h2>
+        <p className="ow-note">{t("When a guest who holds your card comes near a branch, the card shows on their iPhone lock screen with a welcome line. It is not a sound or a message: the card is simply there when they look at their phone.")}</p>
+        <p className="ow-note">{t("iPhone sets the distance, about 100 metres for a loyalty card, and it cannot be raised. “Wider area” places extra points around a branch so the card comes up from about 250 metres. Each branch needs its location first: open it and paste its Google Maps link.")}</p>
+      </section>
       {list.error ? <LoadError text={list.error} onRetry={list.reload} /> : !list.data ? <Loading /> : (
         <section className="ow-panel ow-flush" aria-label={t("Branches")}>
           {branches.length === 0 ? (
@@ -53,6 +67,7 @@ export default function Branches({ call, isOwner }: { call: Call; isOwner: boole
                       {!b.active && <span className="ow-tag quiet">{t("Off")}</span>}
                     </div>
                     <small>{b.address ?? t("No address yet")}{missing(b).length > 0 && ` · ${missing(b).map(label).join(", ")}`}</small>
+                    {nearby(b) && <small>{nearby(b)}</small>}
                   </div>
                   {isOwner && (
                     <div className="ow-rowbtns">
@@ -70,7 +85,7 @@ export default function Branches({ call, isOwner }: { call: Call; isOwner: boole
         <div className="ow-actions ow-head-act"><button type="button" className="ow-btn primary" onClick={() => { setNote(null); setEditing("new"); }}>{t("Add a place")}</button></div>
       )}
       {editing && (
-        <BranchSheet call={call} branch={editing === "new" ? null : editing} onClose={() => setEditing(null)} onSaved={(name) => { setEditing(null); list.reload(); setNote({ kind: "ok", text: t("Saved {name}. Guests see the change the next time they open their card.", { name }) }); }} />
+        <BranchSheet call={call} branch={editing === "new" ? null : editing} onClose={() => setEditing(null)} onSaved={(name, pinFound) => { setEditing(null); list.reload(); setNote({ kind: "ok", text: pinFound ? t("Saved {name}. Its location was read from the Google Maps link.", { name }) : t("Saved {name}. Guests see the change the next time they open their card.", { name }) }); }} />
       )}
     </>
   );
@@ -78,7 +93,7 @@ export default function Branches({ call, isOwner }: { call: Call; isOwner: boole
 
 /** What the server takes back for a place (BranchInput in lib/branchesDb.ts). */
 function input(b: Branch) {
-  return { id: b.id, name: b.name, nameAr: b.nameAr ?? "", kind: b.kind, address: b.address ?? "", phone: b.phone ?? "", mapsUrl: b.mapsUrl ?? "", reviewUrl: b.reviewUrl ?? "", menuUrl: b.menuUrl ?? "", lat: b.lat, lng: b.lng, active: b.active };
+  return { id: b.id, name: b.name, nameAr: b.nameAr ?? "", kind: b.kind, address: b.address ?? "", phone: b.phone ?? "", mapsUrl: b.mapsUrl ?? "", reviewUrl: b.reviewUrl ?? "", menuUrl: b.menuUrl ?? "", lat: b.lat, lng: b.lng, wideReach: b.wideReach ?? false, active: b.active };
 }
 
 /**
@@ -95,7 +110,7 @@ export function readLocation(text: string): { lat: number | null; lng: number | 
   return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : "bad";
 }
 
-function BranchSheet({ call, branch, onClose, onSaved }: { call: Call; branch: Branch | null; onClose: () => void; onSaved: (name: string) => void }) {
+function BranchSheet({ call, branch, onClose, onSaved }: { call: Call; branch: Branch | null; onClose: () => void; onSaved: (name: string, pinFound: boolean) => void }) {
   const t = useT();
   const [kind, setKind] = useState<Branch["kind"]>(branch?.kind ?? "branch");
   const [busy, setBusy] = useState(false);
@@ -108,14 +123,15 @@ function BranchSheet({ call, branch, onClose, onSaved }: { call: Call; branch: B
     if (where === "bad") { setNote({ kind: "bad", text: t("Paste the location as two numbers, for example 26.1789, 50.4931.") }); return; }
     const text = (k: string) => String(f.get(k) ?? "").trim();
     setBusy(true); setNote(null);
-    const r = await call<{ branch: Branch }>("/api/owner/branches", "POST", {
+    const r = await call<{ branch: Branch; pinFound?: boolean }>("/api/owner/branches", "POST", {
       ...(branch ? { id: branch.id } : {}),
       name: text("name"), nameAr: text("nameAr"), kind, address: text("address"), phone: text("phone"),
       menuUrl: text("menuUrl"), mapsUrl: text("mapsUrl"), reviewUrl: text("reviewUrl"), lat: where.lat, lng: where.lng,
-      active: f.get("active") === "on",
+      wideReach: f.get("wideReach") === "on", active: f.get("active") === "on",
     });
     setBusy(false);
-    if (r.ok) onSaved(r.data.branch.name);
+    if (r.ok && f.get("wideReach") === "on" && r.data.branch.lat === null) { setNote({ kind: "bad", text: t("Saved, but the wider area needs the location. The Google Maps link did not give one: paste the two numbers below.") }); return; }
+    if (r.ok) onSaved(r.data.branch.name, r.data.pinFound === true);
     else if (r.status !== 401) setNote({ kind: "bad", text: r.error });
   }
 
@@ -167,12 +183,18 @@ function BranchSheet({ call, branch, onClose, onSaved }: { call: Call; branch: B
           <p className="ow-note">{t("Every guest sees the review link on their card. It is never tied to a gift.")}</p>
         </div>
         <div className="ow-sheet-sec">
-          <h3 className="ow-h">{t("Location for the Wallet card")}</h3>
+          <h3 className="ow-h">{t("Card on the lock screen")}</h3>
+          <p className="ow-note">{t("With the Google Maps link above, the location is filled in by itself when you save. Only if that fails, paste the two numbers here.")}</p>
           <label className="ow-field">
             <span className="ow-lbl">{t("Latitude, longitude")}</span>
             <input className="ow-in" name="location" dir="ltr" inputMode="decimal" defaultValue={branch && branch.lat !== null && branch.lng !== null ? `${branch.lat}, ${branch.lng}` : ""} placeholder="26.1789, 50.4931" autoComplete="off" />
           </label>
           <p className="ow-note">{t("Paste from Google Maps: press and hold the place, then copy the two numbers shown.")}</p>
+          <label className="ow-check">
+            <input type="checkbox" name="wideReach" defaultChecked={branch?.wideReach ?? false} />
+            <span>{t("Wider area: the card comes up from about 250 metres instead of 100")}</span>
+          </label>
+          <p className="ow-note">{t("Guests get the wider area the next time their card updates, for example after their next visit.")}</p>
           <label className="ow-check">
             <input type="checkbox" name="active" defaultChecked={branch?.active ?? true} />
             <span>{t("Switched on (staff can choose it, guests see it)")}</span>

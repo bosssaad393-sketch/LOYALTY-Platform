@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import QrSvg from "@/components/QrSvg";
+import GuestOrders from "./GuestOrders";
 import { ago, n } from "./format";
 import { Confirm, Loading, LoadError, Msg, PageHead, Sheet, useDebounced, useGet } from "./ui";
 import type { Call, Guest, Note } from "./types";
@@ -15,6 +16,7 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
   const [target, setTarget] = useState<Guest | null>(null);
   const [showing, setShowing] = useState<Guest | null>(null);
   const [gifting, setGifting] = useState<Guest | null>(null);
+  const [ordering, setOrdering] = useState<Guest | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
   const t = useT();
@@ -75,6 +77,7 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
                     {!visitVenue && <td className="ow-c-pts">{n(g.points)}</td>}
                     <td className="ow-c-act">
                       <button type="button" className="ow-btn small" onClick={() => setShowing(g)} aria-label={t("Show the card of {name}", { name: g.name })}>{t("Show card")}</button>
+                      <button type="button" className="ow-btn small" onClick={() => setOrdering(g)} aria-label={t("Orders of {name}", { name: g.name })}>{t("Orders")}</button>
                       {visitVenue && <button type="button" className="ow-btn small" onClick={() => setGifting(g)} aria-label={t("Gifts of {name}", { name: g.name })}>{t("Gifts")}</button>}
                       {isOwner && <button type="button" className="ow-btn small" onClick={() => { setNote(null); setTarget(g); }} aria-label={t("Delete {name}", { name: g.name })}>{t("Delete")}</button>}
                     </td>
@@ -88,6 +91,11 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
       {showing && (
         <Sheet eyebrow={t("Code {code}", { code: showing.code })} title={t("Card of {name}", { name: showing.name })} onClose={() => setShowing(null)}>
           <CardQr cardId={showing.cardId} name={showing.name} />
+        </Sheet>
+      )}
+      {ordering && (
+        <Sheet eyebrow={t("Code {code}", { code: ordering.code })} title={t("Orders of {name}", { name: ordering.name })} onClose={() => setOrdering(null)}>
+          <GuestOrders call={call} cardId={ordering.cardId} />
         </Sheet>
       )}
       {gifting && (

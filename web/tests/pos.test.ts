@@ -11,6 +11,9 @@ const h = vi.hoisted(() => ({
   sales: [] as unknown[][],
   refunds: [] as unknown[][],
   saleImpl: null as null | ((...a: unknown[]) => unknown),
+  receipts: [] as unknown[][],
+  receiptRefunds: [] as unknown[][],
+  receiptFails: false,
   seen: new Set<string>(),
 }));
 
@@ -29,6 +32,13 @@ vi.mock("../src/lib/ledgerDb", () => ({
     return { ledger_id: 5, points_added: dup ? 0 : 25, new_balance: 125, duplicate: dup };
   },
   posRefund: async (...a: unknown[]) => (h.refunds.push(a), { ledger_id: 6, points_removed: 25, new_balance: 100, duplicate: false }),
+  posReceipt: async (...a: unknown[]) => {
+    if (h.receiptFails) throw new Error("relation receipts does not exist");
+    const dup = h.receipts.some((r) => r[2] === a[2]);
+    h.receipts.push(a);
+    return { receipt_id: 1, guest_card: "c-c", duplicate: dup, visit_counted: !dup, visits: 3, vouchers_issued: dup ? 0 : 1 };
+  },
+  posReceiptRefund: async (...a: unknown[]) => (h.receiptRefunds.push(a), { receipt_id: 1, guest_card: "c-c", duplicate: false }),
 }));
 vi.mock("../src/lib/appleWallet", () => ({ appleWalletConfigured: () => false }));
 vi.mock("../src/lib/apns", () => ({ notifyAppleTokens: async () => 0, notifyAppleDevices: async () => {} }));
@@ -56,10 +66,13 @@ beforeEach(() => {
   h.sales = [];
   h.refunds = [];
   h.saleImpl = null;
+  h.receipts = [];
+  h.receiptRefunds = [];
+  h.receiptFails = false;
   h.seen = new Set();
   h.staff = DEV_A;
   h.state = newState({
-    venues: [{ id: VA }, { id: VB }],
+    venues: [{ id: VA }, { id: VB }, { id: "venue-c", card_mode: "visits" }],
     cards: [{ id: "c-a", venue_id: VA, code: "1111", points: 100 }, { id: "c-b", venue_id: VB, code: "1111", points: 7 }],
     ledger: [],
     pos_connections: [],
@@ -245,5 +258,56 @@ describe("the developer area", () => {
     expect((await reqPATCH(json({ id: REQ_A, status: "done", result: "POS connected" }, "PATCH"))).status).toBe(200);
     expect(h.state.tables.assistant_requests.find((r) => r.id === REQ_A)).toMatchObject({ status: "done", result: "POS connected" });
     expect((await reqPATCH(json({ id: "not-a-uuid", status: "done" }, "PATCH"))).status).toBe(400);
+  });
+});
+
+describe("a till at a visit-card venue", () => {
+  const VC = "venue-c";
+  const items = [{ name: "Chicken Machboos", qty: 2, priceBhd: 3.5 }, { name: "Karak tea" }];
+
+  it("keeps the bill with its dishes and counts the visit; no points are touched", async () => {
+    const key = await keyFor(VC);
+    const r = await receiveEvent(bearer(key), sale(1, { items, branch: "Sanad" }));
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ ok: true, duplicate: false, visitCounted: true, visits: 3, giftsUnlocked: 1, itemsSaved: 2 });
+    expect(h.receipts[0]).toEqual([VC, "1111", "R-1", 12.5, [{ name: "Chicken Machboos", qty: 2, priceBhd: 3.5 }, { name: "Karak tea", qty: 1 }], "sanad"]);
+    expect(h.sales).toHaveLength(0);
+    const again = await receiveEvent(bearer(key), sale(1, { items }));
+    expect(again.body).toMatchObject({ ok: true, duplicate: true, visitCounted: false, itemsSaved: 0 });
+    expect(h.state.tables.pos_events.map((e) => e.outcome)).toEqual(["ok", "duplicate"]);
+  });
+
+  it("a refund marks the kept bill and takes no points back", async () => {
+    const key = await keyFor(VC);
+    const r = await receiveEvent(bearer(key), { type: "refund", receiptId: "R-1" });
+    expect(r.body).toEqual({ ok: true, duplicate: false });
+    expect(h.receiptRefunds[0]).toEqual([VC, "R-1"]);
+    expect(h.refunds).toHaveLength(0);
+  });
+
+  it("refuses dishes it cannot read", async () => {
+    const key = await keyFor(VC);
+    for (const bad of [[{ qty: 2 }], [{ name: "x", qty: 0 }], [{ name: "x", priceBhd: -1 }], "tea", Array.from({ length: 101 }, () => ({ name: "x" }))]) {
+      expect((await receiveEvent(bearer(key), sale(2, { items: bad }))).status).toBe(400);
+    }
+    expect((await receiveEvent(bearer(key), sale(2, { branch: "not a slug!" }))).status).toBe(400);
+    expect(h.receipts).toHaveLength(0);
+  });
+});
+
+describe("a till at a points venue", () => {
+  it("still gives the points, and keeps the bill too", async () => {
+    const key = await keyFor(VA);
+    const r = await receiveEvent(bearer(key), sale(7, { items: [{ name: "Latte", qty: 1, priceBhd: 1.6 }] }));
+    expect(r.body).toMatchObject({ ok: true, pointsAdded: 25 });
+    expect(h.receipts[0].slice(0, 4)).toEqual([VA, "1111", "R-7", 12.5]);
+  });
+
+  it("a database without the bills table never fails the sale", async () => {
+    h.receiptFails = true;
+    const key = await keyFor(VA);
+    const r = await receiveEvent(bearer(key), sale(8));
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ ok: true, pointsAdded: 25 });
   });
 });

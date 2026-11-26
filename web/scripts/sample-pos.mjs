@@ -59,10 +59,11 @@ $("#clear").onclick=()=>{order=[];draw();say("")};
 $("#ping").onclick=async()=>{const r=await post("/api/ping",{});say(r.ok?"Connected. The platform answered.":"Not connected: "+(r.error||r.status),r.ok?"ok":"bad")};
 $("#pay").onclick=async()=>{const total=order.reduce((s,o)=>s+o[1],0);if(!total)return say("Add an item first.","bad");const code=$("#code").value.trim();
  if(!/^\\d{4}$/.test(code))return say("Type the guest's 4-digit card code, or pay without a card (no points).","bad");
- const receiptId="SAMPLE-"+Date.now();const r=await post("/api/sale",{receiptId,cardCode:code,billBhd:Math.round(total*1000)/1000});
- if(r.ok){last=receiptId;say("Paid BHD "+money(total)+". Points added: "+r.pointsAdded+". Guest balance: "+r.balance+(r.duplicate?" (duplicate ignored)":""),"ok");order=[];draw()}else say("Not sent: "+(r.error||r.status),"bad")};
+ const receiptId="SAMPLE-"+Date.now();const lines={};order.forEach(o=>{lines[o[0]]=lines[o[0]]||{name:o[0],qty:0,priceBhd:o[1]};lines[o[0]].qty++});
+ const r=await post("/api/sale",{receiptId,cardCode:code,billBhd:Math.round(total*1000)/1000,items:Object.values(lines)});
+ if(r.ok){last=receiptId;say("Paid BHD "+money(total)+". "+(r.pointsAdded!==undefined?"Points added: "+r.pointsAdded+". Guest balance: "+r.balance:(r.visitCounted?"Visit counted (visits: "+r.visits+")":"Bill kept, visit already counted")+(r.giftsUnlocked?". A gift was unlocked":"")+". Dishes saved: "+r.itemsSaved)+(r.duplicate?" (duplicate ignored)":""),"ok");order=[];draw()}else say("Not sent: "+(r.error||r.status),"bad")};
 $("#refund").onclick=async()=>{if(!last)return say("No sale to refund yet.","bad");const r=await post("/api/refund",{receiptId:last});
- if(r.ok){say("Refunded. Points taken back: "+r.pointsRemoved+". Balance: "+r.balance+(r.duplicate?" (already refunded)":""),"ok")}else say("Not refunded: "+(r.error||r.status),"bad")};
+ if(r.ok){say("Refunded."+(r.pointsRemoved!==undefined?" Points taken back: "+r.pointsRemoved+". Balance: "+r.balance:" The bill is marked refunded.")+(r.duplicate?" (already refunded)":""),"ok")}else say("Not refunded: "+(r.error||r.status),"bad")};
 </script>`;
 
 const server = http.createServer(async (req, res) => {
@@ -72,10 +73,10 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === "POST" && ["/api/ping", "/api/sale", "/api/refund"].includes(req.url || "")) {
     let raw = "";
-    for await (const c of req) { raw += c; if (raw.length > 5000) break; }
+    for await (const c of req) { raw += c; if (raw.length > 20000) break; }
     let b = {};
     try { b = JSON.parse(raw || "{}"); } catch { /* empty */ }
-    const msg = req.url === "/api/ping" ? { type: "ping" } : req.url === "/api/sale" ? { type: "sale", receiptId: String(b.receiptId || ""), cardCode: String(b.cardCode || ""), billBhd: Number(b.billBhd) } : { type: "refund", receiptId: String(b.receiptId || "") };
+    const msg = req.url === "/api/ping" ? { type: "ping" } : req.url === "/api/sale" ? { type: "sale", receiptId: String(b.receiptId || ""), cardCode: String(b.cardCode || ""), billBhd: Number(b.billBhd), ...(Array.isArray(b.items) ? { items: b.items } : {}), ...(process.env.POS_BRANCH ? { branch: process.env.POS_BRANCH } : {}) } : { type: "refund", receiptId: String(b.receiptId || "") };
     const r = await send(msg);
     res.writeHead(200, { "content-type": "application/json" });
     return res.end(JSON.stringify({ ok: r.status === 200 && r.ok !== false, ...r }));

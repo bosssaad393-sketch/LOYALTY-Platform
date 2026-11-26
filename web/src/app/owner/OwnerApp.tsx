@@ -172,14 +172,14 @@ function OwnerScreen({ initialMe, initialTab = "overview", brand, sample = null,
           ) : (
             <>
               {current === "overview" && <Overview call={call} isOwner={isOwner} stampVenue={stampVenue} visitVenue={visitVenue} onOpen={(x) => { setCompose(0); setTab(x); }} onSendUpdate={() => { setCompose((c) => c + 1); setTab("offers"); }} />}
-              {current === "service" && !stampVenue && <Service call={call} />}
+              {current === "service" && !stampVenue && <Service call={call} menuOnly={visitVenue} />}
               {current === "guests" && <Guests call={call} isOwner={isOwner} visitVenue={visitVenue} />}
               {current === "feedback" && <Feedback call={call} stampVenue={stampVenue} />}
               {current === "rules" && <Rules call={call} isOwner={isOwner} visitVenue={visitVenue} />}
-              {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} />}
+              {current === "offers" && <Offers call={call} isOwner={isOwner} venue={venue} composeSignal={compose} visitVenue={visitVenue} />}
               {current === "assistant" && isOwner && !stampVenue && <Assistant call={call} />}
               {current === "team" && isOwner && <Team call={call} />}
-              {current === "privacy" && isOwner && <Privacy call={call} venue={venue} />}
+              {current === "privacy" && isOwner && <Privacy call={call} venue={venue} visitVenue={visitVenue} />}
               {current === "branches" && visitVenue && <Branches call={call} isOwner={isOwner} />}
               {current === "gifts" && visitVenue && <Gifts call={call} isOwner={isOwner} />}
               {current === "messages" && visitVenue && <AutoMessages call={call} isOwner={isOwner} />}

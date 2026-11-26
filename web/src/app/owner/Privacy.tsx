@@ -9,7 +9,7 @@ import { useT } from "@/lib/uiLang";
 const MIN = 50;
 const MAX = 8000;
 
-export default function Privacy({ call, venue }: { call: Call; venue: string }) {
+export default function Privacy({ call, venue, visitVenue = false }: { call: Call; venue: string; visitVenue?: boolean }) {
   const loaded = useGet<PrivacyData>(call, "/api/owner/privacy");
   const [target, setTarget] = useState<DeletionRequest | null>(null);
   const [busy, setBusy] = useState(false);
@@ -67,7 +67,7 @@ export default function Privacy({ call, venue }: { call: Call; venue: string }) 
                   ))}
                 </ul>
               )}
-              <p className="ow-note">{t("Erasing removes the guest’s details, card and points history for good. The request itself stays on record, without personal details.")}</p>
+              <p className="ow-note">{visitVenue ? t("Erasing removes the guest’s details, card, visits and gifts for good. The request itself stays on record, without personal details.") : t("Erasing removes the guest’s details, card and points history for good. The request itself stays on record, without personal details.")}</p>
               <Msg note={eraseNote} />
               {done.length > 0 && (
                 <>
@@ -83,7 +83,7 @@ export default function Privacy({ call, venue }: { call: Call; venue: string }) 
 
             <section className="ow-panel" aria-labelledby="ow-h-export">
               <h2 className="ow-h" id="ow-h-export">{t("Export")}</h2>
-              <p className="ow-note ow-lead">{t("A spreadsheet of your guests with their phone, email and points. Every download is logged.")}</p>
+              <p className="ow-note ow-lead">{visitVenue ? t("A spreadsheet of your guests with their phone, email and visits. Every download is logged.") : t("A spreadsheet of your guests with their phone, email and points. Every download is logged.")}</p>
               <div className="ow-actions">
                 <a className="ow-btn" href="/api/owner/export" download>{t("Download all guests (CSV)")}</a>
               </div>
@@ -111,7 +111,7 @@ export default function Privacy({ call, venue }: { call: Call; venue: string }) 
       )}
       {target && (
         <Confirm title={t("Erase details for {label}?", { label: target.label })} confirmLabel={t("Erase for good")} danger busy={busy} onConfirm={erase} onClose={() => setTarget(null)}>
-          <p className="ow-note ow-dialog-text">{t("Their name, phone, email, card and points history are erased for good. This cannot be undone.")}</p>
+          <p className="ow-note ow-dialog-text">{visitVenue ? t("Their name, phone, email, card, visits and gifts are erased for good. This cannot be undone.") : t("Their name, phone, email, card and points history are erased for good. This cannot be undone.")}</p>
         </Confirm>
       )}
     </>

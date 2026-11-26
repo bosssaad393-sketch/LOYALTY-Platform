@@ -5,6 +5,7 @@ export type ActivityRow = { id: string | number; action: string; actor: string; 
 /** The actions an owner cares about, and how each one reads. Anything else stays out of the list. */
 export const ACTIVITY_TEXT: Record<string, string> = {
   visit: "Recorded a visit",
+  receipt_refund: "Refunded a bill",
   voucher_redeem: "Used a guest's voucher",
   voucher_void: "Cancelled a voucher",
   voucher_given: "Gave a guest a gift",
@@ -40,7 +41,7 @@ export function activityView(row: ActivityRow, staffNames: Map<string, string>, 
   return {
     id: String(row.id),
     what: ACTIVITY_TEXT[row.action] ?? row.action,
-    who: staffNames.get(row.actor) ?? (row.actor === "guest" ? "A guest" : row.actor === "system" ? "The system" : "Someone no longer on the team"),
+    who: staffNames.get(row.actor) ?? (row.actor === "guest" ? "A guest" : row.actor === "system" ? "The system" : row.actor === "pos" ? "The till" : "Someone no longer on the team"),
     branch: row.branchId ? branchNames.get(row.branchId) ?? null : null,
     at: row.at,
     extra,

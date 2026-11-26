@@ -452,3 +452,16 @@ html[style*="--venue-wordmark"] .hub-intro-mark::before { display: none; }
 .type-wide [lang="ar"] .hub-name.ar, .type-wide [lang="ar"] .mn-title { font-size: clamp(36px, 11vw, 52px); }
 /* A Latin name inside an Arabic page keeps the capitals of the heading face. */
 .type-poster [lang="ar"] :is(.hub-name:not(.ar), .vc-name:not(.ar)) { text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---- Owner: what one guest ordered (GuestOrders.tsx). One bill per row: the day and the total, then its dishes. ---- */
+.go-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.go-bill { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; align-items: start; }
+.go-head { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+.go-head b { font-weight: 500; }
+.go-head span { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.go-meta { color: var(--dim); font-size: var(--fs-sm); line-height: 1.4; }
+.go-lines { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; }
+.go-lines li { display: grid; grid-template-columns: 2.4em minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: var(--fs-md); }
+.go-qty { color: var(--muted); font-variant-numeric: tabular-nums; }
+.go-name { overflow-wrap: anywhere; }
+.go-price { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }

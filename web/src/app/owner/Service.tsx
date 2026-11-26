@@ -24,14 +24,19 @@ const money = filsMoney;
 const PARTS: Record<DayPart, string> = { morning: tx("Morning (6 to 12)"), afternoon: tx("Afternoon (12 to 18)"), evening: tx("Evening (18 to 24)"), late: tx("Late (0 to 6)") };
 const MEASURES: [WaitMeasure, string][] = [["accept", tx("Round accepted")], ["ready", tx("Round ready")], ["coal", tx("Coal")], ["waiter", tx("Waiter")], ["bill", tx("Bill")]];
 
-export default function Service({ call }: { call: Call }) {
-  const [view, setView] = useState<View>("report");
+/**
+ * menuOnly: a venue whose guests do not order from the table code (a visit-card venue: the table code opens the
+ * guest page). Its owner gets the menu and the table codes; the wait and sales report would stay empty, so it is left out.
+ */
+export default function Service({ call, menuOnly = false }: { call: Call; menuOnly?: boolean }) {
+  const [view, setView] = useState<View>(menuOnly ? "menu" : "report");
   const t = useT();
+  const views = ([["report", tx("Wait times and sales")], ["menu", tx("Menu")], ["tables", tx("Tables")]] as [View, string][]).filter(([v]) => !(menuOnly && v === "report"));
   return (
     <>
-      <PageHead eyebrow={t("Table service")} title={t("Tables and menu")}>{t("How long each table waited, what sold, your menu, and the QR code for each table.")}</PageHead>
+      <PageHead eyebrow={t("Table service")} title={t("Tables and menu")}>{menuOnly ? t("Your menu as guests see it, and the QR code for each table.") : t("How long each table waited, what sold, your menu, and the QR code for each table.")}</PageHead>
       <div className="ow-actions" role="group" aria-label={t("Table service sections")} style={{ marginBottom: 16 }}>
-        {([["report", tx("Wait times and sales")], ["menu", tx("Menu")], ["tables", tx("Tables")]] as [View, string][]).map(([v, label]) => (
+        {views.map(([v, label]) => (
           <button key={v} type="button" className={`ow-btn small${view === v ? " primary" : ""}`} aria-pressed={view === v} onClick={() => setView(v)}>{t(label)}</button>
         ))}
       </div>

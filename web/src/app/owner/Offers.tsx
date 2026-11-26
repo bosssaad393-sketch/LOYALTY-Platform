@@ -30,11 +30,12 @@ function startValues(t: OfferTemplate, venue: string): Record<string, string> {
   return v;
 }
 
-export default function Offers({ call, isOwner, venue, composeSignal = 0 }: { call: Call; isOwner: boolean; venue: string; composeSignal?: number }) {
+export default function Offers({ call, isOwner, venue, composeSignal = 0, visitVenue = false }: { call: Call; isOwner: boolean; venue: string; composeSignal?: number; visitVenue?: boolean }) {
   const loaded = useGet<OffersData>(call, "/api/owner/offers");
   const t = useT();
   // The templates in the screen's language (Arabic venues get Arabic messages).
-  const templates = OFFER_TEMPLATES.map((x) => localTemplate(x, t.lang));
+  // A visit card has no points, so the grey example for "Today's bonus" must not promise any.
+  const templates = OFFER_TEMPLATES.map((x) => localTemplate(x, t.lang)).map((x) => (visitVenue ? { ...x, fields: x.fields.map((f) => (/points|نقاط/.test(f.example) ? { ...f, example: t("a pot of tea with every dessert") } : f)) } : x));
   const main = templates.find((x) => x.id === MAIN_ID) ?? templates[0];
   const others = templates.filter((x) => x.id !== main.id);
   const [templateId, setTemplateId] = useState(main.id);

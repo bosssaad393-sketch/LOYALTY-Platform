@@ -27,7 +27,7 @@ const FILTERS: { id: ActivityFilter; label: string }[] = [
 ];
 
 /** The English words the server adds about a person or a line; shown in the screen's language. */
-const FIXED = [tx("A guest"), tx("The system"), tx("Someone no longer on the team"), tx("A gift was unlocked")];
+const FIXED = [tx("A guest"), tx("The system"), tx("The till"), tx("Someone no longer on the team"), tx("A gift was unlocked")];
 const said = (s: string, t: ReturnType<typeof useT>) => (FIXED.includes(s) ? t(s) : s);
 
 /** Owner only: who did what and where, as a plain list grouped by day, with filter chips. Read only. */

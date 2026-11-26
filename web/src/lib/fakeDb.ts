@@ -76,7 +76,7 @@ const sampleBranches: Row[] = VISITS
   ? [
       // The first branch can carry the venue's own public details (SAMPLE_MENU_URL, SAMPLE_PHONE, SAMPLE_MAPS_URL,
       // SAMPLE_ADDRESS), so the guest hub of a hosted sample shows working buttons. Unset = no such button.
-      ...BRANCH_NAMES.map((name, i) => ({ id: fakeId(500 + i), venue_id: VENUE, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_ar: null, kind: "branch", address: (i === 0 && process.env.SAMPLE_ADDRESS) || null, phone: (i === 0 && process.env.SAMPLE_PHONE) || null, maps_url: (i === 0 && process.env.SAMPLE_MAPS_URL) || null, review_url: null, menu_url: (i === 0 && process.env.SAMPLE_MENU_URL) || null, lat: null, lng: null, sort: i, active: true })),
+      ...BRANCH_NAMES.map((name, i) => ({ id: fakeId(500 + i), venue_id: VENUE, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, name_ar: null, kind: "branch", address: (i === 0 && process.env.SAMPLE_ADDRESS) || null, phone: (i === 0 && process.env.SAMPLE_PHONE) || null, maps_url: (i === 0 && process.env.SAMPLE_MAPS_URL) || null, review_url: null, menu_url: (i === 0 && process.env.SAMPLE_MENU_URL) || null, lat: null, lng: null, wide_reach: false, sort: i, active: true })),
       { id: PARTNER, venue_id: VENUE, slug: "partner", name: PARTNER_NAME, name_ar: null, kind: "partner", address: null, phone: null, maps_url: null, review_url: null, menu_url: null, lat: null, lng: null, sort: 9, active: true },
     ]
   : [];
@@ -85,6 +85,38 @@ if (VISITS) {
   for (const c of guests.cards) c.points = 0;
   guests.ledger = guests.ledger.filter((l) => l.kind === "earn").map((l, i) => ({ ...l, points: 0, bill_bhd: null, note: "visit", branch_id: fakeId(500 + (i % BRANCH_NAMES.length)) }));
   guests.members.forEach((m, i) => { if (i % 3 === 0) { m.birth_day = 1 + (i % 28); m.birth_month = 1 + (i % 12); } });
+}
+
+/**
+ * Sample bills for the owner's "Orders" view: the regulars each get a few invented bills made of dishes from the
+ * sample's own menu. Fixed arithmetic instead of chance, so the sample reads the same on every start.
+ */
+function sampleReceipts(): { receipts: Row[]; receipt_items: Row[] } {
+  const menu: { name: string; fils: number }[] = OWN_MENU
+    ? OWN_MENU.categories.flatMap((c) => c.items.map((it) => ({ name: it.en, fils: it.fils })))
+    : sampleItems.map(([, , en, , fils]) => ({ name: en, fils }));
+  const receipts: Row[] = [];
+  const receipt_items: Row[] = [];
+  if (!menu.length) return { receipts, receipt_items };
+  guests.cards.filter((c) => Number(c.visits) > 0).forEach((c, g) => {
+    // The newest bill is the guest's last visit; the older ones step back about nine days each.
+    const last = c.last_visit ? new Date(String(c.last_visit)).getTime() : Date.now() - 86_400_000;
+    const bills = Math.min(Number(c.visits), 1 + (g % 4));
+    for (let b = 0; b < bills; b++) {
+      const id = receipts.length + 1;
+      const lines = 2 + ((g + b) % 3);
+      let total = 0;
+      for (let l = 0; l < lines; l++) {
+        // A regular comes back to the same first dish; the rest of the bill moves around the menu.
+        const dish = menu[(l === 0 ? g * 7 : g * 7 + b * 13 + l * 5) % menu.length];
+        const qty = 1 + ((g + l) % 2);
+        total += dish.fils * qty;
+        receipt_items.push({ id: receipt_items.length + 1, receipt_id: id, venue_id: VENUE, name: dish.name, qty, price_fils: dish.fils });
+      }
+      receipts.push({ id, venue_id: VENUE, card_id: c.id, branch_id: VISITS ? fakeId(500 + (g % BRANCH_NAMES.length)) : null, receipt: `SAMPLE-${1000 + id}`, total_fils: total, refunded_at: null, created_at: new Date(last - b * 9 * 86_400_000 - b * (g % 5) * 3_600_000).toISOString() });
+    }
+  });
+  return { receipts, receipt_items };
 }
 
 const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, Row[]> }).__fakeDb ??= {
@@ -125,6 +157,7 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
     : [],
   auto_messages: [],
   message_log: [],
+  ...sampleReceipts(),
   venue_tables: [1, 2, 3, 4, 5, 6].map((n) => ({ id: fakeId(n + 10), venue_id: VENUE, label: String(n), token: `orbyn-table-code-${n}`, active: true })),
   menu_categories: OWN_MENU
     ? OWN_MENU.categories.map((c, i) => ({ id: fakeId(40_000 + i), venue_id: VENUE, name_en: c.en, name_ar: c.ar, sort: i, active: true }))
@@ -144,7 +177,7 @@ const store: Record<string, Row[]> = (globalThis as { __fakeDb?: Record<string, 
     [4, "Sample: great coffee. The corner table by the window is a little dark.", 9],
     [2, "Sample: waited twenty minutes for the bill on Friday night.", 26],
     [5, "", 50],
-    [4, "Sample: the points card is easy, I showed it to my brother.", 75],
+    [4, "Sample: the card is easy, I showed it to my brother.", 75],
     [3, "Sample: music was loud after ten, otherwise good.", 120],
   ] as [number, string, number][]).map(([rating, message, hoursAgo], i) => ({ id: fakeId(700 + i), venue_id: VENUE, card_id: guests.cards[i % guests.cards.length]?.id, rating, message: message || null, created_at: new Date(Date.now() - hoursAgo * 3600_000).toISOString() })),
 };
@@ -165,7 +198,7 @@ class Query implements PromiseLike<Result> {
   private patch: Row | null = null;
   private removing = false;
   private columns = "*";
-  private sort: { col: string; asc: boolean } | null = null;
+  private sorts: { col: string; asc: boolean }[] = [];
   private window: [number, number] | null = null;
   private max: number | null = null;
 
@@ -216,7 +249,7 @@ class Query implements PromiseLike<Result> {
     return this;
   }
   order(col: string, o?: { ascending?: boolean }) {
-    this.sort = { col, asc: o?.ascending !== false };
+    this.sorts.push({ col, asc: o?.ascending !== false });
     return this;
   }
   range(from: number, to: number) {
@@ -266,17 +299,17 @@ class Query implements PromiseLike<Result> {
       return { data: null, error: null };
     }
     let hits = matched.map((r) => this.project(r));
-    if (this.sort) {
-      const { col, asc } = this.sort;
-      const value = (r: Row) => r[col];
-      hits = hits.sort((a, b) => {
-        const x = value(a), y = value(b);
+    if (this.sorts.length) {
+      // ORDER BY a, b: the first .order() decides, the next ones break ties.
+      const by = ({ col, asc }: { col: string; asc: boolean }, a: Row, b: Row) => {
+        const x = a[col], y = b[col];
         // Like the app's real queries (nullsFirst: false): rows with no value go last, whichever way the sort runs.
         const xn = x === null || x === undefined, yn = y === null || y === undefined;
         if (xn || yn) return xn === yn ? 0 : xn ? 1 : -1;
         const c = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true });
         return asc ? c : -c;
-      });
+      };
+      hits = hits.sort((a, b) => { for (const s of this.sorts) { const c = by(s, a, b); if (c) return c; } return 0; });
     }
     if (this.window) hits = hits.slice(this.window[0], this.window[1] + 1);
     if (this.max !== null) hits = hits.slice(0, this.max);
@@ -387,6 +420,54 @@ function fakeRpc(fn: string, args: Record<string, unknown>): Result {
     }
     audit(card.venue_id, "visit", { card: card.id, ledger: row.id, vouchers_issued: issued });
     return { data: [{ ledger_id: row.id, visits: card.visits, vouchers_issued: issued }], error: null };
+  }
+  if (fn === "pos_receipt") {
+    const venue = store.venues.find((v) => v.id === args.p_venue);
+    if (!venue || !venue.active) return bad("venue is not active");
+    const kept = (store.receipts ??= []);
+    const old = kept.find((r) => r.venue_id === args.p_venue && r.receipt === args.p_receipt);
+    if (old) return { data: [{ receipt_id: old.id, guest_card: old.card_id, duplicate: true, visit_counted: false, visits: cardOf(old.card_id)?.visits ?? 0, vouchers_issued: 0 }], error: null };
+    const card = store.cards.find((c) => c.venue_id === args.p_venue && c.code === args.p_code);
+    if (!card) return bad("card not found");
+    const bill = Number(args.p_bill);
+    if (!(bill > 0 && bill <= 5000)) return bad("invalid bill amount");
+    const places = (store.branches ??= []).filter((b) => b.venue_id === args.p_venue && b.active);
+    const own = places.filter((b) => b.kind === "branch");
+    const branch = args.p_branch ? places.find((b) => b.slug === String(args.p_branch).trim().toLowerCase()) : own.length === 1 ? own[0] : undefined;
+    if (args.p_branch && !branch) return bad("branch not found");
+    const id = kept.length + 1;
+    kept.push({ id, venue_id: args.p_venue, card_id: card.id, branch_id: branch?.id ?? null, receipt: args.p_receipt, total_fils: Math.round(bill * 1000), refunded_at: null, created_at: new Date().toISOString() });
+    const lines = (store.receipt_items ??= []);
+    for (const it of (Array.isArray(args.p_items) ? args.p_items : []) as { name?: string; qty?: number; priceBhd?: number }[]) {
+      if (!it.name?.trim()) continue;
+      lines.push({ id: lines.length + 1, receipt_id: id, venue_id: args.p_venue, name: it.name.trim().slice(0, 120), qty: it.qty ?? 1, price_fils: it.priceBhd === undefined ? null : Math.round(it.priceBhd * 1000) });
+    }
+    let counted = false, issued = 0;
+    const undone = new Set(ledger.filter((l) => l.kind === "undo").map((l) => l.undoes));
+    const mine = ledger.filter((l) => l.card_id === card.id && l.kind === "earn" && !undone.has(l.id));
+    const gap = Number(venue.visit_gap_minutes ?? 180) * 60_000;
+    if (venue.card_mode === "visits" && branch?.kind === "branch" && !mine.some((l) => Date.now() - new Date(String(l.created_at)).getTime() < gap)) {
+      const first = !mine.some((l) => l.note === "visit");
+      card.visits = Number(card.visits ?? 0) + 1;
+      const row = entry(card, "earn", 0) as Row;
+      Object.assign(row, { note: "visit", branch_id: branch.id, staff_id: null, source: "pos", external_ref: args.p_receipt });
+      counted = true;
+      const held = (store.card_vouchers ??= []);
+      for (const v of (store.vouchers ??= []).filter((x) => x.venue_id === card.venue_id && x.active && (x.trigger === "every_visit" || (x.trigger === "first_visit" && first)))) {
+        if (held.some((h) => h.card_id === card.id && h.voucher_id === v.id)) continue;
+        held.push({ id: uuid(), card_id: card.id, venue_id: card.venue_id, voucher_id: v.id, status: "issued", issued_at: new Date().toISOString(), issued_by: null, issued_branch: branch.id, expires_at: v.valid_days ? new Date(Date.now() + Number(v.valid_days) * 86_400_000).toISOString() : null, redeemed_at: null, redeemed_by: null, redeemed_branch: null, voided_at: null, voided_by: null });
+        issued++;
+      }
+      (store.audit_log ??= []).push({ id: uuid(), venue_id: card.venue_id, actor: "pos", action: "visit", detail: { card: card.id, ledger: row.id, vouchers_issued: issued, receipt: args.p_receipt }, branch_id: branch.id, created_at: new Date().toISOString() });
+    }
+    return { data: [{ receipt_id: id, guest_card: card.id, duplicate: false, visit_counted: counted, visits: card.visits, vouchers_issued: issued }], error: null };
+  }
+  if (fn === "pos_receipt_refund") {
+    const old = (store.receipts ??= []).find((r) => r.venue_id === args.p_venue && r.receipt === args.p_receipt);
+    if (!old) return bad("receipt not found");
+    if (old.refunded_at) return { data: [{ receipt_id: old.id, guest_card: old.card_id, duplicate: true }], error: null };
+    old.refunded_at = new Date().toISOString();
+    return { data: [{ receipt_id: old.id, guest_card: old.card_id, duplicate: false }], error: null };
   }
   if (fn === "voucher_redeem" || fn === "voucher_void") {
     const cv = (store.card_vouchers ??= []).find((h) => h.id === args.p_card_voucher);

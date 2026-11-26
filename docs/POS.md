@@ -21,6 +21,18 @@ One generic adapter works with any till that can send an HTTPS request after a s
 - `cardCode`: the guest's 4-digit code. `billBhd`: more than 0, up to 5000.
 - Points = floor(bill x the business's points per BHD). A refund takes back exactly the points that sale gave.
 
+### What was ordered (optional, needs migration 0024)
+
+```json
+{"type":"sale","receiptId":"R-1001","cardCode":"1234","billBhd":11.4,"branch":"sanad",
+ "items":[{"name":"Chicken Machboos","qty":2,"priceBhd":3.9},{"name":"Karak tea","qty":2,"priceBhd":0.8}]}
+```
+
+- `items`: up to 100 lines; `name` up to 120 characters, `qty` 1 to 99 (1 when left out), `priceBhd` the price of one (may be left out). The bill and its lines are kept against the guest: the owner sees them in **Guests > Orders**, with what the guest orders most.
+- `branch`: the branch's short name as in the owner's Branches list (lower case, for example `sanad`). Needed only when the business has more than one branch.
+- **A visit-card business (no points, for example Al Roshinah):** the sale keeps the bill and **counts the visit**, with the same rules as a staff scan (one visit per sitting, gifts unlock), so the cashier does not scan the card a second time. The answer is `{"ok":true,"duplicate":false,"visitCounted":true,"visits":4,"giftsUnlocked":0,"itemsSaved":2}`. A bill at a partner counter, or with no branch named at a business with several branches, is kept without counting a visit. A refund marks the bill refunded; the visit stays.
+- A points business: unchanged, and the bill is kept too.
+
 ## Answers
 
 | Status | Meaning |

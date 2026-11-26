@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { db } from "../supabase";
 import type { Staff } from "../staffAuth";
-import { posRefund, posSale } from "../ledgerDb";
+import { posReceipt, posReceiptRefund, posRefund, posSale } from "../ledgerDb";
 import { refreshWalletCards } from "../staffApi";
 import { createRateLimiter } from "../rateLimit";
 import { bearerKey, hashKey, newKey, sameHash } from "./keys";
@@ -19,12 +19,18 @@ export const PROVIDERS = [
   { id: "square", name: "Square", status: "planned", note: "Not connected. Needs a review of their API first." },
   { id: "lightspeed", name: "Lightspeed", status: "planned", note: "Not connected. Needs a review of their API first." },
   { id: "simphony", name: "Oracle Simphony", status: "planned", note: "Not connected. Needs a review of their API first." },
+  { id: "invo", name: "Invo POS", status: "planned", note: "Not connected. Needs their API documents or a way to send each paid bill first." },
 ] as const;
 
 const Receipt = z.string().trim().min(1).max(64).regex(/^[\w.\-:/#]+$/);
 const PosEvent = z.discriminatedUnion("type", [
   z.object({ type: z.literal("ping") }),
-  z.object({ type: z.literal("sale"), receiptId: Receipt, cardCode: z.string().regex(/^\d{4}$/), billBhd: z.number().positive().max(5000) }),
+  z.object({
+    type: z.literal("sale"), receiptId: Receipt, cardCode: z.string().regex(/^\d{4}$/), billBhd: z.number().positive().max(5000),
+    // Optional: what was ordered, kept against the guest so the owner can see it; and which branch the till is in.
+    items: z.array(z.object({ name: z.string().trim().min(1).max(120), qty: z.number().int().min(1).max(99).default(1), priceBhd: z.number().min(0).max(5000).optional() })).max(100).optional(),
+    branch: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{1,40}$/).optional(),
+  }),
   z.object({ type: z.literal("refund"), receiptId: Receipt }),
 ]);
 
@@ -45,6 +51,8 @@ async function log(venueId: string, kind: "sale" | "refund" | "ping", outcome: "
 function reason(message: string): string | null {
   const m = message.toLowerCase();
   if (m.includes("card not found")) return "unknown card code";
+  if (m.includes("branch not found")) return "unknown branch";
+  if (m.includes("invalid items")) return "the items could not be read";
   if (m.includes("invalid bill") || m.includes("too small")) return "the bill amount cannot earn points";
   if (m.includes("below zero")) return "the guest has already used these points";
   if (m.includes("receipt not found")) return "no sale with that receipt id";
@@ -64,7 +72,7 @@ export async function receiveEvent(authorization: string | null, rawBody: unknow
   if (!limiter.allow(hash)) return { status: 429, body: { error: "too many requests" } };
 
   const parsed = PosEvent.safeParse(rawBody);
-  if (!parsed.success) return { status: 400, body: { error: "bad request", hint: 'send {"type":"sale","receiptId":"...","cardCode":"1234","billBhd":12.5}, {"type":"refund","receiptId":"..."} or {"type":"ping"}' } };
+  if (!parsed.success) return { status: 400, body: { error: "bad request", hint: 'send {"type":"sale","receiptId":"...","cardCode":"1234","billBhd":12.5,"items":[{"name":"...","qty":1,"priceBhd":2.5}]}, {"type":"refund","receiptId":"..."} or {"type":"ping"}' } };
   const ev = parsed.data;
 
   if (ev.type === "ping") {
@@ -72,10 +80,33 @@ export async function receiveEvent(authorization: string | null, rawBody: unknow
     return { status: 200, body: { ok: true } };
   }
 
+  // A visit-card venue has no points: the bill is kept against the guest and counts as the visit.
+  const visitVenue = await isVisitVenue(venueId);
+
   try {
+    if (ev.type === "sale" && visitVenue) {
+      const bill = Math.round(ev.billBhd * 1000) / 1000;
+      const r = await posReceipt(venueId, ev.cardCode, ev.receiptId, bill, ev.items ?? [], ev.branch ?? null);
+      await log(venueId, "sale", r.duplicate ? "duplicate" : "ok", ev.receiptId, 0);
+      if (!r.duplicate) {
+        try {
+          await refreshWalletCards(r.guest_card, 0);
+        } catch (e) {
+          console.error("wallet refresh after POS sale failed", e instanceof Error ? e.message : e);
+        }
+      }
+      return { status: 200, body: { ok: true, duplicate: r.duplicate, visitCounted: r.visit_counted, visits: r.visits, giftsUnlocked: r.vouchers_issued, itemsSaved: r.duplicate ? 0 : (ev.items ?? []).length } };
+    }
+    if (ev.type === "refund" && visitVenue) {
+      const r = await posReceiptRefund(venueId, ev.receiptId);
+      await log(venueId, "refund", r.duplicate ? "duplicate" : "ok", ev.receiptId, 0);
+      return { status: 200, body: { ok: true, duplicate: r.duplicate } };
+    }
     if (ev.type === "sale") {
       const bill = Math.round(ev.billBhd * 1000) / 1000;
       const r = await posSale(venueId, ev.cardCode, bill, ev.receiptId);
+      // The bill and its lines are kept too, where the database has 0024. Never fails the sale.
+      await posReceipt(venueId, ev.cardCode, ev.receiptId, bill, ev.items ?? [], ev.branch ?? null).catch((e) => console.error("receipt not kept", e instanceof Error ? e.message : e));
       if (r.duplicate) {
         await log(venueId, "sale", "duplicate", ev.receiptId, 0);
         return { status: 200, body: { ok: true, duplicate: true, pointsAdded: 0, balance: r.new_balance } };
@@ -90,6 +121,7 @@ export async function receiveEvent(authorization: string | null, rawBody: unknow
       return { status: 200, body: { ok: true, duplicate: false, pointsAdded: r.points_added, balance: r.new_balance } };
     }
     const r = await posRefund(venueId, ev.receiptId);
+    await posReceiptRefund(venueId, ev.receiptId).catch(() => null);
     if (r.duplicate) {
       await log(venueId, "refund", "duplicate", ev.receiptId, 0);
       return { status: 200, body: { ok: true, duplicate: true, pointsRemoved: 0, balance: r.new_balance } };
@@ -113,6 +145,11 @@ export async function receiveEvent(authorization: string | null, rawBody: unknow
     await log(venueId, ev.type, "error", ev.receiptId, undefined, "server error");
     return { status: 500, body: { ok: false, error: "try again" } };
   }
+}
+
+async function isVisitVenue(venueId: string): Promise<boolean> {
+  const { data } = await db().from("venues").select("card_mode").eq("id", venueId).maybeSingle();
+  return (data as { card_mode?: string | null } | null)?.card_mode === "visits";
 }
 
 // ---- the developer area ----

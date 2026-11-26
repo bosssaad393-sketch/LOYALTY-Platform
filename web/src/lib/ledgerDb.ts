@@ -41,6 +41,20 @@ export const posSale = (venueId: string, code: string, billBhd: number, receipt:
 /** A refund from the POS: takes back that receipt's points, once. */
 export const posRefund = (venueId: string, receipt: string) => call<PosRefundResult>("ledger_pos_refund", { p_venue: venueId, p_receipt: receipt });
 
+export type ReceiptItem = { name: string; qty: number; priceBhd?: number };
+export type PosReceiptResult = { receipt_id: number; guest_card: string; duplicate: boolean; visit_counted: boolean; visits: number; vouchers_issued: number };
+
+/**
+ * A paid bill from the POS, kept against the guest's card with its lines (0024). At a visit-card venue the bill also
+ * counts the visit and unlocks its gifts. The same receipt twice changes nothing.
+ */
+export const posReceipt = (venueId: string, code: string, receipt: string, billBhd: number, items: ReceiptItem[], branch: string | null) =>
+  call<PosReceiptResult>("pos_receipt", { p_venue: venueId, p_code: code, p_receipt: receipt, p_bill: billBhd, p_items: items, p_branch: branch });
+
+/** A refund from the POS for a kept bill: marked refunded, once. */
+export const posReceiptRefund = (venueId: string, receipt: string) =>
+  call<{ receipt_id: number; guest_card: string; duplicate: boolean }>("pos_receipt_refund", { p_venue: venueId, p_receipt: receipt });
+
 /** Owner adds (delta > 0) or removes (delta < 0) points on one card, with a reason. The database checks the owner, the venue, the limits and the balance. */
 export const adjustPoints = (cardId: string, staffId: string, delta: number, reason: string) =>
   call<SpendResult>("ledger_adjust", { p_card: cardId, p_staff: staffId, p_delta: delta, p_reason: reason });
