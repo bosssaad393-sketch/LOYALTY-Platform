@@ -178,6 +178,25 @@ export function lampStripImages(slug: string, level: LampLevel): Record<string, 
   return files;
 }
 
+/**
+ * A venue's text ornaments for its Wallet card (passes/<venue>/decor.json): "label" is one character set beside each
+ * label, "code" one set on both sides of the member code under the QR. Missing file or entry: no ornament.
+ */
+function decor(slug: string): { label?: string; code?: string } {
+  try {
+    const d = JSON.parse(readFileSync(path.join(process.cwd(), "passes", slug, "decor.json"), "utf8")) as Record<string, unknown>;
+    const one = (v: unknown) => (typeof v === "string" && v.trim() && [...v.trim()].length <= 2 ? v.trim() : undefined);
+    return { label: one(d.label), code: one(d.code) };
+  } catch {
+    return {};
+  }
+}
+export const labelOrnament = (slug: string): string | undefined => decor(slug).label;
+export function codeCaption(slug: string, code: string): string {
+  const o = decor(slug).code;
+  return o ? `${o}  ${code}  ${o}` : code;
+}
+
 /** "A gift is waiting" strip (passes/<venue>/lit/strip*.png): the same picture with the light on. Empty when the venue has none. */
 function litStripImages(slug: string): Record<string, Buffer> {
   const dir = path.join(process.cwd(), "passes", slug, "lit");
@@ -303,12 +322,16 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     const base = process.env.PUBLIC_BASE_URL ?? baseUrl;
     const main = branches.find((b) => b.kind === "branch");
     const used = vouchers.filter((v) => voucherState(v) === "used");
-    storeCard.headerFields.push({ key: "visits", label: "VISITS", value: card.visits, textAlignment: "PKTextAlignmentRight" as const });
+    // A venue's ornament (passes/<venue>/decor.json) is set beside each label: Wallet allows no picture below the
+    // artwork, only text, so a flower can only be a character.
+    const orn = labelOrnament(venue.slug);
+    const left = (label: string) => (orn ? `${orn} ${label}` : label), right = (label: string) => (orn ? `${label} ${orn}` : label);
+    storeCard.headerFields.push({ key: "visits", label: right("VISITS"), value: card.visits, textAlignment: "PKTextAlignmentRight" as const });
     storeCard.secondaryFields.push(
-      { key: "member", label: "MEMBER", value: memberName },
+      { key: "member", label: left("MEMBER"), value: memberName },
       gift
-        ? { key: "gift", label: "YOUR GIFT", value: gift.title, textAlignment: "PKTextAlignmentRight" as const, changeMessage: "Your gift is ready: %@" }
-        : { key: "gift", label: "MEMBER CODE", value: card.code, textAlignment: "PKTextAlignmentRight" as const },
+        ? { key: "gift", label: right("YOUR GIFT"), value: gift.title, textAlignment: "PKTextAlignmentRight" as const, changeMessage: "Your gift is ready: %@" }
+        : { key: "gift", label: right("MEMBER CODE"), value: card.code, textAlignment: "PKTextAlignmentRight" as const },
     );
     // Wallet renders a little HTML here; names, addresses and links come from the owner's settings, so escape them.
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -379,7 +402,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     format: "PKBarcodeFormatQR",
     message: qrMessage(venue.slug, card.code, card.id),
     messageEncoding: "iso-8859-1",
-    altText: card.code,
+    altText: visitMode && !preview ? codeCaption(venue.slug, card.code) : card.code,
   });
   return pass.getAsBuffer();
 }
