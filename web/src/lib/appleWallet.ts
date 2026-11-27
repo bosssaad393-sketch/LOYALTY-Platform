@@ -182,22 +182,28 @@ export function lampStripImages(slug: string, level: LampLevel): Record<string, 
  * A venue's text ornaments for its Wallet card (passes/<venue>/decor.json): "label" is one character set beside each
  * label, "code" one set on both sides of the member code under the QR. Missing file or entry: no ornament.
  */
-function decor(slug: string): { label?: string; code?: string; caption?: string } {
+function decor(slug: string): { label?: string; code?: string; caption?: string; row?: string; welcome?: string } {
   try {
     const d = JSON.parse(readFileSync(path.join(process.cwd(), "passes", slug, "decor.json"), "utf8")) as Record<string, unknown>;
     const one = (v: unknown) => (typeof v === "string" && v.trim() && [...v.trim()].length <= 2 ? v.trim() : undefined);
     const caption = typeof d.caption === "string" && d.caption.trim() ? d.caption.trim().slice(0, 40) : undefined;
-    return { label: one(d.label), code: one(d.code), caption };
+    const line = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : undefined);
+    return { label: one(d.label), code: one(d.code), caption, row: line(d.row), welcome: line(d.welcome) };
   } catch {
     return {};
   }
+}
+export function secondRow(slug: string): { row: string; welcome: string } | null {
+  const { row, welcome } = decor(slug);
+  return row && welcome ? { row, welcome } : null;
 }
 export const captionSet = (slug: string): boolean => Boolean(decor(slug).caption);
 export const labelOrnament = (slug: string): string | undefined => decor(slug).label;
 export function codeCaption(slug: string, code: string): string {
   const { code: o, caption } = decor(slug);
-  // "caption": the venue's own words under the QR in place of the code (the code is then written on the back).
-  if (caption) return o ? `${o}  ${caption}  ${o}` : caption;
+  // "caption": the venue's own words under the QR, next to the code. The code always stays on the front: it is what
+  // the staff type when the scanner cannot read the QR (Saad, 2026-11-27).
+  if (caption) return `${caption}  ${o ?? "·"}  ${code}`;
   return o ? `${o}  ${code}  ${o}` : code;
 }
 
@@ -319,7 +325,10 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   // Store card (all iPhones): the strip is the card artwork only and nothing is printed over it (no primary fields).
   // Wallet puts secondary and auxiliary fields on ONE row and four of them do not fit next to a name (measured on a real
   // iPhone), so the row holds three: MEMBER, POINTS, YOUR CODE. How far to the reward is the first thing on the back.
-  const storeCard = new PassType("storeCard");
+  // A venue with a second row (decor.json "row" and "welcome") gets Apple's ticket layout for its visit card: that is
+  // the only layout with the artwork AND a second row of text under the first (a store card has one row).
+  const second = visitMode && !preview ? secondRow(venue.slug) : null;
+  const storeCard = new PassType(second ? "eventTicket" : "storeCard");
   if (visitMode && !preview) {
     // Visit card: visits in the header, the member and the gift below the artwork. Wallet announces a gift once, when
     // it is unlocked (the field's value changes from the welcome line to the gift).
@@ -337,6 +346,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
         ? { key: "gift", label: right("YOUR GIFT"), value: gift.title, textAlignment: "PKTextAlignmentRight" as const, changeMessage: "Your gift is ready: %@" }
         : { key: "gift", label: right("MEMBER CODE"), value: card.code, textAlignment: "PKTextAlignmentRight" as const },
     );
+    if (second) storeCard.auxiliaryFields.push({ key: "welcome", label: second.row, value: second.welcome, textAlignment: "PKTextAlignmentCenter" as const });
     // Wallet renders a little HTML here; names, addresses and links come from the owner's settings, so escape them.
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     const link = (key: string, label: string, text: string, url: string | null | undefined) =>

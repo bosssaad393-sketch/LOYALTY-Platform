@@ -1,6 +1,8 @@
 {
-  "about": "Text ornaments on the Wallet card (src/lib/appleWallet.ts): label = beside each label, code = both sides of the line under the QR, caption = that line (in place of the member code, which then goes on the back). Saad, 2026-11-27.",
-  "label": "❁",
-  "code": "✦",
-  "caption": "الروشنة"
+  "about": "Text ornaments on the Wallet card (src/lib/appleWallet.ts): label = beside each label, code = both sides of the line under the QR, caption = that line (in place of the member code, which then goes on the back). Saad, 2026-11-27. row + welcome = a second, centred row under the first (the card then uses Apple's ticket layout).",
+  "label": "\u2741",
+  "code": "\u2726",
+  "caption": "\u0627\u0644\u0631\u0648\u0634\u0646\u0629",
+  "row": "\u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726",
+  "welcome": "\u2741  \u062d\u064a\u0627\u0643 \u062a\u0646\u0648\u0631\u0646\u0627 \u064a\u0627 \u063a\u0627\u0644\u064a  \u2741"
 }
