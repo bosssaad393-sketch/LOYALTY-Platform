@@ -68,10 +68,10 @@ describe("the Wallet card's picture at each level (Al Roshinah)", () => {
     for (let i = 1; i < steps.length; i++) expect(steps[i], `level ${i}`).toBeGreaterThan(steps[i - 1] + 2);
   });
 
-  it("keeps the transparent corners, so the card's colour still shows around the picture", () => {
+  it("fills the whole strip at every level: Al Roshinah's picture runs edge to edge (scripts/card-bleed.mjs)", () => {
     for (const level of [1, 2, 3] as LampLevel[]) {
       const png = PNG.sync.read(lampStripImages("roshinah", level)[STRIP_FILES[2]]);
-      expect(png.data[3]).toBe(0);
+      expect(png.data[3]).toBe(255);
       expect(png.data[((png.height >> 1) * png.width + (png.width >> 1)) * 4 + 3]).toBe(255);
     }
   });

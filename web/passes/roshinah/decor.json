@@ -1,9 +1,10 @@
 {
-  "about": "Text ornaments on the Wallet card (src/lib/appleWallet.ts): label = beside each label, code = both sides of the line under the QR, caption = that line (in place of the member code, which then goes on the back). Saad, 2026-11-27. row + welcome = a second, centred row under the first (the card then uses Apple's ticket layout). The row is long on purpose: Wallet centres the welcome under it only when the row is the wider of the two.",
+  "about": "Text ornaments on the Wallet card (src/lib/appleWallet.ts). label = beside each label. code = the ornament in the line under the QR. caption = the words there, beside the member code (captionOnly true = the words alone, code on the back). layout single = one centred line under the picture (the gift, or welcome), with row above it; the member's name is on the back. Without layout single, row + welcome make a second row and the card uses Apple's ticket layout. Saad, 2026-11-27.",
   "label": "\u2741",
   "code": "\u2726",
   "caption": "\u0627\u0644\u0631\u0648\u0634\u0646\u0629",
-  "row": "\u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726",
+  "row": "\u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726 \u2741 \u2726",
   "welcome": "\u2741  \u062d\u064a\u0627\u0643 \u062a\u0646\u0648\u0631\u0646\u0627 \u064a\u0627 \u063a\u0627\u0644\u064a  \u2741",
-  "captionOnly": true
+  "captionOnly": false,
+  "layout": "single"
 }

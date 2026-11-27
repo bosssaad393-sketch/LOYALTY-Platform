@@ -182,20 +182,29 @@ export function lampStripImages(slug: string, level: LampLevel): Record<string, 
  * A venue's text ornaments for its Wallet card (passes/<venue>/decor.json): "label" is one character set beside each
  * label, "code" one set on both sides of the member code under the QR. Missing file or entry: no ornament.
  */
-function decor(slug: string): { label?: string; code?: string; caption?: string; captionOnly?: boolean; row?: string; welcome?: string } {
+function decor(slug: string): { label?: string; code?: string; caption?: string; captionOnly?: boolean; row?: string; welcome?: string; single?: boolean } {
   try {
     const d = JSON.parse(readFileSync(path.join(process.cwd(), "passes", slug, "decor.json"), "utf8")) as Record<string, unknown>;
     const one = (v: unknown) => (typeof v === "string" && v.trim() && [...v.trim()].length <= 2 ? v.trim() : undefined);
     const caption = typeof d.caption === "string" && d.caption.trim() ? d.caption.trim().slice(0, 40) : undefined;
     const line = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : undefined);
-    return { label: one(d.label), code: one(d.code), caption, captionOnly: d.captionOnly === true, row: line(d.row), welcome: line(d.welcome) };
+    return { label: one(d.label), code: one(d.code), caption, captionOnly: d.captionOnly === true, row: line(d.row), welcome: line(d.welcome), single: d.layout === "single" };
   } catch {
     return {};
   }
 }
 export function secondRow(slug: string): { row: string; welcome: string } | null {
-  const { row, welcome } = decor(slug);
-  return row && welcome ? { row, welcome } : null;
+  const { row, welcome, single } = decor(slug);
+  return row && welcome && !single ? { row, welcome } : null;
+}
+/**
+ * "layout": "single": one centred line under the artwork and nothing beside it. Wallet centres a store card's row only
+ * when a single field is on it (seen on real cards), so the member's name moves to the back. The line is the waiting
+ * gift, or the venue's welcome; "row" is the small line of ornaments above it.
+ */
+export function singleLine(slug: string): { row: string; welcome: string } | null {
+  const { row, welcome, single } = decor(slug);
+  return single && welcome ? { row: row ?? "", welcome } : null;
 }
 export const captionSet = (slug: string): boolean => Boolean(decor(slug).caption);
 export const labelOrnament = (slug: string): string | undefined => decor(slug).label;
@@ -342,7 +351,13 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     const orn = labelOrnament(venue.slug);
     const left = (label: string) => (orn ? `${orn} ${label}` : label), right = (label: string) => (orn ? `${label} ${orn}` : label);
     storeCard.headerFields.push({ key: "visits", label: right("VISITS"), value: card.visits, textAlignment: "PKTextAlignmentRight" as const });
-    storeCard.secondaryFields.push(
+    const one = singleLine(venue.slug);
+    if (one) storeCard.secondaryFields.push({
+      key: "gift", label: one.row, textAlignment: "PKTextAlignmentCenter" as const,
+      value: gift ? (orn ? `${orn}  ${gift.title}  ${orn}` : gift.title) : one.welcome,
+      ...(gift ? { changeMessage: "Your gift is ready: %@" } : {}),
+    });
+    else storeCard.secondaryFields.push(
       { key: "member", label: left("MEMBER"), value: memberName },
       gift
         ? { key: "gift", label: right("YOUR GIFT"), value: gift.title, textAlignment: "PKTextAlignmentRight" as const, changeMessage: "Your gift is ready: %@" }
@@ -358,6 +373,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
       ...(offer ? [backFields[0]] : []),
       ...(gift ? [{ key: "giftHow", label: "Your gift", value: [gift.title, gift.detail, gift.redeemBranchName ? `Use it at ${gift.redeemBranchName}.` : null, gift.expiresAt ? `Valid until ${new Date(gift.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" })}.` : null, "One use only. Show this card to the staff."].filter(Boolean).join(" ") }] : []),
       ...(used.length ? [{ key: "giftUsed", label: "Used", value: used.map((v) => v.title).join(" · ") }] : []),
+      ...(one ? [{ key: "member", label: "Member", value: memberName }] : []),
       ...(captionSet(venue.slug) ? [{ key: "code", label: "Member code", value: card.code }] : []),
       { key: "open", label: "Your card", value: `Open your ${venue.name} card`, attributedValue: `<a href="${cardUrl}">Open your ${venue.name} card</a>` },
       ...link("menu", "Menu", "See the menu", main?.menuUrl ?? `${base}/menu/${venue.slug}`),

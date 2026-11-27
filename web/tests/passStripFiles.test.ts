@@ -28,10 +28,12 @@ describe.each(venues.map((v) => v.name))("strip images of %s", (slug) => {
     for (const s of scales) expect(pngSize(files[STRIP_FILES[s]])).toEqual(stripPixels(s));
   });
 
-  it.each(scales)("is transparent in the four corners and the left and right margins, opaque in the middle (%ix)", (s) => {
+  // A venue whose picture runs edge to edge (scripts/card-bleed.mjs keeps the old one in margin/) is opaque everywhere.
+  const bleed = existsSync(path.join(root, slug, "margin"));
+  it.each(scales)("is transparent in the four corners and the left and right margins (opaque there when edge to edge), opaque in the middle (%ix)", (s) => {
     const png = PNG.sync.read(files[STRIP_FILES[s]]);
     const { width: w, height: h } = png;
-    for (const [x, y] of [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1], [1, h >> 1], [w - 2, h >> 1]]) expect(alphaAt(png, x, y)).toBe(0);
+    for (const [x, y] of [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1], [1, h >> 1], [w - 2, h >> 1]]) expect(alphaAt(png, x, y)).toBe(bleed ? 255 : 0);
     expect(alphaAt(png, w >> 1, h >> 1)).toBe(255);
   });
 });

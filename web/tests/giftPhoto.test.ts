@@ -36,7 +36,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("where the niche is", () => {
   it("is read for Al Roshinah and sits inside the strip, on its right", () => {
     const n = nicheOf("roshinah")!;
-    expect(n).toEqual({ l: 800, r: 1002, floor: 350, spring: 172, tip: 70 });
+    expect(n).toEqual({ l: 838, r: 1073, floor: 372, spring: 165, tip: 46 });
     expect(n.l).toBeGreaterThan(1125 / 2);
   });
 
@@ -91,8 +91,8 @@ describe("the card's picture with a gift's photo", () => {
     expect(b).toBeLessThan(80);
     // The wall beside the niche, the shelf below it and the corner above the arch are untouched.
     for (const [x, y] of [[300, 200], [n.l - 12, 200], [n.r + 12, 200], [(n.l + n.r) >> 1, n.floor + 8], [n.l + 4, n.tip + 4], [n.r - 4, n.tip + 4]]) expect(px(out, x, y), `${x},${y}`).toEqual(px(before, x, y));
-    // The card keeps its transparent corners.
-    expect(px(out, 0, 0)[3]).toBe(0);
+    // The corner is as it was (opaque: this picture runs edge to edge).
+    expect(px(out, 0, 0)).toEqual(px(before, 0, 0));
   });
 
   it("gives the three Wallet files at the strip's exact sizes, from a picture held in the record", async () => {
