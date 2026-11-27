@@ -18,16 +18,16 @@ export const instant = false;
 const WORDS = {
   en: {
     welcome: (n: string) => `Welcome, ${n}. Your card is ready.`,
-    keep: (u: string) => `Keep it: add it to your Wallet or bookmark this page. Show it at the counter to collect ${u}.`,
+    keep: (u: string) => `Save it on your phone with the button below. Show it at every visit to collect ${u}.`,
     tip: (u: string) => `Tip: bookmark this page. It always shows your latest ${u}.`,
     stamps: "stamps", points: "points", apple: "Add to Apple Wallet",
     card: { member: "Member", code: "Your code", since: "Member since", ready: "Reward ready", stamps: "Stamps", points: "Points" },
   },
   ar: {
     welcome: (n: string) => `أهلاً ${n}، بطاقتك جاهزة.`,
-    keep: (u: string) => `احفظها: أضفها إلى محفظة جوالك أو احفظ هذه الصفحة. اعرضها عند الكاشير لتجمع ${u}.`,
+    keep: (u: string) => `احفظها في جوالك من الزر بالأسفل. اعرضها عند كل زيارة لتجمع ${u}.`,
     tip: (u: string) => `نصيحة: احفظ هذه الصفحة، فهي تعرض دائماً آخر ${u} لك.`,
-    stamps: "الأختام", points: "النقاط", apple: "أضف إلى Apple Wallet",
+    stamps: "الأختام", points: "النقاط", apple: "أضف البطاقة إلى جوالك",
     card: { member: "عضو", code: "رمزك", since: "عضو منذ", ready: "المكافأة جاهزة", stamps: "أختام", points: "نقاط" },
   },
 };
@@ -43,6 +43,9 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
   const ar = locale === "ar";
   const w = ar ? WORDS.ar : WORDS.en;
   const unit = stamps ? w.stamps : w.points;
+  // Every guest sees both languages on the two things they must act on (Saad, 2026-11-27): their own first, the other under it.
+  const o = ar ? WORDS.en : WORDS.ar, oLang = ar ? "en" : "ar";
+  const first = memberName.trim().split(/\s+/)[0];
 
   // Stamp venues: the reward texts in the guest's language when the venue gave them.
   const tiers = stamps?.tiers.map((t) => ({ at: t.at, text: (ar && t.ar) || t.text }));
@@ -61,8 +64,9 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
       <main className="app" lang={locale} dir={directionOf(locale)}>
         {welcome === "1" && (
           <p className="welcome" role="status">
-            <b>{w.welcome(memberName.trim().split(/\s+/)[0])}</b>
+            <b>{w.welcome(first)}</b>
             <span>{w.keep(unit)}</span>
+            <span className="welcome-2" lang={oLang} dir={directionOf(oLang)}>{o.welcome(first)} {o.keep(stamps ? o.stamps : o.points)}</span>
           </p>
         )}
         <BlackCard
@@ -83,7 +87,7 @@ export default async function CardPage({ params, searchParams }: PageProps<"/car
         </div>
 
         <div className="actions after">
-          {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}> {w.apple}</a>}
+          {appleWalletConfigured() && <a className="btn wallet" href={`/api/wallet/apple/${card.id}`}><span>{ar ? w.apple : ` ${w.apple}`}</span><small lang={oLang} dir={directionOf(oLang)}>{ar ? ` ${o.apple}` : o.apple}</small></a>}
           {googleWalletConfigured() && (
             <a className="gw-badge" href={`/api/wallet/google/${card.id}`} aria-label="Add to Google Wallet">
               {/* eslint-disable-next-line @next/next/no-img-element -- official Google Wallet button artwork */}

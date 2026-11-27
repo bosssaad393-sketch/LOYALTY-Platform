@@ -124,7 +124,8 @@ h1 { font: 600 34px/1.1 var(--serif); margin-top: 6px; }
 .btn.primary { background: var(--gold2); border-color: var(--gold2); color: var(--on-gold); }
 .btn.primary:hover { background: var(--gold-hi); border-color: var(--gold-hi); }
 .btn[disabled], .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
-.btn.wallet { background: #000; border-color: #3a3a3a; color: #fff; }
+.btn.wallet { flex-direction: column; gap: 2px; min-height: 62px; padding-block: 8px; background: var(--gold2); border-color: var(--gold2); color: var(--on-gold); }
+.btn.wallet small { font-size: var(--fs-sm); font-weight: 600; opacity: 0.8; letter-spacing: 0; }
 
 /* the rewards card */
 .card { position: relative; margin-top: 22px; border-radius: var(--r-xl); padding: 24px 22px; background: linear-gradient(155deg, var(--card-top) 0%, var(--card-mid) 45%, var(--bg) 100%); border: 1px solid var(--gold); box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgb(var(--gold-rgb) / 0.15) inset; overflow: hidden; animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -679,9 +680,10 @@ textarea.ow-terms { min-height: 240px; font-size: var(--fs-md); line-height: 1.6
 .check input[aria-invalid="true"] { outline: 2px solid var(--bad); outline-offset: 2px; }
 
 /* First visit to the card, straight after joining: a short welcome that settles once. */
-.welcome { margin-block: 4px 18px; padding: var(--sp-3) var(--sp-4); border: 1px solid var(--ok); border-radius: var(--r-md); background: color-mix(in srgb, var(--ok) 8%, transparent); }
-.welcome b { display: block; color: var(--ok); font-size: var(--fs-md); }
-.welcome span { display: block; margin-top: 2px; color: var(--muted); font-size: var(--fs-sm); line-height: 1.45; }
+.welcome { margin-block: 4px 18px; padding: var(--sp-3) var(--sp-4); border: 1px solid var(--gold2); border-radius: var(--r-md); background: rgb(var(--gold-rgb) / 0.09); }
+.welcome b { display: block; color: var(--gold2); font-size: var(--fs-md); }
+.welcome span { display: block; margin-top: 2px; color: var(--text); font-size: var(--fs-sm); line-height: 1.5; }
+.welcome .welcome-2 { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgb(var(--gold-rgb) / 0.25); color: var(--muted); }
 @media (prefers-reduced-motion: no-preference) {
   .welcome { animation: welcome-in var(--t-slow) var(--ease) both; }
   @keyframes welcome-in { from { opacity: 0; transform: translateY(-6px); } }
