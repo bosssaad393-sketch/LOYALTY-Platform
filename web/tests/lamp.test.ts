@@ -43,10 +43,10 @@ describe("how bright the lamp is", () => {
 });
 
 describe("the Wallet card's picture at each level (Al Roshinah)", () => {
-  // The lamp sits low in the niche, on the right of the picture: how warm that spot is (red above blue) is the light.
+  // The lamp sits low in the niche, in the middle window of the picture: how warm that spot is (red above blue) is the light.
   const warmth = (file: Buffer) => {
     const png = PNG.sync.read(file);
-    const x0 = Math.round(png.width * 0.77), x1 = Math.round(png.width * 0.82), y0 = Math.round(png.height * 0.7), y1 = Math.round(png.height * 0.8);
+    const x0 = Math.round(png.width * 0.51), x1 = Math.round(png.width * 0.56), y0 = Math.round(png.height * 0.7), y1 = Math.round(png.height * 0.8);
     let sum = 0, n = 0;
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = (y * png.width + x) * 4; sum += png.data[i] - png.data[i + 2]; n++; }
     return sum / n;

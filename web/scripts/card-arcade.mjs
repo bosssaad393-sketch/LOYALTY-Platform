@@ -1,10 +1,10 @@
 // "The arcade" (Saad, 2026-11-27, option 2 of the card redesign): the venue's niche repeated along the wall like the
-// windows of a rawshan, the last one holding the lamp and the gift's photo; the fish of the restaurant's logo small as a
+// windows of a rawshan, the middle one holding the lamp and the gift's photo; the fish of the restaurant's logo small as a
 // seal on the left; the top and bottom of the picture melting into the card's own colour; the logo at the top in gold.
 //
 // Reads the untouched pictures in passes/<venue>/plain/ (and plain/lit/), logo*.png, mark-source.png and
 // arcade.json, and writes strip*.png, lit/strip*.png and logo*.png. Run scripts/card-lamp.mjs afterwards so the
-// in-between lamp pictures are drawn from the new ones. The last niche does not move, so niche.json stays right.
+// in-between lamp pictures are drawn from the new ones. niche.json must describe the lamp's window (the venue's niche moved "lamp" px to the left).
 //
 //   node scripts/card-arcade.mjs <venue> && node scripts/card-lamp.mjs <venue>
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -47,7 +47,6 @@ const melt = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" h
 <linearGradient id="b" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="rgb(${spec.card})" stop-opacity="1"/><stop offset="1" stop-color="rgb(${spec.card})" stop-opacity="0"/></linearGradient></defs>
 <rect width="${W}" height="${spec.melt.top}" fill="url(#t)"/><rect y="${H - spec.melt.bottom}" width="${W}" height="${spec.melt.bottom}" fill="url(#b)"/></svg>`);
 
-// The copies are always the DARK niche: only the last window holds the lamp, whatever its level.
 const pw = spec.patch.width;
 const feather = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${pw}" height="${H}"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".16" stop-color="#fff"/><stop offset=".84" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect width="${pw}" height="${H}" fill="url(#g)"/></svg>`);
 const dark = readFileSync(path.join(dir, "plain", "strip@3x.png"));
@@ -55,9 +54,13 @@ const patch = await sharp(dark).extract({ left: spec.patch.left, top: 0, width: 
 const fish = await fishMask();
 const seal = await engraved(fish, spec.fish.left, Math.round(H / 2 - fish.info.height / 2) + spec.fish.drop);
 
+// The wall is always the dark one, with a dark niche at every place in "shifts" (0 = where the venue's own niche is).
+// The lamp's window is the niche of the picture being drawn (dark or lit), set "lamp" px to the left of its own place.
+const wall = await sharp(dark).composite(spec.shifts.filter((s) => s !== 0).map((s) => ({ input: patch, left: spec.patch.left - s, top: 0 }))).png().toBuffer();
 for (const sub of ["", "lit"]) {
-  const full = await sharp(readFileSync(path.join(dir, "plain", sub, "strip@3x.png")))
-    .composite([...spec.shifts.map((s) => ({ input: patch, left: spec.patch.left - s, top: 0 })), ...seal, { input: melt }])
+  const own = await sharp(readFileSync(path.join(dir, "plain", sub, "strip@3x.png"))).extract({ left: spec.patch.left, top: 0, width: pw, height: H }).ensureAlpha().composite([{ input: feather, blend: "dest-in" }]).png().toBuffer();
+  const full = await sharp(wall)
+    .composite([{ input: own, left: spec.patch.left - spec.lamp, top: 0 }, ...seal, { input: melt }])
     .flatten({ background: `rgb(${spec.card})` }).png().toBuffer();
   for (const [name, w, h] of SIZES) writeFileSync(path.join(dir, sub, name), w === W ? full : await sharp(full).resize(w, h, { kernel: "lanczos3" }).png().toBuffer());
 }

@@ -1,7 +1,7 @@
 {
-  "about": "Where the opening of the niche is in strip@3x.png (1125 x 432), for a gift's photo (lib/giftPhoto.ts). l and r: its sides. floor: the shelf. spring: where the arch starts to curve. tip: the point of the arch. Measured on the edge-to-edge picture (scripts/card-bleed.mjs).",
-  "l": 838,
-  "r": 1073,
+  "about": "Where the opening of the niche is in strip@3x.png (1125 x 432), for a gift's photo (lib/giftPhoto.ts). l and r: its sides. floor: the shelf. spring: where the arch starts to curve. tip: the point of the arch. Measured on the edge-to-edge picture (scripts/card-bleed.mjs). The arcade (scripts/card-arcade.mjs) moved the lamp's window 290 px left, to the middle.",
+  "l": 548,
+  "r": 783,
   "floor": 372,
   "spring": 165,
   "tip": 46

@@ -34,10 +34,11 @@ beforeEach(() => { forgetGiftStrips(); process.env.SUPABASE_URL = STORE; });
 afterEach(() => vi.unstubAllGlobals());
 
 describe("where the niche is", () => {
-  it("is read for Al Roshinah and sits inside the strip, on its right", () => {
+  it("is read for Al Roshinah and sits inside the strip, in its middle", () => {
     const n = nicheOf("roshinah")!;
-    expect(n).toEqual({ l: 838, r: 1073, floor: 372, spring: 165, tip: 46 });
-    expect(n.l).toBeGreaterThan(1125 / 2);
+    expect(n).toEqual({ l: 548, r: 783, floor: 372, spring: 165, tip: 46 });
+    expect(n.l).toBeLessThan(1125 / 2);
+    expect(n.r).toBeGreaterThan(1125 / 2);
   });
 
   it("is nothing for a venue without one, and for a name that is not a venue's", () => {
