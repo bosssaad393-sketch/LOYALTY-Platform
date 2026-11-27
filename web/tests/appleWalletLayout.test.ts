@@ -13,7 +13,7 @@ vi.mock("../src/lib/supabase", () => ({
 }));
 vi.mock("../src/lib/passOffer", () => ({ offerStateForCard: async () => h.offer }));
 
-import { STRIP, STRIP_FILES, buildPass, pngSize, stripPixels, stripProblems } from "../src/lib/appleWallet";
+import { STRIP, STRIP_FILES, buildPass, cardColours, pngSize, stripPixels, stripProblems, threeBlocks } from "../src/lib/appleWallet";
 import type { Card, Venue } from "../src/lib/supabase";
 
 const venue: Venue = { id: "v1", slug: "orbyn", name: "Orbyn", points_per_bhd: 2, reward_goal: 500, reward_text: "A dessert on the house." };
@@ -173,5 +173,28 @@ describe("the strip size constant", () => {
     const { "strip@2x.png": gone, ...rest } = right;
     void gone;
     expect(stripProblems(rest)).toEqual(["strip@2x.png is missing"]);
+  });
+});
+
+describe("a visit card with three blocks (Al Roshinah)", () => {
+  const rosh = { ...venue, slug: "roshinah", name: "Al Roshinah", card_mode: "visits" } as Venue;
+  it("reads the row and the card's own colours from the venue's decor.json", () => {
+    expect(threeBlocks("roshinah")).toMatchObject({ row: "✦ ❁ ✦ ❁ ✦" });
+    expect(cardColours("roshinah")).toEqual({ background: "rgb(6, 38, 25)", label: "rgb(214, 180, 108)", text: "rgb(250, 246, 236)" });
+    expect(threeBlocks("orbyn")).toBeNull();
+    expect(cardColours("orbyn")).toBeNull();
+  });
+  it("puts the member, the gift block and the code on one row, in the card's colours", async () => {
+    const files = unzip(await buildPass(rosh, card(0), "Sara Hasan", "https://example.test"));
+    const json = JSON.parse(files.get("pass.json")!.toString("utf8")) as Json;
+    const store = json.storeCard!;
+    expect(json.backgroundColor).toBe("rgb(6, 38, 25)");
+    expect(keys(store.secondaryFields)).toEqual(["member", "gift"]);
+    expect(keys(store.auxiliaryFields)).toEqual(["code"]);
+    expect(get(store.secondaryFields, "member")).toMatchObject({ label: "MEMBER", value: "Sara Hasan" });
+    // No gift is waiting on this card, so the middle block is the venue's welcome and Wallet announces nothing.
+    expect(get(store.secondaryFields, "gift")).toMatchObject({ label: "✦ ❁ ✦ ❁ ✦", textAlignment: "PKTextAlignmentCenter" });
+    expect(get(store.secondaryFields, "gift").changeMessage).toBeUndefined();
+    expect(get(store.auxiliaryFields, "code")).toMatchObject({ label: "CODE", value: "7523", textAlignment: "PKTextAlignmentRight" });
   });
 });

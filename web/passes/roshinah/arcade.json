@@ -1,0 +1,9 @@
+{
+  "about": "The arcade picture of the Wallet card (scripts/card-arcade.mjs). Sizes are in the 3x picture (1125 x 432).",
+  "patch": { "left": 770, "width": 340 },
+  "shifts": [290, 580],
+  "fish": { "share": 0.262, "height": 150, "left": 62, "drop": 20 },
+  "melt": { "top": 70, "bottom": 90 },
+  "card": [6, 38, 25],
+  "gold": [226, 190, 112]
+}

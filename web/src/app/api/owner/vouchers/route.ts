@@ -1,6 +1,7 @@
 import { fail } from "@/lib/staffApi";
 import { withOwner } from "@/lib/ownerApi";
 import { VoucherInput, listVouchers, saveVoucher, voucherCounts } from "@/lib/vouchersDb";
+import { sendCardDesign } from "@/lib/cardDesign";
 
 /** The venue's vouchers with how many were unlocked, used and are still waiting. */
 export async function GET() {
@@ -19,6 +20,12 @@ export async function POST(request: Request) {
     if (saved === "not_found") return fail("Voucher not found.", 404);
     if (saved === "bad_branch") return fail("That branch is not one of yours.");
     if (saved === "no_visit_number") return fail("Say which visit unlocks this gift: a number from 2 to 1000.");
+    // A gift that guests are holding was changed: its name is printed on their Wallet cards, so the saved cards are
+    // told to fetch themselves again. Best effort: the card also refreshes at the guest's next visit.
+    if (parsed.data.id) {
+      const waiting = (await voucherCounts(staff.venueId).catch(() => ({} as Record<string, { waiting: number }>)))[saved.id]?.waiting ?? 0;
+      if (waiting > 0) await sendCardDesign(staff.venueId, staff.id).catch((e) => console.error("gift change refresh failed", e instanceof Error ? e.message : e));
+    }
     return Response.json({ voucher: saved });
   }, true);
 }

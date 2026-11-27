@@ -182,20 +182,43 @@ export function lampStripImages(slug: string, level: LampLevel): Record<string, 
  * A venue's text ornaments for its Wallet card (passes/<venue>/decor.json): "label" is one character set beside each
  * label, "code" one set on both sides of the member code under the QR. Missing file or entry: no ornament.
  */
-function decor(slug: string): { label?: string; code?: string; caption?: string; captionOnly?: boolean; row?: string; welcome?: string; single?: boolean } {
+type Rgb = [number, number, number];
+function decor(slug: string): { label?: string; code?: string; caption?: string; captionOnly?: boolean; row?: string; welcome?: string; single?: boolean; three?: boolean; card?: { background: Rgb; label: Rgb; text: Rgb } } {
   try {
     const d = JSON.parse(readFileSync(path.join(process.cwd(), "passes", slug, "decor.json"), "utf8")) as Record<string, unknown>;
     const one = (v: unknown) => (typeof v === "string" && v.trim() && [...v.trim()].length <= 2 ? v.trim() : undefined);
     const caption = typeof d.caption === "string" && d.caption.trim() ? d.caption.trim().slice(0, 40) : undefined;
     const line = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : undefined);
-    return { label: one(d.label), code: one(d.code), caption, captionOnly: d.captionOnly === true, row: line(d.row), welcome: line(d.welcome), single: d.layout === "single" };
+    const colour = (v: unknown): Rgb | null => (Array.isArray(v) && v.length === 3 && v.every((n) => Number.isInteger(n) && n >= 0 && n <= 255) ? (v as Rgb) : null);
+    const c = (d.card ?? {}) as Record<string, unknown>;
+    const background = colour(c.background), label = colour(c.label), text = colour(c.text);
+    return {
+      label: one(d.label), code: one(d.code), caption, captionOnly: d.captionOnly === true, row: line(d.row), welcome: line(d.welcome),
+      single: d.layout === "single", three: d.layout === "three",
+      ...(background && label && text ? { card: { background, label, text } } : {}),
+    };
   } catch {
     return {};
   }
 }
 export function secondRow(slug: string): { row: string; welcome: string } | null {
-  const { row, welcome, single } = decor(slug);
-  return row && welcome && !single ? { row, welcome } : null;
+  const { row, welcome, single, three } = decor(slug);
+  return row && welcome && !single && !three ? { row, welcome } : null;
+}
+/**
+ * "layout": "three": one row of three blocks under the picture: the member, the gift, the code (Saad, 2026-11-27).
+ * The middle block is the gift waiting on this card, by the name the owner gave it, so a gift renamed or replaced in
+ * the dashboard is what the card says; with no gift waiting it is the venue's welcome. "row" is the small line above it.
+ */
+export function threeBlocks(slug: string): { row: string; welcome: string } | null {
+  const { row, welcome, three } = decor(slug);
+  return three && welcome ? { row: row ?? "", welcome } : null;
+}
+/** A venue's own card colours (decor.json "card": background, label, text as [r, g, b]), or null for the brand's. */
+export function cardColours(slug: string): { background: string; label: string; text: string } | null {
+  const c = decor(slug).card;
+  const css = (v: Rgb) => `rgb(${v.join(", ")})`;
+  return c ? { background: css(c.background), label: css(c.label), text: css(c.text) } : null;
 }
 /**
  * "layout": "single": one centred line under the artwork and nothing beside it. Wallet centres a store card's row only
@@ -275,6 +298,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
   const notice = visitMode ? await noticeForCard(card.id) : null;
   const locations = passLocations(branches, venue.name);
   const colors = walletColors();
+  const own = visitMode && !preview ? cardColours(venue.slug) : null;
   const props = {
     ...(locations.length ? { maxDistance: PASS_RADIUS_M } : {}),
     ...live,
@@ -284,9 +308,9 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     organizationName: venue.name,
     description: preview ? `${venue.name} Loyalty Rewards (preview)` : `${venue.name} Loyalty Rewards`,
     // Live card: tinted black, which shows around the card artwork (its strip has transparent margins). Previews keep their own colour.
-    backgroundColor: ladderStrip && look ? rgb(look.background) : preview ? colors.applePreviewBackground : colors.appleBackground,
-    foregroundColor: ladderStrip && look ? rgb(look.foreground) : colors.appleForeground,
-    labelColor: ladderStrip && look ? rgb(look.label) : colors.appleLabel,
+    backgroundColor: ladderStrip && look ? rgb(look.background) : preview ? colors.applePreviewBackground : own?.background ?? colors.appleBackground,
+    foregroundColor: ladderStrip && look ? rgb(look.foreground) : own?.text ?? colors.appleForeground,
+    labelColor: ladderStrip && look ? rgb(look.label) : own?.label ?? colors.appleLabel,
     sharingProhibited: true,
   };
 
@@ -351,8 +375,15 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
     const orn = labelOrnament(venue.slug);
     const left = (label: string) => (orn ? `${orn} ${label}` : label), right = (label: string) => (orn ? `${label} ${orn}` : label);
     storeCard.headerFields.push({ key: "visits", label: right("VISITS"), value: card.visits, textAlignment: "PKTextAlignmentRight" as const });
-    const one = singleLine(venue.slug);
-    if (one) storeCard.secondaryFields.push({
+    const one = singleLine(venue.slug), three = threeBlocks(venue.slug);
+    if (three) {
+      // Wallet puts secondary and auxiliary fields on one row: member on the left, the gift in the middle, code on the right.
+      storeCard.secondaryFields.push(
+        { key: "member", label: "MEMBER", value: memberName },
+        { key: "gift", label: three.row, value: gift ? gift.title : three.welcome, textAlignment: "PKTextAlignmentCenter" as const, ...(gift ? { changeMessage: "Your gift is ready: %@" } : {}) },
+      );
+      storeCard.auxiliaryFields.push({ key: "code", label: "CODE", value: card.code, textAlignment: "PKTextAlignmentRight" as const });
+    } else if (one) storeCard.secondaryFields.push({
       key: "gift", label: one.row, textAlignment: "PKTextAlignmentCenter" as const,
       value: gift ? (orn ? `${orn}  ${gift.title}  ${orn}` : gift.title) : one.welcome,
       ...(gift ? { changeMessage: "Your gift is ready: %@" } : {}),
@@ -374,7 +405,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
       ...(gift ? [{ key: "giftHow", label: "Your gift", value: [gift.title, gift.detail, gift.redeemBranchName ? `Use it at ${gift.redeemBranchName}.` : null, gift.expiresAt ? `Valid until ${new Date(gift.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" })}.` : null, "One use only. Show this card to the staff."].filter(Boolean).join(" ") }] : []),
       ...(used.length ? [{ key: "giftUsed", label: "Used", value: used.map((v) => v.title).join(" · ") }] : []),
       ...(one ? [{ key: "member", label: "Member", value: memberName }] : []),
-      ...(captionSet(venue.slug) ? [{ key: "code", label: "Member code", value: card.code }] : []),
+      ...(captionSet(venue.slug) && !three ? [{ key: "code", label: "Member code", value: card.code }] : []),
       { key: "open", label: "Your card", value: `Open your ${venue.name} card`, attributedValue: `<a href="${cardUrl}">Open your ${venue.name} card</a>` },
       ...link("menu", "Menu", "See the menu", main?.menuUrl ?? `${base}/menu/${venue.slug}`),
       ...branches.filter((b) => b.kind === "branch").flatMap((b) => link(`map-${b.slug}`, b.name, b.address ? `${b.address}. Directions` : "Directions", b.mapsUrl)),
