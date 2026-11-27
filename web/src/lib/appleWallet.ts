@@ -182,18 +182,22 @@ export function lampStripImages(slug: string, level: LampLevel): Record<string, 
  * A venue's text ornaments for its Wallet card (passes/<venue>/decor.json): "label" is one character set beside each
  * label, "code" one set on both sides of the member code under the QR. Missing file or entry: no ornament.
  */
-function decor(slug: string): { label?: string; code?: string } {
+function decor(slug: string): { label?: string; code?: string; caption?: string } {
   try {
     const d = JSON.parse(readFileSync(path.join(process.cwd(), "passes", slug, "decor.json"), "utf8")) as Record<string, unknown>;
     const one = (v: unknown) => (typeof v === "string" && v.trim() && [...v.trim()].length <= 2 ? v.trim() : undefined);
-    return { label: one(d.label), code: one(d.code) };
+    const caption = typeof d.caption === "string" && d.caption.trim() ? d.caption.trim().slice(0, 40) : undefined;
+    return { label: one(d.label), code: one(d.code), caption };
   } catch {
     return {};
   }
 }
+export const captionSet = (slug: string): boolean => Boolean(decor(slug).caption);
 export const labelOrnament = (slug: string): string | undefined => decor(slug).label;
 export function codeCaption(slug: string, code: string): string {
-  const o = decor(slug).code;
+  const { code: o, caption } = decor(slug);
+  // "caption": the venue's own words under the QR in place of the code (the code is then written on the back).
+  if (caption) return o ? `${o}  ${caption}  ${o}` : caption;
   return o ? `${o}  ${code}  ${o}` : code;
 }
 
@@ -342,6 +346,7 @@ export async function buildPass(venue: Venue, card: Card, memberName: string, ba
       ...(offer ? [backFields[0]] : []),
       ...(gift ? [{ key: "giftHow", label: "Your gift", value: [gift.title, gift.detail, gift.redeemBranchName ? `Use it at ${gift.redeemBranchName}.` : null, gift.expiresAt ? `Valid until ${new Date(gift.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" })}.` : null, "One use only. Show this card to the staff."].filter(Boolean).join(" ") }] : []),
       ...(used.length ? [{ key: "giftUsed", label: "Used", value: used.map((v) => v.title).join(" · ") }] : []),
+      ...(captionSet(venue.slug) ? [{ key: "code", label: "Member code", value: card.code }] : []),
       { key: "open", label: "Your card", value: `Open your ${venue.name} card`, attributedValue: `<a href="${cardUrl}">Open your ${venue.name} card</a>` },
       ...link("menu", "Menu", "See the menu", main?.menuUrl ?? `${base}/menu/${venue.slug}`),
       ...branches.filter((b) => b.kind === "branch").flatMap((b) => link(`map-${b.slug}`, b.name, b.address ? `${b.address}. Directions` : "Directions", b.mapsUrl)),

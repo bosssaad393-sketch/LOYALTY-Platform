@@ -1,5 +1,6 @@
 {
-  "about": "Text ornaments on the Wallet card (src/lib/appleWallet.ts): label = beside each label, code = both sides of the member code under the QR. Saad, 2026-11-27.",
+  "about": "Text ornaments on the Wallet card (src/lib/appleWallet.ts): label = beside each label, code = both sides of the line under the QR, caption = that line (in place of the member code, which then goes on the back). Saad, 2026-11-27.",
   "label": "❁",
-  "code": "✦"
+  "code": "✦",
+  "caption": "الروشنة"
 }
