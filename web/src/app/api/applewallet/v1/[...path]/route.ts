@@ -31,10 +31,11 @@ async function authorised(request: Request, serial: string): Promise<boolean> {
 /**
  * Bump this when the card layout or artwork changes, so every saved card refreshes.
  * 2026-10-15: the back of the card of guests who agreed to offers gained an "offer" field.
+ * 2026-11-27: the card gained the venue's place and the welcome line for the lock screen.
  * Set this to the moment of the deploy when merging (a time before the deploy can be older than what some phones
  * already hold, and those phones then keep the old layout until their next points change).
  */
-const LAYOUT_UPDATED_AT = Date.parse("2026-10-16T12:08:00Z");
+const LAYOUT_UPDATED_AT = Date.parse("2026-11-27T00:22:00Z");
 
 /**
  * When a card last changed: its newest ledger entry, its creation, the last layout change, or (for guests who agreed
