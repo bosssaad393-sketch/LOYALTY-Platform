@@ -21,8 +21,9 @@ type Pos = {
   events: Ev[];
 };
 type Req = { id: string; message: string; why: string; status: string; result: string | null; createdAt: string };
+type CardDesign = { configured: boolean; cards: number; phones: number; sentAt: string | null };
 type Person = { id: string; name: string; role: string; active: boolean; hasPin: boolean };
-export type Section = "overview" | "screens" | "till" | "requests" | "calabos" | "access";
+export type Section = "overview" | "screens" | "till" | "requests" | "calabos" | "wallet" | "access";
 
 const ago = (iso: string | null) => {
   if (!iso) return "never";
@@ -86,6 +87,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
     { id: "till", label: "Till (POS)" },
     { id: "requests", label: "Requests", badge: open },
     { id: "calabos", label: "CALABOS" },
+    { id: "wallet", label: "Wallet cards" },
     { id: "access", label: "Access" },
   ];
 
@@ -114,6 +116,7 @@ export default function DevApp({ initialMe, look, brand, initialSection = "overv
             : section === "till" ? <Till pos={pos} reload={reload} />
             : section === "requests" ? <Requests reqs={reqs} reload={reload} />
             : section === "calabos" ? <CalabosChat />
+            : section === "wallet" ? <WalletCards />
             : <Access team={team} reload={reload} />}
         </main>
       </div>
@@ -305,6 +308,55 @@ function Requests({ reqs, reload }: { reqs: Req[] | null; reload: () => void }) 
           )}
         </article>
       ))}
+    </>
+  );
+}
+
+/** Cards guests already saved in Apple Wallet: how many, and one button that sends them the card as it is now. */
+function WalletCards() {
+  const [st, setSt] = useState<CardDesign | null>(null);
+  const [note, setNote] = useState<Note | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    api<CardDesign>("/api/dev/wallet-cards", "GET", undefined).then((r) => {
+      if (!live) return;
+      if (r.ok) setSt(r.data); else setNote({ kind: "bad", text: r.error });
+    });
+    return () => { live = false; };
+  }, []);
+
+  async function send() {
+    if (!window.confirm("Send the card as it is now to every saved card? Guests keep their card, code and points, and get no message.")) return;
+    setBusy(true);
+    const r = await api<CardDesign & { accepted: number }>("/api/dev/wallet-cards", "POST", {});
+    setBusy(false);
+    if (!r.ok) { setNote({ kind: "bad", text: r.error }); return; }
+    setSt(r.data);
+    setNote({ kind: "ok", text: r.data.phones === 0 ? "Marked as the latest card. No phone holds a card yet, so there was nobody to wake." : `Sent. Apple accepted the wake-up for ${r.data.accepted} of ${r.data.phones} phone${r.data.phones === 1 ? "" : "s"}.` });
+  }
+
+  return (
+    <>
+      <Head eyebrow="Apple Wallet" title="Wallet cards">A card a guest has saved updates by itself. After a change to the card goes live (its look, its wording, or the welcome on the lock screen near the venue), send it to every phone from here: nobody joins again and nobody adds the card again.</Head>
+      <Msg note={note} />
+      {!st ? !note && <p className="ow-sub">Loading…</p> : !st.configured ? (
+        <section className="ow-panel"><p className="ow-sub">Apple Wallet is not set up on this deployment, so there are no saved cards to update.</p></section>
+      ) : (
+        <>
+          <div className="dv-tiles">
+            <div className="dv-tile"><span>Cards saved</span><b>{st.cards}</b></div>
+            <div className="dv-tile"><span>Phones</span><b>{st.phones}</b></div>
+            <div className="dv-tile"><span>Last sent</span><b>{ago(st.sentAt)}</b></div>
+          </div>
+          <section className="ow-panel" aria-labelledby="dv-design">
+            <h2 className="ow-h" id="dv-design">Send the latest card</h2>
+            <p className="ow-sub">Every phone that holds a card fetches it again, quietly: no notification. A phone that is off gets it when it is back. Every card also refreshes at the guest&apos;s next visit. The card&apos;s code and points do not change.</p>
+            <button type="button" className="ow-btn primary" disabled={busy} onClick={send}>{busy ? "Sending…" : "Send the latest card to every phone"}</button>
+          </section>
+        </>
+      )}
     </>
   );
 }
