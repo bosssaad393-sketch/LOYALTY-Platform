@@ -520,3 +520,6 @@ html[style*="--venue-wordmark"] .tb-crest { content: var(--venue-wordmark); widt
 
 /* The Add to Apple Wallet button right under the card picture (Saad: easy to see, on the first screen). */
 .vp-wallet { display: flex; align-items: center; justify-content: center; width: 100%; margin-block-start: 12px; min-height: 56px; font-size: 17px; text-decoration: none; }
+/* Saad, 2026-11-27: the Apple Wallet button under the card is beige, not black. */
+.btn.wallet.vp-wallet { background: #e9dfcb; border-color: #d6c8ab; color: #1c1a15; }
+.btn.wallet.vp-wallet:hover { background: #f1e9d8; border-color: #d6c8ab; }
