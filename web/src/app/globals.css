@@ -730,3 +730,35 @@ textarea.ow-terms { min-height: 240px; font-size: var(--fs-md); line-height: 1.6
 .st-step.next span{color:var(--text)}
 .st-step.got{border-color:var(--gold);background:rgb(var(--gold-rgb) / .08)}
 .st-step.got span{color:var(--gold2)}
+
+/* The guest record (owner > Guests): one guest's facts, labels, notes and history. */
+.gr { display: grid; gap: 24px; }
+.gr-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.gr-label { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; font: 500 var(--fs-sm)/1.4 var(--sans); color: var(--muted); }
+.gr-label button { display: grid; place-items: center; width: 24px; height: 24px; margin-inline-end: -8px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--dim); font-size: 16px; line-height: 1; cursor: pointer; }
+.gr-label button:hover { color: var(--text); }
+.gr-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 16px 24px; margin: 0; }
+.gr-facts dt { font-size: var(--fs-sm); color: var(--dim); }
+.gr-facts dd { margin: 2px 0 0; color: var(--text); overflow-wrap: anywhere; }
+.gr-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+.gr-grow { flex: 1 1 200px; min-width: 0; }
+.gr-note { display: grid; gap: 12px; }
+.gr-note textarea.ow-in { min-height: 88px; padding: 12px; resize: vertical; }
+.gr-line { display: grid; margin: 12px 0 0; padding: 0; list-style: none; }
+.gr-ev { display: grid; grid-template-columns: 104px 1fr; gap: 16px; padding: 12px 0; border-top: 1px solid var(--ow-rule); }
+.gr-ev:first-child { border-top: 0; }
+.gr-ev time { font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.gr-ev time small { display: block; color: var(--dim); }
+.gr-ev b { font-weight: 600; }
+.gr-ev p { margin: 2px 0 0; color: var(--muted); overflow-wrap: anywhere; white-space: pre-line; }
+.gr-ev.gr-note p { color: var(--text); }
+.gr-ev .ow-link { min-height: 32px; margin-top: 0; font-size: var(--fs-sm); }
+.gr-open { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; text-decoration: underline; text-decoration-color: var(--gold-dim); text-underline-offset: 4px; }
+.gr-open:hover { text-decoration-color: var(--gold); }
+.ow-c-name .gr-stage, .ow-c-name .gr-label { margin-inline-start: 8px; vertical-align: 1px; }
+.gr-filter { margin-bottom: 16px; }
+@media (max-width: 640px) {
+  .gr-filter { flex-wrap: nowrap; overflow-x: auto; margin-inline: -20px; padding-inline: 20px; scrollbar-width: none; }
+  .gr-filter .ow-pill { flex: none; white-space: nowrap; }
+  .gr-ev { grid-template-columns: 84px 1fr; gap: 12px; }
+}

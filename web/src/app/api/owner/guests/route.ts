@@ -4,11 +4,12 @@ import { fail } from "@/lib/staffApi";
 import { withOwner } from "@/lib/ownerApi";
 import { ACCESS } from "@/lib/roles";
 import { eraseCard } from "@/lib/privacyDb";
+import { guestStage, tagsOf } from "@/lib/guestCrm";
 
 type CardRow = { id: string; code: string; points: number; visits: number; last_visit: string | null; created_at: string; members: unknown };
 const shape = (c: CardRow) => ({ cardId: c.id, code: c.code, points: c.points, visits: c.visits, lastVisit: c.last_visit, joined: c.created_at, name: (c.members as { name: string } | null)?.name ?? "" });
 
-/** Guest list: names, points and visits only. Contact details stay out of the list (CSV export only). */
+/** Guest list: names, points, visits, where each guest stands and their labels. Contact details stay out of the list (CSV export only). */
 export async function GET(request: Request) {
   return withOwner(async (staff) => {
     const params = new URL(request.url).searchParams;
@@ -27,16 +28,20 @@ export async function GET(request: Request) {
       return Response.json({ guests: ((data ?? []) as CardRow[]).map(shape).filter((g) => g.name) });
     }
     const q = (params.get("q") ?? "").trim().toLowerCase();
-    const { data, error } = await db()
+    const list = (columns: string) => db()
       .from("cards")
-      .select("id, code, points, visits, last_visit, created_at, members(name, deleted_at)")
+      .select(columns)
       .eq("venue_id", staff.venueId)
       .order("last_visit", { ascending: false, nullsFirst: false })
       .limit(500);
-    if (error) throw error;
-    const guests = (data ?? [])
-      .map((c) => ({ cardId: c.id, code: c.code, points: c.points, visits: c.visits, lastVisit: c.last_visit, joined: c.created_at, name: (c.members as unknown as { name: string } | null)?.name ?? "" }))
-      .filter((g) => g.name && (!q || g.name.toLowerCase().includes(q) || g.code.includes(q)));
+    // Labels came with migration 0034: a database without the column still lists its guests, without labels.
+    let got = await list("id, code, points, visits, last_visit, created_at, tags, members(name, deleted_at)");
+    if (got.error) got = await list("id, code, points, visits, last_visit, created_at, members(name, deleted_at)");
+    if (got.error) throw got.error;
+    const now = Date.now();
+    const guests = ((got.data ?? []) as unknown as (CardRow & { tags?: unknown })[])
+      .map((c) => ({ ...shape(c), tags: tagsOf(c.tags), stage: guestStage({ visits: c.visits, lastVisit: c.last_visit, joined: c.created_at }, now) }))
+      .filter((g) => g.name && (!q || g.name.toLowerCase().includes(q) || g.code.includes(q) || g.tags.some((t) => t.includes(q))));
     return Response.json({ guests });
   });
 }

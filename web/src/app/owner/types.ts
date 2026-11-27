@@ -27,7 +27,7 @@ export type Insights = {
   complete: boolean;
 };
 
-export type Guest ={ cardId: string; code: string; name: string; points: number; visits: number; lastVisit: string | null; joined: string };
+export type Guest ={ cardId: string; code: string; name: string; points: number; visits: number; lastVisit: string | null; joined: string; stage?: import("@/lib/guestCrm").GuestStage; tags?: string[] };
 export type Rules = { pointsPerBhd: number; rewardGoal: number; rewardText: string; stampTiers?: { at: number; text: string; ar?: string }[] | null };
 export type Member = { id: string; name: string; role: string; active: boolean; hasPin: boolean; me: boolean; waiting?: boolean; /** 0022: the branch this person works at; null = every branch. */ branchId?: string | null };
 

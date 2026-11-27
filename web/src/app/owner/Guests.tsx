@@ -3,6 +3,8 @@
 import { useState } from "react";
 import QrSvg from "@/components/QrSvg";
 import GuestOrders from "./GuestOrders";
+import GuestRecord, { STAGE_LABEL } from "./GuestRecord";
+import { GUEST_STAGES, type GuestStage } from "@/lib/guestCrm";
 import { ago, n } from "./format";
 import { Confirm, Loading, LoadError, Msg, PageHead, Sheet, useDebounced, useGet } from "./ui";
 import type { Call, Guest, Note } from "./types";
@@ -17,11 +19,15 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
   const [showing, setShowing] = useState<Guest | null>(null);
   const [gifting, setGifting] = useState<Guest | null>(null);
   const [ordering, setOrdering] = useState<Guest | null>(null);
+  const [opened, setOpened] = useState<Guest | null>(null);
+  const [stage, setStage] = useState<GuestStage | "all">("all");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
   const t = useT();
 
-  const guests = list.data?.guests ?? [];
+  const everyone = list.data?.guests ?? [];
+  const guests = stage === "all" ? everyone : everyone.filter((g) => g.stage === stage);
+  const count = (s: GuestStage) => everyone.filter((g) => g.stage === s).length;
 
   async function erase() {
     if (!target) return;
@@ -40,21 +46,29 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
       <div className="ow-bar-row">
         <form className="ow-search" role="search" onSubmit={(e) => e.preventDefault()}>
           <label>
-            <span className="ow-sr">{t("Search guests by name or code")}</span>
-            <input className="ow-in" type="search" placeholder={t("Search by name or code")} value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
+            <span className="ow-sr">{t("Search guests by name, code or label")}</span>
+            <input className="ow-in" type="search" placeholder={t("Search by name, code or label")} value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
           </label>
         </form>
         {isOwner && (
           <a className="ow-btn" href="/api/owner/export" download>{t("Export CSV")}</a>
         )}
       </div>
+      {list.data && everyone.length > 0 && (
+        <div className="ow-chips gr-filter" role="group" aria-label={t("Show")}>
+          <button type="button" className="ow-pill" aria-pressed={stage === "all"} onClick={() => setStage("all")}>{t("All")} · {n(everyone.length)}</button>
+          {GUEST_STAGES.filter((s) => count(s) > 0 || s === stage).map((s) => (
+            <button key={s} type="button" className="ow-pill" aria-pressed={stage === s} onClick={() => setStage(s)}>{t(STAGE_LABEL[s])} · {n(count(s))}</button>
+          ))}
+        </div>
+      )}
       <Msg note={note} />
       {list.error && <LoadError text={list.error} onRetry={list.reload} />}
       {!list.data && !list.error && <Loading />}
       {list.data && (
         <section className="ow-panel ow-flush" aria-label={t("Guests")}>
           {guests.length === 0 ? (
-            <p className="ow-note ow-pad">{dq ? t("No guest matches.") : t("No guests yet.")}</p>
+            <p className="ow-note ow-pad">{dq || stage !== "all" ? t("No guest matches.") : t("No guests yet.")}</p>
           ) : (
             <table className="ow-table">
               <thead>
@@ -70,7 +84,7 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
               <tbody>
                 {guests.map((g) => (
                   <tr key={g.cardId}>
-                    <th scope="row" className="ow-c-name"><span>{g.name}</span><small className="ow-c-meta">{t("Code {code} · visits: {n} · last visit {when}", { code: g.code, n: n(g.visits), when: ago(g.lastVisit, t) })}</small></th>
+                    <th scope="row" className="ow-c-name"><button type="button" className="gr-open" onClick={() => setOpened(g)} aria-label={t("Open the record of {name}", { name: g.name })}>{g.name}</button>{g.stage && g.stage !== "active" && <span className={`ow-tag gr-stage${g.stage === "quiet" || g.stage === "waiting" ? " quiet" : ""}`}>{t(STAGE_LABEL[g.stage])}</span>}{(g.tags ?? []).map((x) => <span key={x} className="gr-label" dir="auto">{x}</span>)}<small className="ow-c-meta">{t("Code {code} · visits: {n} · last visit {when}", { code: g.code, n: n(g.visits), when: ago(g.lastVisit, t) })}</small></th>
                     <td className="ow-c-code">{g.code}</td>
                     <td className="ow-c-visits">{n(g.visits)}</td>
                     <td className="ow-c-last">{ago(g.lastVisit, t)}</td>
@@ -87,6 +101,11 @@ export default function Guests({ call, isOwner, visitVenue = false }: { call: Ca
             </table>
           )}
         </section>
+      )}
+      {opened && (
+        <Sheet eyebrow={t("Code {code}", { code: opened.code })} title={opened.name} onClose={() => setOpened(null)}>
+          <GuestRecord call={call} cardId={opened.cardId} visitVenue={visitVenue} onChanged={list.reload} />
+        </Sheet>
       )}
       {showing && (
         <Sheet eyebrow={t("Code {code}", { code: showing.code })} title={t("Card of {name}", { name: showing.name })} onClose={() => setShowing(null)}>
