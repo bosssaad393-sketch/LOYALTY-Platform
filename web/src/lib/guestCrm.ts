@@ -59,6 +59,18 @@ export function newestFirst(events: GuestEvent[]): GuestEvent[] {
   return events.map((e, i) => ({ e, i })).sort((a, b) => Date.parse(b.e.at) - Date.parse(a.e.at) || a.i - b.i).map((x) => x.e);
 }
 
+/** The value seen most often, when it is seen at least twice and more than any other. Null = no clear habit yet. */
+export function mostOften<T>(values: T[]): T | null {
+  const counts = new Map<T, number>();
+  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
+  const ranked = [...counts].sort((a, b) => b[1] - a[1]);
+  if (!ranked.length || ranked[0][1] < 2 || (ranked[1] && ranked[1][1] === ranked[0][1])) return null;
+  return ranked[0][0];
+}
+
+/** Day of the week in Bahrain (UTC+3): 0 = Sunday. */
+export const bahrainWeekday = (iso: string) => new Date(Date.parse(iso) + 3 * 3_600_000).getUTCDay();
+
 /** Days between visits on average, from the visits themselves. Null until there are two. */
 export function daysBetweenVisits(visitTimes: string[]): number | null {
   const t = visitTimes.map((v) => Date.parse(v)).filter(Number.isFinite).sort((a, b) => a - b);

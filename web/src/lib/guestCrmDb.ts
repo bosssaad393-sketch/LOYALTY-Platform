@@ -3,7 +3,7 @@ import { db } from "./supabase";
 import type { Staff } from "./staffAuth";
 import { listBranches } from "./branchesDb";
 import { cardVouchers } from "./vouchersDb";
-import { cleanTags, daysBetweenVisits, guestStage, newestFirst, tagsOf, type GuestEvent, type GuestStage } from "./guestCrm";
+import { bahrainWeekday, cleanTags, daysBetweenVisits, guestStage, mostOften, newestFirst, tagsOf, type GuestEvent, type GuestStage } from "./guestCrm";
 
 type Raw = Record<string, unknown>;
 const text = (v: unknown) => (typeof v === "string" && v ? v : null);
@@ -23,6 +23,8 @@ export type GuestRecord = {
   everyDays: number | null;
   giftsReady: number; giftsUsed: number;
   spentFils: number; bills: number;
+  /** Worked out from the visits and bills themselves. Null = no clear habit yet (needs the same thing twice). */
+  usualPlace: string | null; usualWeekday: number | null; favourite: string | null;
   /** False until migration 0034 is on this database: the screen then hides notes and labels instead of failing. */
   notesReady: boolean;
   events: GuestEvent[];
@@ -55,10 +57,11 @@ export async function guestRecord(venueId: string, cardId: string): Promise<Gues
   const joined = String(card.created_at);
   const events: GuestEvent[] = [];
   const visitTimes: string[] = [];
+  const visitPlaces: string[] = [];
 
   for (const l of (ledger.data ?? []) as Raw[]) {
     const at = String(l.created_at), by = text((l.staff_users as Raw | null)?.name);
-    if (l.kind === "earn") { events.push({ kind: "visit", at, place: place(l.branch_id), by }); visitTimes.push(at); }
+    if (l.kind === "earn") { events.push({ kind: "visit", at, place: place(l.branch_id), by }); visitTimes.push(at); const p = place(l.branch_id); if (p) visitPlaces.push(p); }
     else if (l.kind === "undo" && Number(l.points) <= 0) events.push({ kind: "visit_removed", at, by });
     else if (l.kind === "redeem") events.push({ kind: "reward_used", at, by });
   }
@@ -70,6 +73,13 @@ export async function guestRecord(venueId: string, cardId: string): Promise<Gues
   // A till that is not connected has no receipts table rows; a database without the table simply shows no bills.
   const paid = receipts.error ? [] : ((receipts.data ?? []) as Raw[]).filter((r) => !r.refunded_at);
   for (const r of paid) events.push({ kind: "bill", at: String(r.created_at), fils: Number(r.total_fils) || 0, place: place(r.branch_id) });
+  // What they order most, from the lines of their paid bills. No bills, or no table of lines: nothing to say.
+  let favourite: string | null = null;
+  if (paid.length) {
+    const lines = await db().from("receipt_items").select("receipt_id, name, qty").eq("venue_id", venueId).in("receipt_id", paid.map((r) => r.id));
+    const names = lines.error ? [] : ((lines.data ?? []) as Raw[]).flatMap((l) => Array.from({ length: Math.min(Math.max(Number(l.qty) || 1, 1), 20) }, () => String(l.name)));
+    favourite = mostOften(names);
+  }
   const notesReady = !notes.error;
   for (const n of notesReady ? ((notes.data ?? []) as Raw[]) : []) events.push({ kind: "note", at: String(n.created_at), id: String(n.id), text: String(n.body), by: String(n.author) });
   events.push({ kind: "joined", at: joined, place: place(card.joined_branch) });
@@ -86,6 +96,7 @@ export async function guestRecord(venueId: string, cardId: string): Promise<Gues
     everyDays: daysBetweenVisits(visitTimes),
     giftsReady: gifts.filter((g) => g.status === "issued").length, giftsUsed: gifts.filter((g) => g.status === "redeemed").length,
     spentFils: paid.reduce((s, r) => s + (Number(r.total_fils) || 0), 0), bills: paid.length,
+    usualPlace: mostOften(visitPlaces), usualWeekday: mostOften(visitTimes.map(bahrainWeekday)), favourite,
     notesReady, events: newestFirst(events),
   };
 }

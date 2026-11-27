@@ -1063,4 +1063,6 @@ export const AR: Record<string, string> = {
   "Notes and labels are not switched on for this venue yet. Ask Orbyn.": "الملاحظات والوسوم غير مفعّلة لهذا المكان بعد. تواصل مع Orbyn.",
   "Write a note of up to 600 characters, or choose up to 8 labels.": "اكتب ملاحظة لا تتجاوز 600 حرف، أو اختر 8 وسوم كحد أقصى.",
   "Note not found.": "الملاحظة غير موجودة.",
+  "Usually at": "يزور غالبًا",
+  "Usually comes on": "يأتي غالبًا يوم",
 };

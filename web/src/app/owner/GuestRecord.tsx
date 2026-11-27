@@ -14,6 +14,7 @@ type Rec = {
   visits: number; points: number; lastVisit: string | null; joined: string; joinedAt: string | null;
   birthday: { day: number; month: number } | null; offers: boolean; wallet: "apple" | "google" | null;
   everyDays: number | null; giftsReady: number; giftsUsed: number; spentFils: number; bills: number;
+  usualPlace: string | null; usualWeekday: number | null; favourite: string | null;
   notesReady: boolean; events: GuestEvent[];
 };
 
@@ -37,6 +38,7 @@ export default function GuestRecord({ call, cardId, visitVenue, onChanged }: { c
 
   const date = (iso: string) => new Date(iso).toLocaleDateString(`${t.locale}-u-nu-latn`, { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Bahrain" });
   const time = (iso: string) => new Date(iso).toLocaleTimeString(`${t.locale}-u-nu-latn`, { hour: "numeric", minute: "2-digit", timeZone: "Asia/Bahrain" });
+  const weekday = (d: number) => new Date(Date.UTC(2023, 0, 1 + d)).toLocaleDateString(`${t.locale}-u-nu-latn`, { weekday: "long", timeZone: "UTC" });
   const birthday = (b: { day: number; month: number }) => new Date(Date.UTC(2000, b.month - 1, b.day)).toLocaleDateString(`${t.locale}-u-nu-latn`, { day: "numeric", month: "long", timeZone: "UTC" });
 
   async function change(body: Record<string, unknown>, done?: () => void) {
@@ -56,7 +58,10 @@ export default function GuestRecord({ call, cardId, visitVenue, onChanged }: { c
     [t("Comes about every"), rec.everyDays === null ? t("Not known yet") : t("{n} days", { n: n(rec.everyDays) })],
     [t("Member since"), rec.joinedAt ? t("{date} · {place}", { date: date(rec.joined), place: rec.joinedAt }) : date(rec.joined)],
     ...(visitVenue ? [[t("Gifts"), t("{ready} waiting · {used} used", { ready: n(rec.giftsReady), used: n(rec.giftsUsed) })] as [string, string]] : [[t("Balance"), n(rec.points)] as [string, string]]),
-    ...(rec.bills > 0 ? [[t("Spent"), t("{money} over {n} bills", { money: filsMoney(rec.spentFils), n: n(rec.bills) })] as [string, string]] : []),
+    ...(rec.usualPlace ? [[t("Usually at"), rec.usualPlace] as [string, string]] : []),
+    ...(rec.usualWeekday !== null ? [[t("Usually comes on"), weekday(rec.usualWeekday)] as [string, string]] : []),
+    ...(rec.bills > 0 ? [[t("Spent"), t("{money} over {n} bills", { money: filsMoney(rec.spentFils), n: n(rec.bills) })] as [string, string], [t("Average bill"), filsMoney(Math.round(rec.spentFils / rec.bills))] as [string, string]] : []),
+    ...(rec.favourite ? [[t("Orders most"), rec.favourite] as [string, string]] : []),
     [t("Birthday"), rec.birthday ? birthday(rec.birthday) : t("Not given")],
     [t("Offers on their card"), rec.offers ? t("Agreed") : t("Did not agree")],
     [t("Card saved in"), rec.wallet === "apple" ? "Apple Wallet" : rec.wallet === "google" ? "Google Wallet" : t("Not saved to a wallet")],

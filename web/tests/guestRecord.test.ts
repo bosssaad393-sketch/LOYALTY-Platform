@@ -15,7 +15,7 @@ vi.mock("../src/lib/supabase", async () => {
 import { newState } from "./helpers/fakeDb";
 import { GET, POST } from "../src/app/api/owner/guests/record/route";
 import { GET as LIST } from "../src/app/api/owner/guests/route";
-import { cleanTags, daysBetweenVisits, guestStage, newestFirst } from "../src/lib/guestCrm";
+import { bahrainWeekday, cleanTags, daysBetweenVisits, guestStage, mostOften, newestFirst } from "../src/lib/guestCrm";
 
 const VA = "aaaaaaaa-aaaa-4aaa-8aaa-000000000001", VB = "aaaaaaaa-aaaa-4aaa-8aaa-000000000002";
 const C1 = "cccccccc-cccc-4ccc-8ccc-000000000001", C2 = "cccccccc-cccc-4ccc-8ccc-000000000002";
@@ -49,7 +49,7 @@ describe("guest record", () => {
     const text = await res.text();
     expect(text).not.toContain("+973");
     const { record } = JSON.parse(text);
-    expect(record).toMatchObject({ name: "Maryam", code: "1001", visits: 2, tags: ["family"], offers: true, wallet: "apple", birthday: { day: 4, month: 3 }, everyDays: 10 });
+    expect(record).toMatchObject({ name: "Maryam", code: "1001", visits: 2, tags: ["family"], offers: true, wallet: "apple", birthday: { day: 4, month: 3 }, everyDays: 10, usualWeekday: null, usualPlace: null, favourite: null });
     expect(record.events.map((e: { kind: string }) => e.kind)).toEqual(["visit", "visit", "joined"]);
   });
 
@@ -93,6 +93,13 @@ describe("guest rules", () => {
     expect(cleanTags(Array.from({ length: 12 }, (_, i) => `t${i}`))).toHaveLength(8);
     expect(cleanTags(["x".repeat(40)])[0]).toHaveLength(24);
     expect(cleanTags([1, null, "ok"])).toEqual(["ok"]);
+  });
+  it("names a habit only when it is clear", () => {
+    expect(mostOften(["Sanad", "Sanad", "Asmak"])).toBe("Sanad");
+    expect(mostOften(["Sanad"])).toBeNull();
+    expect(mostOften(["Sanad", "Sanad", "Asmak", "Asmak"])).toBeNull();
+    // 22:30 UTC on a Thursday is already Friday in Bahrain.
+    expect(bahrainWeekday("2026-11-26T22:30:00Z")).toBe(5);
   });
   it("works out the days between visits, and sorts the history", () => {
     expect(daysBetweenVisits([days(0)])).toBeNull();
